@@ -3,19 +3,27 @@ import { Text, View } from "react-native";
 import { Image } from "expo-image";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { matchPlan, time, completeOnboarding } from "../domain/model";
+import {
+  matchPlan,
+  time,
+  getDrillDuration,
+  completeOnboarding,
+} from "../domain/model";
 import {
   OnboardingDraft,
   isOnboardingStepReady,
   profileFromDraft,
 } from "../domain/onboarding";
 import { drills } from "../data/drills";
-import { Page, Title, Button, IconButton, s, C } from "../components/ui";
+import { planForDate } from "../domain/planning";
+import { Page, Title, Button, IconButton } from "../components/ui";
+import { useTheme } from "../theme/ThemeProvider";
 import { PreferenceFields } from "../components/Preferences";
 export function Onboarding({
   onComplete,
   replay = false,
 }: { onComplete?: () => void; replay?: boolean } = {}) {
+  const { C, s } = useTheme();
   const { data, update } = useApp();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<OnboardingDraft>({});
@@ -29,13 +37,24 @@ export function Onboarding({
     "What’s your setup?",
     "Your starting session",
   ];
-  const ids = profile
-    ? completeOnboarding(data, profile, matchPlan(drills, profile), replay).plan
+  const nextData = profile
+    ? completeOnboarding(data, profile, matchPlan(drills, profile), replay)
+    : null;
+  const ids = nextData
+    ? planForDate(
+        drills,
+        nextData.profile,
+        nextData.plan,
+        new Date(),
+        nextData.planCustomized,
+      )
     : [];
   const finish = () => {
     const complete = profileFromDraft(draft);
     if (!complete) return;
-    update((st) => completeOnboarding(st, complete, ids, replay));
+    update((st) =>
+      completeOnboarding(st, complete, matchPlan(drills, complete), replay),
+    );
     onComplete?.();
   };
   const proceed = () => {
@@ -169,7 +188,7 @@ export function Onboarding({
                   {drills.find((d) => d.id === id)!.name}
                 </Text>
                 <Text style={s.small}>
-                  {time((profile.minutes * 60 - 120) / 3)}
+                  {time(getDrillDuration(profile.minutes, ids.length))}
                 </Text>
               </View>
             ))}

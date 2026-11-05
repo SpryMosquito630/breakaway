@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false
     },
@@ -24,7 +24,18 @@
     "plugins": [
       "expo-font",
       "expo-status-bar",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      "expo-notifications",
+      "expo-asset"
     ]
   }
 }

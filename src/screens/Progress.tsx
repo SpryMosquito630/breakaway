@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
-import { ChartNoAxesCombined, Check, Clock3 } from "lucide-react-native";
+import {
+  ArrowDown,
+  ArrowUp,
+  Minus,
+  ChartNoAxesCombined,
+  Check,
+  Clock3,
+} from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { Button, Field, Link, Page, Title, s, C } from "../components/ui";
-import { time } from "../domain/model";
+import { Button, Field, Link, Page, Title } from "../components/ui";
+import { benchmarkDelta, time } from "../domain/model";
+import { useTheme } from "../theme/ThemeProvider";
+import { canSaveBenchmark } from "../domain/benchmark";
+import { useBenchmarkClock } from "../hooks/useBenchmarkClock";
+
 export function Progress({ navigation }: { navigation: any }) {
+  const { C, s } = useTheme();
   const { data } = useApp();
   const total = data.history.reduce((n, h) => n + h.seconds, 0);
   const b = data.benchmarks;
   const last = b[b.length - 1];
   const first = b[0];
+  const delta = first && last ? benchmarkDelta(first.count, last.count) : null;
+  const DeltaIcon =
+    delta?.direction === "up"
+      ? ArrowUp
+      : delta?.direction === "down"
+        ? ArrowDown
+        : Minus;
   return (
     <Page>
       {data.history.length ? (
@@ -139,10 +158,41 @@ export function Progress({ navigation }: { navigation: any }) {
                 <Text style={s.small}>touches / 30 sec</Text>
               </View>
               {b.length > 1 ? (
-                <Text style={[s.h3, { color: C.green }]}>
-                  {last.count - first.count >= 0 ? "+" : ""}
-                  {last.count - first.count} since first
-                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                    flexShrink: 1,
+                  }}
+                >
+                  <DeltaIcon
+                    size={18}
+                    color={
+                      delta?.direction === "up"
+                        ? C.success
+                        : delta?.direction === "down"
+                          ? C.danger
+                          : C.muted
+                    }
+                  />
+                  <Text
+                    style={[
+                      s.h3,
+                      {
+                        flexShrink: 1,
+                        color:
+                          delta?.direction === "up"
+                            ? C.success
+                            : delta?.direction === "down"
+                              ? C.danger
+                              : C.muted,
+                      },
+                    ]}
+                  >
+                    {delta?.label}
+                  </Text>
+                </View>
               ) : null}
             </View>
             {b
@@ -168,9 +218,21 @@ export function Progress({ navigation }: { navigation: any }) {
   );
 }
 export function Benchmark({ navigation }: { navigation: any }) {
+  const { C, s } = useTheme();
   const { update } = useApp();
+  const { run, start: startClock, cancel } = useBenchmarkClock();
   const [count, setCount] = useState("");
-  const valid = /^\d{1,3}$/.test(count);
+  const saved = useRef(false);
+  const phase = run.phase;
+  const value = Math.ceil(run.remaining);
+  const live = phase === "countdown" || phase === "running";
+  const valid = canSaveBenchmark(run, count);
+  useEffect(() => navigation.addListener("blur", cancel), [navigation, cancel]);
+  const start = () => {
+    saved.current = false;
+    setCount("");
+    startClock();
+  };
   return (
     <KeyboardAvoidingView
       style={s.page}
@@ -179,45 +241,108 @@ export function Benchmark({ navigation }: { navigation: any }) {
     >
       <Page
         footer={
-          <Button
-            label="Save result"
-            disabled={!valid}
-            onPress={() => {
-              update((st) => ({
-                ...st,
-                benchmarks: [
-                  ...st.benchmarks,
-                  {
-                    id: String(Date.now()),
-                    date: new Date().toISOString(),
-                    count: Number(count),
-                  },
-                ],
-              }));
-              navigation.goBack();
-            }}
-          />
+          phase === "entry" ? (
+            <Button
+              label="Save result"
+              disabled={!valid}
+              onPress={() => {
+                if (!valid || saved.current) return;
+                saved.current = true;
+                const now = Date.now();
+                update((st) => ({
+                  ...st,
+                  benchmarks: [
+                    ...st.benchmarks,
+                    {
+                      id: String(now),
+                      date: new Date(now).toISOString(),
+                      count: Number(count),
+                    },
+                  ],
+                }));
+                navigation.goBack();
+              }}
+            />
+          ) : (
+            <Button
+              label={live ? "Cancel test" : "Start touch test"}
+              kind={live ? "secondary" : "primary"}
+              onPress={live ? cancel : start}
+            />
+          )
         }
       >
         <Title
           title="30-second touch test"
-          body="Count controlled inside touches for 30 seconds. If the ball escapes, reset and keep the timer running."
+          body="Count controlled inside touches. If the ball escapes, reset and keep going."
         />
-        <Text style={s.small}>
-          Use a separate timer and the same conditions each time.
-        </Text>
-        <Field
-          label="Controlled touches"
-          value={count}
-          onChangeText={setCount}
-          number
-          placeholder="0–999"
-        />
-        {count && !valid ? (
-          <Text style={[s.small, { color: C.danger }]}>
-            Enter a whole number from 0 to 999.
-          </Text>
-        ) : null}
+        {phase === "ready" || phase === "cancelled" ? (
+          <>
+            <Text style={s.body}>
+              Get set for a 3–2–1 countdown, then 30 seconds of touches.
+            </Text>
+            <Text style={s.small}>
+              Use the same space and technique each time. Sound and vibration
+              mark the start and finish.
+            </Text>
+            {phase === "cancelled" ? (
+              <Text accessibilityLiveRegion="polite" style={s.small}>
+                Test cancelled. Start again when you’re ready.
+              </Text>
+            ) : null}
+          </>
+        ) : phase === "entry" ? (
+          <>
+            <Text accessibilityRole="header" style={s.h2}>
+              Test complete
+            </Text>
+            <Field
+              label="Controlled touches"
+              value={count}
+              onChangeText={setCount}
+              number
+              placeholder="0–999"
+            />
+            {count && !valid ? (
+              <Text style={[s.small, { color: C.danger }]}>
+                Enter a whole number from 0 to 999.
+              </Text>
+            ) : null}
+            <Link label="Try again" onPress={start} />
+          </>
+        ) : (
+          <View style={{ alignItems: "center", gap: 12, paddingVertical: 32 }}>
+            <Text accessibilityLiveRegion="polite" style={s.h2}>
+              {phase === "countdown"
+                ? "Get ready"
+                : value <= 10
+                  ? "10 seconds or less"
+                  : "Count your touches"}
+            </Text>
+            <Text
+              accessibilityLabel={
+                phase === "countdown"
+                  ? `Starting in ${value}`
+                  : `${value} seconds left`
+              }
+              style={[
+                s.stat,
+                {
+                  fontSize: 72,
+                  lineHeight: 90,
+                  color: phase === "running" ? C.flare : C.ink,
+                },
+              ]}
+            >
+              {phase === "countdown" ? value : time(value)}
+            </Text>
+            <Text style={s.small}>
+              {phase === "countdown"
+                ? "Start on the signal"
+                : "Keep the ball close"}
+            </Text>
+          </View>
+        )}
       </Page>
     </KeyboardAvoidingView>
   );

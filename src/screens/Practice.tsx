@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Alert, Text, View } from "react-native";
 import {
   Check,
@@ -8,7 +8,8 @@ import {
   Footprints,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { Active, advance, pause, recap, time } from "../domain/model";
+import { Active, advance, recap, time } from "../domain/model";
+import { usePracticeClock } from "../hooks/usePracticeClock";
 import { drills } from "../data/drills";
 import {
   Button,
@@ -19,25 +20,20 @@ import {
   Note,
   Page,
   Steps,
-  s,
   Title,
-  C,
+  useTheme,
 } from "../components/ui";
 export function Practice({ navigation }: { navigation: any }) {
-  const { data, update } = useApp();
-  const a = data.active;
-  const latest = useRef(a);
-  latest.current = a;
+  const { update } = useApp();
+  const { C, s } = useTheme();
+  const clock = usePracticeClock();
+  const a = clock.active;
   useEffect(
     () =>
       navigation.addListener("beforeRemove", () => {
-        if (latest.current)
-          update((st) => ({
-            ...st,
-            active: st.active ? pause(st.active) : null,
-          }));
+        if (clock.current()) clock.pauseCurrent();
       }),
-    [navigation],
+    [navigation, clock.current, clock.pauseCurrent],
   );
   if (!a)
     return (
@@ -46,32 +42,47 @@ export function Practice({ navigation }: { navigation: any }) {
         <Button label="Back to Today" onPress={() => navigation.popToTop()} />
       </Page>
     );
-  const d = drills.find((d) => d.id === a.ids[a.index])!;
+  const base = drills.find((d) => d.id === a.ids[a.index])!;
+  const snapshot = a.snapshots?.[base.id];
+  const variant = base.variants?.find(
+    (v) => v.difficulty === (snapshot?.difficulty ?? 1),
+  );
+  const d = {
+    ...base,
+    ...variant,
+    ...(snapshot?.name ? { name: snapshot.name } : {}),
+    ...(snapshot?.cue ? { cue: snapshot.cue } : {}),
+    ...(snapshot?.steps ? { steps: snapshot.steps } : {}),
+    ...(snapshot?.tip ? { tip: snapshot.tip } : {}),
+    target: snapshot?.target ?? variant?.target,
+  };
   const finish = (active = a) => {
     const result = recap(active);
-    update((st) => ({ ...st, active: null, history: [...st.history, result] }));
+    clock.commit(null);
+    update((st) => ({ ...st, history: [...st.history, result] }));
     navigation.replace("Recap", { id: result.id });
   };
-  const next = (skip = false, current: Active = a) => {
-    const n = advance(current, skip);
+  const next = (skip = false, current?: Active) => {
+    const actual = current ?? clock.current() ?? a;
+    const n = advance(actual, skip);
     if (n.index >= n.ids.length) finish(n);
-    else update((st) => ({ ...st, active: n }));
+    else clock.commit(n);
   };
   const end = () => {
-    const paused = pause(a);
-    update((st) => ({ ...st, active: paused }));
+    const paused = clock.pauseCurrent();
+    if (!paused) return;
     Alert.alert("End session?", "Your practiced time will be saved.", [
       { text: "Keep practicing", style: "cancel" },
       { text: "Save and end", onPress: () => finish(paused) },
     ]);
   };
   const advanceBlock = () => {
-    if (a.remaining <= 0) {
-      next();
+    const paused = clock.pauseCurrent();
+    if (!paused) return;
+    if (paused.remaining <= 0) {
+      next(false, paused);
       return;
     }
-    const paused = pause(a);
-    update((st) => ({ ...st, active: paused }));
     Alert.alert(
       "Finish block early?",
       "Time is saved. This block will count as partial.",
@@ -81,16 +92,16 @@ export function Practice({ navigation }: { navigation: any }) {
       ],
     );
   };
-  const swap = () =>
+  const swap = () => {
+    clock.pauseCurrent();
     navigation.navigate("Replace", { mode: "active", index: a.index });
+  };
   const timed = a.warmed && a.phase === "timer";
   const footer = !a.warmed ? (
     <Button
       label="Warm-up done"
       icon={ArrowRight}
-      onPress={() =>
-        update((st) => ({ ...st, active: { ...st.active!, warmed: true } }))
-      }
+      onPress={() => clock.commit({ ...a, warmed: true })}
     />
   ) : !timed ? (
     <>
@@ -98,15 +109,12 @@ export function Practice({ navigation }: { navigation: any }) {
         label={`Start · ${time(a.duration)}`}
         icon={Play}
         onPress={() =>
-          update((st) => ({
-            ...st,
-            active: {
-              ...st.active!,
-              phase: "timer",
-              running: true,
-              last: Date.now(),
-            },
-          }))
+          clock.commit({
+            ...a,
+            phase: "timer",
+            running: true,
+            last: Date.now(),
+          })
         }
       />
       <View style={s.row}>
@@ -130,12 +138,9 @@ export function Practice({ navigation }: { navigation: any }) {
         onPress={() =>
           a.remaining <= 0
             ? next()
-            : update((st) => ({
-                ...st,
-                active: st.active!.running
-                  ? pause(st.active!)
-                  : { ...st.active!, running: true, last: Date.now() },
-              }))
+            : a.running
+              ? clock.pauseCurrent()
+              : clock.commit({ ...a, running: true, last: Date.now() })
         }
       />
       {a.remaining > 0 ? (
@@ -256,9 +261,11 @@ export function Practice({ navigation }: { navigation: any }) {
               <Text style={[s.small, { color: a.running ? C.flare : C.muted }]}>
                 {a.remaining <= 0
                   ? "Block complete"
-                  : a.running
-                    ? "In progress"
-                    : "Paused"}
+                  : !a.running
+                    ? "Paused"
+                    : a.remaining <= 10
+                      ? `${Math.ceil(a.remaining)} second${Math.ceil(a.remaining) === 1 ? "" : "s"} left`
+                      : "In progress"}
               </Text>
             </View>
             <Text
@@ -286,6 +293,11 @@ export function Practice({ navigation }: { navigation: any }) {
             Ball{d.gear.length ? " + " + d.gear.join(" + ") : " only"} ·{" "}
             {d.space}
           </Text>
+          {d.target ? (
+            <Text style={[s.h3, { color: C.green }]}>
+              Stage {snapshot?.difficulty ?? 1} · {d.target}
+            </Text>
+          ) : null}
           <Steps drill={d} />
           <Note>{d.tip}</Note>
           <Disclosure label="View movement">
@@ -298,6 +310,7 @@ export function Practice({ navigation }: { navigation: any }) {
 }
 export function Recap({ navigation, route }: { navigation: any; route: any }) {
   const { data, update } = useApp();
+  const { C, s } = useTheme();
   const h = data.history.find((h) => h.id === route.params.id);
   if (!h) return null;
   return (
@@ -353,6 +366,28 @@ export function Recap({ navigation, route }: { navigation: any; route: any }) {
           ))}
         </View>
       </View>
+      {h.drills?.length ? (
+        <Disclosure label="Drill results">
+          {h.drills.map((r, i) => (
+            <View key={`${r.id}-${i}`} style={s.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.h3}>
+                  {drills.find((d) => d.id === r.id)?.name ?? "Archived drill"}
+                </Text>
+                <Text style={s.small}>
+                  Stage {r.difficulty} ·{" "}
+                  {r.status === "done"
+                    ? "Complete"
+                    : r.status === "partial"
+                      ? "Partial"
+                      : "Skipped"}
+                </Text>
+              </View>
+              <Text style={s.small}>{time(r.seconds)}</Text>
+            </View>
+          ))}
+        </Disclosure>
+      ) : null}
       <Link
         label="View progress"
         onPress={() => {

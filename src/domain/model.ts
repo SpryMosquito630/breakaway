@@ -17,6 +17,32 @@ export type Drill = {
   cue: string;
   steps: string[];
   tip: string;
+  version?: number;
+  difficulty?: 1 | 2 | 3;
+  variants?: {
+    difficulty: 1 | 2 | 3;
+    label: string;
+    target: string;
+    cue: string;
+    steps: string[];
+    tip: string;
+  }[];
+};
+export type DrillResult = {
+  id: string;
+  version: number;
+  difficulty: number;
+  status: "done" | "partial" | "skipped";
+  seconds: number;
+};
+export type DrillSnapshot = {
+  version: number;
+  difficulty: number;
+  name?: string;
+  cue?: string;
+  steps?: string[];
+  tip?: string;
+  target?: string;
 };
 export type Active = {
   id: string;
@@ -31,6 +57,11 @@ export type Active = {
   warmed: boolean;
   phase: "setup" | "timer";
   last: number;
+  blockElapsed?: number;
+  results?: DrillResult[];
+  snapshots?: Record<string, DrillSnapshot>;
+  warningSent?: boolean;
+  finishSent?: boolean;
 };
 export type History = {
   id: string;
@@ -41,10 +72,12 @@ export type History = {
   total: number;
   completed: boolean;
   effort?: string;
+  drills?: DrillResult[];
 };
 export type Benchmark = { id: string; date: string; count: number };
 export type AppData = {
   version: 1;
+  planCustomized?: boolean;
   onboarded: boolean;
   profile: Profile;
   plan: string[];
@@ -61,6 +94,7 @@ export const goals: Goal[] = [
 ];
 export const initialData = (): AppData => ({
   version: 1,
+  planCustomized: false,
   onboarded: false,
   profile: {
     goal: "Ball control",
@@ -92,12 +126,38 @@ export function matchPlan(all: Drill[], p: Profile) {
     .slice(0, 3)
     .map((d) => d.id);
 }
+export function getDrillDuration(minutes: number, count: number) {
+  return Math.max(30, Math.floor((minutes * 60 - 120) / Math.max(1, count)));
+}
+export function snapshotDrill(d?: Drill): DrillSnapshot {
+  const difficulty = d?.difficulty ?? 1;
+  const variant = d?.variants?.find((v) => v.difficulty === difficulty);
+  return {
+    version: d?.version ?? 1,
+    difficulty,
+    ...(d
+      ? {
+          name: d.name,
+          cue: d.cue,
+          steps: [...d.steps],
+          tip: d.tip,
+          target: variant?.target,
+        }
+      : {}),
+  };
+}
 export function makeSession(
   ids: string[],
   minutes: number,
   now = Date.now(),
+  catalog: Drill[] = [],
 ): Active {
-  const duration = Math.max(30, Math.floor((minutes * 60 - 120) / ids.length));
+  const duration = getDrillDuration(minutes, ids.length);
+  const snapshots: Record<string, DrillSnapshot> = {};
+  for (const id of ids) {
+    const d = catalog.find((x) => x.id === id);
+    snapshots[id] = snapshotDrill(d);
+  }
   return {
     id: String(now),
     ids: [...ids],
@@ -111,6 +171,11 @@ export function makeSession(
     warmed: false,
     phase: "setup",
     last: now,
+    blockElapsed: 0,
+    results: [],
+    snapshots,
+    warningSent: false,
+    finishSent: false,
   };
 }
 export function tick(a: Active, now = Date.now()): Active {
@@ -121,35 +186,130 @@ export function tick(a: Active, now = Date.now()): Active {
     last: now,
     remaining: a.remaining - used,
     elapsed: a.elapsed + used,
+    blockElapsed:
+      (a.blockElapsed ?? Math.max(0, a.duration - a.remaining)) + used,
     running: a.remaining - used > 0,
   };
 }
 export function pause(a: Active, now = Date.now()) {
   return { ...tick(a, now), running: false };
 }
+export function currentDrillResult(
+  a: Active,
+  skip = false,
+): DrillResult | null {
+  const id = a.ids[a.index];
+  if (!id) return null;
+  const seconds = Math.round(
+    a.blockElapsed ?? Math.max(0, a.duration - a.remaining),
+  );
+  const snapshot = a.snapshots?.[id] ?? { version: 1, difficulty: 1 };
+  return {
+    id,
+    ...snapshot,
+    status:
+      !skip && a.remaining <= 0 ? "done" : seconds > 0 ? "partial" : "skipped",
+    seconds,
+  };
+}
 export function advance(a: Active, skip = false, now = Date.now()) {
   const t = pause(a, now);
   const completed = !skip && t.remaining <= 0;
+  const result = currentDrillResult(t, skip);
   return {
     ...t,
     done: t.done + Number(completed),
     skipped: t.skipped + Number(!completed),
+    results: [...(t.results ?? []), ...(result ? [result] : [])],
     index: t.index + 1,
     remaining: t.duration,
+    blockElapsed: 0,
+    warningSent: false,
+    finishSent: false,
     phase: "setup" as const,
+  };
+}
+export function replaceActiveDrill(
+  a: Active,
+  index: number,
+  id: string,
+  drill?: Drill,
+  now = Date.now(),
+): Active {
+  const t = pause(a, now);
+  const result = currentDrillResult(t);
+  const results = [
+    ...(t.results ?? []),
+    ...(result && result.seconds > 0
+      ? [{ ...result, status: "partial" as const }]
+      : []),
+  ];
+  const ids = [...t.ids];
+  ids[index] = id;
+  return {
+    ...t,
+    ids,
+    results,
+    snapshots: {
+      ...t.snapshots,
+      [id]: snapshotDrill(drill),
+    },
+    remaining: t.duration,
+    blockElapsed: 0,
+    warningSent: false,
+    finishSent: false,
+    phase: "setup",
   };
 }
 export function recap(a: Active, now = Date.now()): History {
   const t = pause(a, now);
+  const current = currentDrillResult(t);
+  const results = [
+    ...(t.results ?? []),
+    ...(current && current.seconds > 0 ? [current] : []),
+  ];
+  const done = t.done + Number(current?.status === "done");
   return {
     id: t.id,
     date: new Date(now).toISOString(),
     seconds: Math.round(t.elapsed),
-    done: t.done,
+    done,
     skipped: t.skipped,
     total: t.ids.length,
-    completed: t.done === t.ids.length,
+    completed: done === t.ids.length,
+    drills: results,
   };
+}
+export type TimerSignal = "warning" | "finish";
+export function tickWithSignals(
+  a: Active,
+  now = Date.now(),
+): { active: Active; signals: TimerSignal[] } {
+  const next = tick(a, now);
+  const signals: TimerSignal[] = [];
+  if (!a.running) return { active: next, signals };
+  if (next.remaining > 0 && next.remaining <= 10 && !next.warningSent) {
+    next.warningSent = true;
+    signals.push("warning");
+  }
+  if (next.remaining <= 0 && !next.finishSent) {
+    next.finishSent = true;
+    signals.push("finish");
+  }
+  return { active: next, signals };
+}
+export function benchmarkDelta(first: number, last: number) {
+  const value = last - first;
+  return {
+    value,
+    direction: value > 0 ? "up" : value < 0 ? "down" : "same",
+    label:
+      value > 0
+        ? `${value} more than first`
+        : value < 0
+          ? `${Math.abs(value)} fewer than first`
+          : "Same as first",
+  } as const;
 }
 export function time(seconds: number) {
   const n = Math.max(0, Math.ceil(seconds));
@@ -174,6 +334,7 @@ export function completeOnboarding(
     ...data,
     profile,
     plan: keepPlan ? data.plan : matchedPlan,
+    planCustomized: keepPlan ? data.planCustomized : false,
     onboarded: true,
   };
 }

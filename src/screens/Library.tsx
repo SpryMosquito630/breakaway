@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { Play } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { allowed, goals, makeSession, pause } from "../domain/model";
+import { allowed, goals, makeSession, replaceActiveDrill, getDrillDuration, time } from "../domain/model";
 import { drills } from "../data/drills";
 import {
   Page,
@@ -14,11 +14,12 @@ import {
   Diagram,
   Steps,
   Note,
-  s,
-  C,
 } from "../components/ui";
+import { useTheme } from "../theme/ThemeProvider";
+import { adaptDrill, planForDate } from "../domain/planning";
 export function Library({ navigation }: { navigation: any }) {
   const { data } = useApp();
+  const { C, s } = useTheme();
   const [filter, setFilter] = useState("My setup");
   const [search, setSearch] = useState("");
   const list = drills.filter(
@@ -70,7 +71,12 @@ export function Library({ navigation }: { navigation: any }) {
 }
 export function Detail({ navigation, route }: { navigation: any; route: any }) {
   const { data, update } = useApp();
-  const d = drills.find((x) => x.id === route.params.id)!;
+  const { C, s } = useTheme();
+  const base = drills.find((x) => x.id === route.params.id)!;
+  const earned = adaptDrill(base, data.history);
+  const [difficulty, setDifficulty] = useState(earned.difficulty ?? 1);
+  const variant = base.variants?.find((v) => v.difficulty === difficulty);
+  const d = variant ? { ...base, ...variant, difficulty } : base;
   const fits = allowed(d, data.profile);
   const begin = () => {
     if (data.active) {
@@ -84,7 +90,7 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
       );
       return;
     }
-    update((st) => ({ ...st, active: makeSession([d.id], 5) }));
+    update((st) => ({ ...st, active: makeSession([d.id], 5, Date.now(), [d]) }));
     navigation.navigate("Practice");
   };
   const start = () =>
@@ -100,7 +106,7 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
         );
   return (
     <Page
-      footer={<Button label="Practice · 3 min" icon={Play} onPress={start} />}
+      footer={<Button label={`Practice · ${time(getDrillDuration(5, 1))}`} icon={Play} onPress={start} />}
     >
       <Title title={d.name} body={d.cue} />
       <View style={s.row}>
@@ -108,6 +114,14 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
         <Text style={s.small}>
           {d.gear.length ? `Ball + ${d.gear.join(" + ")}` : "Ball only"}
         </Text>
+      </View>
+      <View style={{ gap: 8 }}>
+        <Text style={s.h2}>Choose your challenge</Text>
+        <Text style={s.small}>Two completed Easy sessions move your plan up a level.</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          {base.variants?.map((v) => <Chip key={v.difficulty} label={v.label} selected={difficulty === v.difficulty} onPress={() => setDifficulty(v.difficulty)} />)}
+        </View>
+        <Text style={s.body}>{variant?.target}</Text>
       </View>
       <Diagram drill={d} />
       <View style={{ gap: 16 }}>
@@ -132,8 +146,9 @@ export function Replace({
   route: any;
 }) {
   const { data, update } = useApp();
+  const { C, s } = useTheme();
   const { index, mode } = route.params;
-  const ids = mode === "active" ? data.active?.ids || [] : data.plan;
+  const ids = mode === "active" ? data.active?.ids || [] : planForDate(drills, data.profile, data.plan, new Date(), data.planCustomized);
   const current = drills.find((d) => d.id === ids[index]);
   const list = drills.filter(
     (d) => allowed(d, data.profile) && !ids.includes(d.id),
@@ -152,22 +167,11 @@ export function Replace({
             onPress={() => {
               update((st) => {
                 if (mode === "active" && st.active) {
-                  const a = pause(st.active);
-                  const next = [...a.ids];
-                  next[index] = d.id;
-                  return {
-                    ...st,
-                    active: {
-                      ...a,
-                      ids: next,
-                      remaining: a.duration,
-                      phase: "setup",
-                    },
-                  };
+                  return { ...st, active: replaceActiveDrill(st.active, index, d.id, adaptDrill(d, st.history)) };
                 }
-                const next = [...st.plan];
+                const next = [...ids];
                 next[index] = d.id;
-                return { ...st, plan: next };
+                return { ...st, plan: next, planCustomized: true };
               });
               navigation.goBack();
             }}

@@ -8,15 +8,9 @@ import React, {
 } from "react";
 import { AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  AppData,
-  initialData,
-  pause,
-  tick,
-  days,
-  goals,
-  matchPlan,
-} from "../domain/model";
+import { AppData, initialData, pause } from "../domain/model";
+import { restoreAppData } from "../domain/storage";
+import { Active } from "../domain/model";
 import { drills } from "../data/drills";
 const KEY = "player-accelerator-v1";
 type Store = {
@@ -25,76 +19,9 @@ type Store = {
   loading: boolean;
   error: string | null;
   retry: () => void;
+  checkpointActive: (active: Active) => void;
 };
 const Context = createContext<Store | null>(null);
-function restore(raw: string): AppData {
-  const p = JSON.parse(raw);
-  const profile = p.profile;
-  if (
-    p.version !== 1 ||
-    typeof p.onboarded !== "boolean" ||
-    !profile ||
-    !goals.includes(profile.goal) ||
-    !["New to training", "Some experience"].includes(profile.experience) ||
-    ![15, 20, 30].includes(profile.minutes) ||
-    !Array.isArray(profile.days) ||
-    !profile.days.length ||
-    !profile.days.every((d: string) => days.includes(d)) ||
-    !Array.isArray(profile.gear) ||
-    !profile.gear.every((g: string) =>
-      ["markers", "wall", "partner"].includes(g),
-    ) ||
-    !["Small space", "Open space"].includes(profile.space) ||
-    !Array.isArray(p.plan) ||
-    !Array.isArray(p.history) ||
-    !Array.isArray(p.benchmarks)
-  )
-    throw Error("Invalid saved preferences");
-  const known = (id: string) => drills.some((d) => d.id === id);
-  p.plan =
-    p.plan.length && p.plan.every(known) ? p.plan : matchPlan(drills, profile);
-  if (p.active) {
-    const a = p.active;
-    if (
-      !Array.isArray(a.ids) ||
-      !a.ids.length ||
-      !a.ids.every(known) ||
-      !Number.isInteger(a.index) ||
-      a.index < 0 ||
-      a.index >= a.ids.length ||
-      !["setup", "timer"].includes(a.phase) ||
-      !["duration", "remaining", "elapsed", "done", "skipped", "last"].every(
-        (k) => Number.isFinite(a[k]) && a[k] >= 0,
-      ) ||
-      a.duration < 1 ||
-      a.remaining > a.duration
-    )
-      throw Error("Invalid saved session");
-    p.active = { ...a, running: false };
-  }
-  p.history = p.history.filter(
-    (h: any) =>
-      typeof h.id === "string" &&
-      typeof h.date === "string" &&
-      Number.isFinite(Date.parse(h.date)) &&
-      Number.isFinite(h.seconds) &&
-      h.seconds >= 0 &&
-      Number.isInteger(h.done) &&
-      Number.isInteger(h.total) &&
-      h.total > 0 &&
-      h.done >= 0 &&
-      h.done <= h.total,
-  );
-  p.benchmarks = p.benchmarks.filter(
-    (b: any) =>
-      typeof b.id === "string" &&
-      Number.isFinite(Date.parse(b.date)) &&
-      Number.isInteger(b.count) &&
-      b.count >= 0 &&
-      b.count <= 999,
-  );
-  return p;
-}
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(true);
@@ -102,7 +29,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const latest = useRef(data);
   const pending = useRef<AppData | null>(null);
   const writing = useRef(false);
-  const ticks = useRef(0);
   const persist = useCallback((next: AppData) => {
     pending.current = next;
     if (writing.current) return;
@@ -142,7 +68,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then((raw) => {
         if (!mounted) return;
         if (raw) {
-          const restored = restore(raw);
+          const restored = restoreAppData(raw, drills);
           latest.current = restored;
           setData(restored);
           persist(restored);
@@ -162,22 +88,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [persist]);
   useEffect(() => {
-    const id = setInterval(() => {
-      if (latest.current.active?.running) {
-        ticks.current++;
-        const checkpoint = ticks.current % 5 === 0;
-        apply((s) => ({ ...s, active: tick(s.active!) }), checkpoint);
-      }
-    }, 1000);
     const sub = AppState.addEventListener("change", (status) => {
       if (status !== "active" && latest.current.active?.running)
         update((s) => ({ ...s, active: pause(s.active!) }));
     });
     return () => {
-      clearInterval(id);
       sub.remove();
     };
   }, [apply, update]);
+  const checkpointActive = useCallback(
+    (active: Active) => {
+      const current = latest.current.active;
+      if (
+        !current ||
+        current.id !== active.id ||
+        current.index !== active.index ||
+        current.ids[current.index] !== active.ids[active.index] ||
+        !current.running
+      )
+        return;
+      const next = { ...latest.current, active };
+      latest.current = next;
+      persist(next);
+    },
+    [persist],
+  );
   return (
     <Context.Provider
       value={{
@@ -186,6 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loading,
         error,
         retry: () => persist(latest.current),
+        checkpointActive,
       }}
     >
       {children}

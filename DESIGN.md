@@ -20,7 +20,7 @@ Archivo400/500/600 carries the interface. Screen titles27/34, section18/24, row1
 
 The bundled editorial photo `assets/training-editorial.png` is tightly cropped in the session panel and larger on the welcome screen. See `work/asset-notes.md` for provenance. Category icons identify library rows. Movement diagrams are specific to the drill and appear only in guidance/detail contexts, never as repeated decorative thumbnails. Actual drill instructions remain intact; operational reading is progressively disclosed.
 
-No fake scores, zero-dashboard, slogans, repeated disclaimers, decorative metrics or invented progress. The app remains phone-first, light-theme, local-only and Expo SDK58 compatible.
+No fake scores, zero-dashboard, slogans, repeated disclaimers, decorative metrics or invented progress. The app remains phone-first, local-only and Expo SDK58 compatible. Appearance follows the system by default, with Light and Dark overrides. Reference tokens live in `src/theme/tokens.json`; semantic palette roles resolve them for both themes. Control boundaries use line-strong, and inverse text uses dedicated on-fill roles.
 
 ## Review
 

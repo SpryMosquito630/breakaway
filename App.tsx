@@ -32,7 +32,9 @@ import { Library, Detail, Replace } from "./src/screens/Library";
 import { Practice, Recap } from "./src/screens/Practice";
 import { Progress, Benchmark } from "./src/screens/Progress";
 import { Settings, EditPreferences } from "./src/screens/Settings";
-import { C, Link, IconButton, s } from "./src/components/ui";
+import { Link, IconButton, useTheme } from "./src/components/ui";
+import { ThemeProvider } from "./src/theme/ThemeProvider";
+import { RemindersProvider } from "./src/notifications/RemindersProvider";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const icons = {
@@ -42,6 +44,7 @@ const icons = {
   Progress: ChartNoAxesCombined,
 };
 function Main({ navigation }: { navigation: any }) {
+  const { C } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
@@ -107,6 +110,7 @@ function Main({ navigation }: { navigation: any }) {
   );
 }
 function Shell() {
+  const { C, s, isDark } = useTheme();
   const { data, loading, error, retry } = useApp();
   const [reduce, setReduce] = useState(false);
   useEffect(() => {
@@ -142,7 +146,7 @@ function Shell() {
     );
   return (
     <SafeAreaView edges={data.onboarded ? [] : ["top"]} style={s.page}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? "light" : "dark"} />
       {error ? (
         <View
           accessibilityRole="alert"
@@ -158,6 +162,7 @@ function Shell() {
         <NavigationContainer
           theme={{
             ...DefaultTheme,
+            dark: isDark,
             colors: {
               ...DefaultTheme.colors,
               background: C.bg,
@@ -236,7 +241,8 @@ function Shell() {
     </SafeAreaView>
   );
 }
-export default function App() {
+function AppContent() {
+  const { C } = useTheme();
   const [loaded, error] = useFonts({
     BarlowCondensed_600SemiBold,
     BarlowCondensed_700Bold,
@@ -258,8 +264,18 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <Shell />
+        <RemindersProvider>
+          <Shell />
+        </RemindersProvider>
       </AppProvider>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

@@ -1,6 +1,7 @@
 import { Text, View, ScrollView, Pressable } from "react-native";
 import { Profile, days, goals } from "../domain/model";
-import { Chip, Choice, s, C } from "./ui";
+import { Chip, Choice } from "./ui";
+import { useTheme } from "../theme/ThemeProvider";
 export function PreferenceFields({
   profile,
   onChange,
@@ -12,6 +13,7 @@ export function PreferenceFields({
   explicitEquipment?: boolean;
   section?: "all" | "goal" | "experience" | "schedule" | "setup";
 }) {
+  const { C, s } = useTheme();
   const set = <K extends keyof Profile>(
     key: K,
     value: Profile[K] | undefined,
@@ -104,7 +106,7 @@ export function PreferenceFields({
                       {
                         color:
                           (profile.days?.includes(d) ?? false)
-                            ? C.white
+                            ? C.onPrimary
                             : C.muted,
                       },
                     ]}

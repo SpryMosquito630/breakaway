@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   ScrollView,
-  StyleSheet,
   Text,
   View,
   Pressable,
@@ -28,101 +27,13 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 import { Drill } from "../domain/model";
-export const C = {
-  bg: "#F6F7F5",
-  white: "#FFFFFF",
-  ink: "#14231C",
-  muted: "#616B64",
-  green: "#0C4A34",
-  deep: "#082D20",
-  lime: "#C6EF2E",
-  soft: "#EEF1EC",
-  pitchSoft: "#E1EDE5",
-  line: "#E3E7E1",
-  lineStrong: "#A4ADA5",
-  danger: "#B42318",
-  flare: "#C2410C",
-  focus: "#1D56C9",
-};
-export const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: C.bg },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 24,
-  },
-  h1: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 27,
-    lineHeight: 34,
-    letterSpacing: -0.8,
-    color: C.ink,
-  },
-  h2: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 18,
-    lineHeight: 24,
-    letterSpacing: -0.35,
-    color: C.ink,
-  },
-  h3: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 15,
-    lineHeight: 22,
-    color: C.ink,
-  },
-  body: {
-    fontFamily: "Archivo_400Regular",
-    fontSize: 15,
-    lineHeight: 23,
-    color: C.muted,
-  },
-  small: {
-    fontFamily: "Archivo_400Regular",
-    fontSize: 13,
-    lineHeight: 19,
-    color: C.muted,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  stack: { gap: 12 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  card: { padding: 16, borderRadius: 16, backgroundColor: C.white, gap: 12 },
-  group: { borderRadius: 16, backgroundColor: C.white, overflow: "hidden" },
-  note: { padding: 16, borderRadius: 12, backgroundColor: C.soft },
-  input: {
-    minHeight: 50,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    color: C.ink,
-    backgroundColor: C.white,
-    fontFamily: "Archivo_400Regular",
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: C.line,
-  },
-  rule: { height: 1, backgroundColor: C.line },
-  white: { color: C.white },
-  stat: {
-    fontFamily: "IBMPlexMono_500Medium",
-    fontSize: 30,
-    lineHeight: 40,
-    color: C.ink,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 8,
-    borderTopWidth: 1,
-    borderColor: C.line,
-    backgroundColor: C.bg,
-  },
-});
+export { palette as C } from "../theme/palette";
+import { palette as C } from "../theme/palette";
+import { createStyles } from "../theme/styles";
+export const s = createStyles(C);
+import { useTheme } from "../theme/ThemeProvider";
+export { useTheme } from "../theme/ThemeProvider";
+
 export function Page({
   children,
   footer,
@@ -132,6 +43,8 @@ export function Page({
   footer?: React.ReactNode;
   contentStyle?: ViewStyle;
 }) {
+  const { s } = useTheme();
+
   const inset = useSafeAreaInsets();
   return (
     <View style={s.page}>
@@ -160,6 +73,8 @@ export function Title({
   body?: string;
   eyebrow?: string;
 }) {
+  const { s } = useTheme();
+
   return (
     <View style={{ gap: 8 }}>
       {eyebrow ? <Text style={s.small}>{eyebrow}</Text> : null}
@@ -183,6 +98,8 @@ export function Button({
   disabled?: boolean;
   icon?: LucideIcon;
 }) {
+  const { C } = useTheme();
+
   const dark = kind === "primary" || kind === "danger";
   return (
     <Pressable
@@ -193,6 +110,8 @@ export function Button({
       style={({ pressed }) => ({
         minHeight: 52,
         borderRadius: 10,
+        borderWidth: kind === "secondary" ? 1 : 0,
+        borderColor: C.lineStrong,
         paddingHorizontal: 18,
         paddingVertical: 14,
         flexDirection: "row",
@@ -206,9 +125,7 @@ export function Button({
               ? C.soft
               : kind === "danger"
                 ? C.danger
-                : pressed
-                  ? C.deep
-                  : C.green,
+                : C.green,
         opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
       })}
     >
@@ -217,14 +134,33 @@ export function Button({
           fontFamily: "Archivo_600SemiBold",
           fontSize: 15,
           lineHeight: 22,
-          color: dark ? C.white : C.ink,
+          color:
+            kind === "danger"
+              ? C.onDanger
+              : dark
+                ? C.onPrimary
+                : kind === "lime"
+                  ? C.onLime
+                  : C.ink,
           textAlign: "center",
         }}
       >
         {label}
       </Text>
       {Icon ? (
-        <Icon size={18} color={dark ? C.white : C.ink} strokeWidth={2} />
+        <Icon
+          size={18}
+          color={
+            kind === "danger"
+              ? C.onDanger
+              : dark
+                ? C.onPrimary
+                : kind === "lime"
+                  ? C.onLime
+                  : C.ink
+          }
+          strokeWidth={2}
+        />
       ) : null}
     </Pressable>
   );
@@ -240,6 +176,8 @@ export function IconButton({
   icon: LucideIcon;
   color?: string;
 }) {
+  const { C } = useTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -265,6 +203,8 @@ export function Link({
   label: string;
   onPress: () => void;
 }) {
+  const { C } = useTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -292,6 +232,8 @@ export function Chip({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { C } = useTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -299,6 +241,8 @@ export function Chip({
       onPress={onPress}
       style={({ pressed }) => ({
         minHeight: 48,
+        borderWidth: 1,
+        borderColor: selected ? C.green : C.lineStrong,
         paddingHorizontal: 16,
         paddingVertical: 13,
         borderRadius: 10,
@@ -311,7 +255,7 @@ export function Chip({
           fontFamily: "Archivo_500Medium",
           fontSize: 14,
           lineHeight: 22,
-          color: selected ? C.white : C.muted,
+          color: selected ? C.onPrimary : C.muted,
         }}
       >
         {label}
@@ -332,6 +276,8 @@ export function Choice({
   onPress: () => void;
   multiple?: boolean;
 }) {
+  const { C, s } = useTheme();
+
   return (
     <Pressable
       accessibilityRole={multiple ? "checkbox" : "radio"}
@@ -345,7 +291,7 @@ export function Choice({
         minHeight: 68,
         borderRadius: 12,
         borderWidth: 1.5,
-        borderColor: selected ? C.green : C.line,
+        borderColor: selected ? C.green : C.lineStrong,
         backgroundColor: selected ? C.pitchSoft : pressed ? C.soft : C.white,
       })}
     >
@@ -365,12 +311,16 @@ export function Choice({
           justifyContent: "center",
         }}
       >
-        {selected ? <Check size={14} color="white" strokeWidth={2.5} /> : null}
+        {selected ? (
+          <Check size={14} color={C.onPrimary} strokeWidth={2.5} />
+        ) : null}
       </View>
     </Pressable>
   );
 }
 export function Note({ children }: { children: React.ReactNode }) {
+  const { s } = useTheme();
+
   return (
     <View style={s.note}>
       <Text style={s.body}>{children}</Text>
@@ -390,6 +340,8 @@ export function Field({
   number?: boolean;
   placeholder?: string;
 }) {
+  const { C, s } = useTheme();
+
   return (
     <View style={{ gap: 8 }}>
       <Text style={s.h3}>{label}</Text>
@@ -412,6 +364,8 @@ export function SearchField({
   value: string;
   onChangeText: (s: string) => void;
 }) {
+  const { C } = useTheme();
+
   return (
     <View
       style={{
@@ -419,6 +373,8 @@ export function SearchField({
         alignItems: "center",
         gap: 10,
         backgroundColor: C.white,
+        borderWidth: 1,
+        borderColor: C.lineStrong,
         borderRadius: 12,
         paddingHorizontal: 14,
         minHeight: 50,
@@ -461,6 +417,8 @@ export function DrillRow({
   duration?: string;
   trailing?: React.ReactNode;
 }) {
+  const { C, s } = useTheme();
+
   const Icon = categoryIcons[drill.skill] || CircleDot;
   return (
     <View
@@ -490,14 +448,7 @@ export function DrillRow({
             width: 42,
             height: 42,
             borderRadius: 12,
-            backgroundColor:
-              drill.skill === "Weaker foot"
-                ? "#EBE8F2"
-                : drill.skill === "Passing"
-                  ? "#E7EDE3"
-                  : drill.skill === "Dribbling"
-                    ? "#E5ECEE"
-                    : C.pitchSoft,
+            backgroundColor: C.pitchSoft,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -540,6 +491,8 @@ export function SettingRow({
   icon?: LucideIcon;
   danger?: boolean;
 }) {
+  const { C, s } = useTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -574,6 +527,8 @@ export function Disclosure({
   label: string;
   children: React.ReactNode;
 }) {
+  const { C, s } = useTheme();
+
   const [open, setOpen] = useState(false);
   return (
     <View>
@@ -599,6 +554,8 @@ export function Disclosure({
   );
 }
 export function Steps({ drill }: { drill: Drill }) {
+  const { C, s } = useTheme();
+
   return (
     <View style={{ gap: 16 }}>
       {drill.steps.map((step, i) => (
@@ -611,6 +568,8 @@ export function Steps({ drill }: { drill: Drill }) {
   );
 }
 export function Diagram({ drill }: { drill?: Drill; small?: boolean }) {
+  const { C } = useTheme();
+
   const id = drill?.id || "inside";
   const stationary = ["inside", "sole", "weak"].includes(id);
   const path =
@@ -648,7 +607,7 @@ export function Diagram({ drill }: { drill?: Drill; small?: boolean }) {
             width="260"
             height="140"
             rx="12"
-            stroke="#BDD3C5"
+            stroke={C.lineStrong}
             strokeDasharray="4 5"
             fill="none"
           />
@@ -702,7 +661,7 @@ export function Diagram({ drill }: { drill?: Drill; small?: boolean }) {
           cx={stationary ? 160 : 90}
           cy={stationary ? 100 : 130}
           r="11"
-          fill="white"
+          fill={C.white}
           stroke={C.green}
           strokeWidth="1.5"
         />
@@ -718,9 +677,12 @@ export function Diagram({ drill }: { drill?: Drill; small?: boolean }) {
     </View>
   );
 }
-export const Disclaimer = () => (
-  <Text style={s.small}>
-    Starter drills are illustrative, not coach reviewed. Use a clear space and
-    stop if you feel pain.
-  </Text>
-);
+export function Disclaimer() {
+  const { s } = useTheme();
+  return (
+    <Text style={s.small}>
+      Starter drills are illustrative, not coach reviewed. Use a clear space and
+      stop if you feel pain.
+    </Text>
+  );
+}

@@ -1,0 +1,83 @@
+import { StyleSheet } from "react-native";
+import { Palette } from "./palette";
+export function createStyles(C: Palette) {
+  return StyleSheet.create({
+    page: { flex: 1, backgroundColor: C.bg },
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 24,
+      gap: 24,
+    },
+    h1: {
+      fontFamily: "Archivo_600SemiBold",
+      fontSize: 27,
+      lineHeight: 34,
+      letterSpacing: -0.8,
+      color: C.ink,
+    },
+    h2: {
+      fontFamily: "Archivo_600SemiBold",
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.35,
+      color: C.ink,
+    },
+    h3: {
+      fontFamily: "Archivo_600SemiBold",
+      fontSize: 15,
+      lineHeight: 22,
+      color: C.ink,
+    },
+    body: {
+      fontFamily: "Archivo_400Regular",
+      fontSize: 15,
+      lineHeight: 23,
+      color: C.muted,
+    },
+    small: {
+      fontFamily: "Archivo_400Regular",
+      fontSize: 13,
+      lineHeight: 19,
+      color: C.muted,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    stack: { gap: 12 },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    card: { padding: 16, borderRadius: 16, backgroundColor: C.white, gap: 12 },
+    group: { borderRadius: 16, backgroundColor: C.white, overflow: "hidden" },
+    note: { padding: 16, borderRadius: 12, backgroundColor: C.soft },
+    input: {
+      minHeight: 50,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      color: C.ink,
+      backgroundColor: C.white,
+      fontFamily: "Archivo_400Regular",
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: C.lineStrong,
+    },
+    rule: { height: 1, backgroundColor: C.line },
+    white: { color: C.onPrimary },
+    stat: {
+      fontFamily: "IBMPlexMono_500Medium",
+      fontSize: 30,
+      lineHeight: 40,
+      color: C.ink,
+    },
+    footer: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      gap: 8,
+      borderTopWidth: 1,
+      borderColor: C.line,
+      backgroundColor: C.bg,
+    },
+  });
+}

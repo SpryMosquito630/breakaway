@@ -30,4 +30,4 @@ The next useful action is easy to find. Setup constraints are respected by the p
 
 ## Accessibility & Inclusion
 
-Readable outdoor contrast, scalable text, controls at least 44 points (48 preferred), explicit labels and statuses, safe-area handling, and Reduce Motion support. No sound-only, color-only, or gesture-only essential interactions. The current build deliberately uses the reference's light theme.
+Readable outdoor contrast, scalable text, controls at least 44 points (48 preferred), explicit labels and statuses, safe-area handling, and Reduce Motion support. No sound-only, color-only, or gesture-only essential interactions. Light and dark themes follow the reference tokens. Practice prevents automatic screen sleep while running, with audible and tactile timer cues plus visible status. Reminders are optional local notifications, enabled explicitly in Settings.
