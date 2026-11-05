@@ -1,3 +1,4 @@
+import { haptic } from "./src/utils/haptics";
 import { useEffect, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Text, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
@@ -48,6 +49,11 @@ function Main({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
+      screenListeners={({ navigation }) => ({
+        tabPress: () => {
+          if (!navigation.isFocused()) haptic("selection");
+        },
+      })}
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: { backgroundColor: C.bg },

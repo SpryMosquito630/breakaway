@@ -1,3 +1,4 @@
+import { haptic } from "../utils/haptics";
 import { useEffect } from "react";
 import { Alert, Text, View } from "react-native";
 import {
@@ -72,8 +73,18 @@ export function Practice({ navigation }: { navigation: any }) {
     const paused = clock.pauseCurrent();
     if (!paused) return;
     Alert.alert("End session?", "Your practiced time will be saved.", [
-      { text: "Keep practicing", style: "cancel" },
-      { text: "Save and end", onPress: () => finish(paused) },
+      {
+        text: "Keep practicing",
+        style: "cancel",
+        onPress: () => haptic("selection"),
+      },
+      {
+        text: "Save and end",
+        onPress: () => {
+          haptic("success");
+          finish(paused);
+        },
+      },
     ]);
   };
   const advanceBlock = () => {
@@ -87,8 +98,18 @@ export function Practice({ navigation }: { navigation: any }) {
       "Finish block early?",
       "Time is saved. This block will count as partial.",
       [
-        { text: "Keep practicing", style: "cancel" },
-        { text: "Finish block", onPress: () => next(false, paused) },
+        {
+          text: "Keep practicing",
+          style: "cancel",
+          onPress: () => haptic("selection"),
+        },
+        {
+          text: "Finish block",
+          onPress: () => {
+            haptic("warning");
+            next(false, paused);
+          },
+        },
       ],
     );
   };
@@ -118,8 +139,12 @@ export function Practice({ navigation }: { navigation: any }) {
         }
       />
       <View style={s.row}>
-        <Link label="Replace drill" onPress={swap} />
-        <Link label="Skip drill" onPress={() => next(true)} />
+        <Link label="Replace drill" feedback="light" onPress={swap} />
+        <Link
+          label="Skip drill"
+          feedback="warning"
+          onPress={() => next(true)}
+        />
       </View>
     </>
   ) : (
@@ -146,9 +171,13 @@ export function Practice({ navigation }: { navigation: any }) {
       {a.remaining > 0 ? (
         <View style={s.row}>
           {!a.running ? (
-            <Link label="Replace drill" onPress={swap} />
+            <Link label="Replace drill" feedback="light" onPress={swap} />
           ) : (
-            <Link label="Skip drill" onPress={() => next(true)} />
+            <Link
+              label="Skip drill"
+              feedback="warning"
+              onPress={() => next(true)}
+            />
           )}
           <Link
             label={a.index === a.ids.length - 1 ? "Finish drill" : "Next drill"}

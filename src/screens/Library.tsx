@@ -1,8 +1,16 @@
+import { haptic } from "../utils/haptics";
 import { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { Play } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { allowed, goals, makeSession, replaceActiveDrill, getDrillDuration, time } from "../domain/model";
+import {
+  allowed,
+  goals,
+  makeSession,
+  replaceActiveDrill,
+  getDrillDuration,
+  time,
+} from "../domain/model";
 import { drills } from "../data/drills";
 import {
   Page,
@@ -84,13 +92,26 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
         "Session in progress",
         "Resume or end your current session first.",
         [
-          { text: "Cancel", style: "cancel" },
-          { text: "Resume", onPress: () => navigation.navigate("Practice") },
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => haptic("selection"),
+          },
+          {
+            text: "Resume",
+            onPress: () => {
+              haptic("medium");
+              navigation.navigate("Practice");
+            },
+          },
         ],
       );
       return;
     }
-    update((st) => ({ ...st, active: makeSession([d.id], 5, Date.now(), [d]) }));
+    update((st) => ({
+      ...st,
+      active: makeSession([d.id], 5, Date.now(), [d]),
+    }));
     navigation.navigate("Practice");
   };
   const start = () =>
@@ -100,13 +121,29 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
           "Check your setup",
           `You need ${d.space.toLowerCase()}${d.gear.length ? " and " + d.gear.join(" + ") : ""}. Available now?`,
           [
-            { text: "Cancel", style: "cancel" },
-            { text: "Start drill", onPress: begin },
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => haptic("selection"),
+            },
+            {
+              text: "Start drill",
+              onPress: () => {
+                haptic("medium");
+                begin();
+              },
+            },
           ],
         );
   return (
     <Page
-      footer={<Button label={`Practice · ${time(getDrillDuration(5, 1))}`} icon={Play} onPress={start} />}
+      footer={
+        <Button
+          label={`Practice · ${time(getDrillDuration(5, 1))}`}
+          icon={Play}
+          onPress={start}
+        />
+      }
     >
       <Title title={d.name} body={d.cue} />
       <View style={s.row}>
@@ -117,9 +154,18 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
       </View>
       <View style={{ gap: 8 }}>
         <Text style={s.h2}>Choose your challenge</Text>
-        <Text style={s.small}>Two completed Easy sessions move your plan up a level.</Text>
+        <Text style={s.small}>
+          Two completed Easy sessions move your plan up a level.
+        </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {base.variants?.map((v) => <Chip key={v.difficulty} label={v.label} selected={difficulty === v.difficulty} onPress={() => setDifficulty(v.difficulty)} />)}
+          {base.variants?.map((v) => (
+            <Chip
+              key={v.difficulty}
+              label={v.label}
+              selected={difficulty === v.difficulty}
+              onPress={() => setDifficulty(v.difficulty)}
+            />
+          ))}
         </View>
         <Text style={s.body}>{variant?.target}</Text>
       </View>
@@ -148,7 +194,16 @@ export function Replace({
   const { data, update } = useApp();
   const { C, s } = useTheme();
   const { index, mode } = route.params;
-  const ids = mode === "active" ? data.active?.ids || [] : planForDate(drills, data.profile, data.plan, new Date(), data.planCustomized);
+  const ids =
+    mode === "active"
+      ? data.active?.ids || []
+      : planForDate(
+          drills,
+          data.profile,
+          data.plan,
+          new Date(),
+          data.planCustomized,
+        );
   const current = drills.find((d) => d.id === ids[index]);
   const list = drills.filter(
     (d) => allowed(d, data.profile) && !ids.includes(d.id),
@@ -164,10 +219,19 @@ export function Replace({
             key={d.id}
             drill={d}
             action="Choose"
+            feedback="light"
             onPress={() => {
               update((st) => {
                 if (mode === "active" && st.active) {
-                  return { ...st, active: replaceActiveDrill(st.active, index, d.id, adaptDrill(d, st.history)) };
+                  return {
+                    ...st,
+                    active: replaceActiveDrill(
+                      st.active,
+                      index,
+                      d.id,
+                      adaptDrill(d, st.history),
+                    ),
+                  };
                 }
                 const next = [...ids];
                 next[index] = d.id;

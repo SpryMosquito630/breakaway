@@ -68,6 +68,7 @@ export function Onboarding({
         step === 0 ? "Get started" : step === 5 ? "Use this plan" : "Continue"
       }
       icon={ArrowRight}
+      feedback={step === 5 ? "success" : "medium"}
       disabled={!isOnboardingStepReady(draft, step)}
       onPress={proceed}
     />

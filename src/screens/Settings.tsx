@@ -1,3 +1,4 @@
+import { haptic } from "../utils/haptics";
 import { useState } from "react";
 import {
   Alert,
@@ -60,7 +61,11 @@ export function Settings({ navigation }: { navigation: any }) {
               key={value}
               accessibilityRole="radio"
               accessibilityState={{ checked: mode === value }}
-              onPress={() => setMode(value)}
+              onPress={() => {
+                if (mode === value) return;
+                haptic("selection");
+                setMode(value);
+              }}
               style={({ pressed }) => ({
                 minHeight: 48,
                 paddingHorizontal: 18,
@@ -133,6 +138,7 @@ export function Settings({ navigation }: { navigation: any }) {
                   text: "Reset all data",
                   style: "destructive",
                   onPress: () => {
+                    haptic("warning");
                     void reminders.reset();
                     update(() => initialData());
                   },
@@ -162,6 +168,7 @@ export function EditPreferences({
         <Button
           disabled={!profile.days.length}
           label="Save changes"
+          feedback="success"
           onPress={() => {
             update((st) => {
               const normalized = (p: typeof profile) =>
@@ -213,6 +220,8 @@ function ReminderSettings() {
           disabled={!ready || busy || !supported}
           value={preferences.enabled}
           onValueChange={(value) => {
+            if (!ready || busy || !supported) return;
+            haptic(value ? "toggle-on" : "toggle-off");
             void setEnabled(value);
           }}
           trackColor={{ false: C.lineStrong, true: C.green }}
@@ -250,14 +259,17 @@ function ReminderSettings() {
           ) : null}
           <Button
             label={busy ? "Updating reminders…" : "Save reminder time"}
+            feedback={false}
             kind="secondary"
             disabled={!ready || busy}
             onPress={() => {
               const match = /^(\d{1,2}):(\d{2})$/.exec(draft ?? clock);
               if (!match || Number(match[1]) > 23 || Number(match[2]) > 59) {
+                haptic("error");
                 setError("Use a time from 00:00 to 23:59.");
                 return;
               }
+              haptic("light");
               void setTime(Number(match[1]), Number(match[2]));
               setDraft(null);
             }}

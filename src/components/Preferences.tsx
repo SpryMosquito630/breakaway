@@ -1,3 +1,4 @@
+import { haptic } from "../utils/haptics";
 import { Text, View, ScrollView, Pressable } from "react-native";
 import { Profile, days, goals } from "../domain/model";
 import { Chip, Choice } from "./ui";
@@ -89,7 +90,12 @@ export function PreferenceFields({
                   accessibilityState={{
                     checked: profile.days?.includes(d) ?? false,
                   }}
-                  onPress={() => toggle("days", d)}
+                  onPress={() => {
+                    haptic(
+                      profile.days?.includes(d) ? "toggle-off" : "toggle-on",
+                    );
+                    toggle("days", d);
+                  }}
                   style={{
                     width: 48,
                     height: 48,

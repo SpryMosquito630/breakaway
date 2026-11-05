@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import * as Haptics from "expo-haptics";
+import { haptic } from "../utils/haptics";
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import { TimerSignal } from "../domain/model";
 export function useKeepTimerAwake(running: boolean, tag: string) {
@@ -37,15 +37,13 @@ export function useTimerFeedback() {
   return useCallback(
     (signal: TimerSignal | "start" | "countdown") => {
       if (!mounted.current || AppState.currentState !== "active") return;
-      const haptic =
+      haptic(
         signal === "countdown"
-          ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-          : Haptics.notificationAsync(
-              signal === "finish" || signal === "start"
-                ? Haptics.NotificationFeedbackType.Success
-                : Haptics.NotificationFeedbackType.Warning,
-            );
-      void haptic.catch(() => {});
+          ? "light"
+          : signal === "finish" || signal === "start"
+            ? "success"
+            : "warning",
+      );
       const player = signal === "finish" ? finish : warning;
       void player
         .seekTo(0)

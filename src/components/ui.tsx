@@ -26,6 +26,7 @@ import Svg, {
   Rect,
   Text as SvgText,
 } from "react-native-svg";
+import { haptic, type HapticFeedback } from "../utils/haptics";
 import { Drill } from "../domain/model";
 export { palette as C } from "../theme/palette";
 import { palette as C } from "../theme/palette";
@@ -91,9 +92,11 @@ export function Button({
   kind = "primary",
   disabled = false,
   icon: Icon,
+  feedback,
 }: {
   label: string;
   onPress: () => void;
+  feedback?: HapticFeedback;
   kind?: "primary" | "secondary" | "lime" | "danger";
   disabled?: boolean;
   icon?: LucideIcon;
@@ -106,7 +109,18 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={() => {
+        if (disabled) return;
+        haptic(
+          feedback ??
+            (kind === "danger"
+              ? "warning"
+              : kind === "secondary"
+                ? "light"
+                : "medium"),
+        );
+        onPress();
+      }}
       style={({ pressed }) => ({
         minHeight: 52,
         borderRadius: 10,
@@ -169,10 +183,12 @@ export function IconButton({
   label,
   onPress,
   icon: Icon,
-  color = C.ink,
+  color,
+  feedback,
 }: {
   label: string;
   onPress: () => void;
+  feedback?: HapticFeedback;
   icon: LucideIcon;
   color?: string;
 }) {
@@ -182,7 +198,10 @@ export function IconButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      onPress={() => {
+        haptic(feedback ?? "selection");
+        onPress();
+      }}
       style={({ pressed }) => ({
         width: 48,
         height: 48,
@@ -192,23 +211,28 @@ export function IconButton({
         backgroundColor: pressed ? C.soft : "transparent",
       })}
     >
-      <Icon size={21} color={color} strokeWidth={1.8} />
+      <Icon size={21} color={color ?? C.ink} strokeWidth={1.8} />
     </Pressable>
   );
 }
 export function Link({
   label,
   onPress,
+  feedback,
 }: {
   label: string;
   onPress: () => void;
+  feedback?: HapticFeedback;
 }) {
   const { C } = useTheme();
 
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={() => {
+        haptic(feedback ?? "light");
+        onPress();
+      }}
       style={{ minHeight: 48, justifyContent: "center" }}
     >
       <Text
@@ -227,10 +251,12 @@ export function Chip({
   label,
   selected,
   onPress,
+  feedback,
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
+  feedback?: HapticFeedback;
 }) {
   const { C } = useTheme();
 
@@ -238,7 +264,10 @@ export function Chip({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={() => {
+        haptic(feedback ?? "selection");
+        onPress();
+      }}
       style={({ pressed }) => ({
         minHeight: 48,
         borderWidth: 1,
@@ -269,11 +298,13 @@ export function Choice({
   selected,
   onPress,
   multiple = false,
+  feedback,
 }: {
   label: string;
   detail?: string;
   selected: boolean;
   onPress: () => void;
+  feedback?: HapticFeedback;
   multiple?: boolean;
 }) {
   const { C, s } = useTheme();
@@ -282,7 +313,10 @@ export function Choice({
     <Pressable
       accessibilityRole={multiple ? "checkbox" : "radio"}
       accessibilityState={multiple ? { checked: selected } : { selected }}
-      onPress={onPress}
+      onPress={() => {
+        haptic(feedback ?? "selection");
+        onPress();
+      }}
       style={({ pressed }) => ({
         flexDirection: "row",
         alignItems: "center",
@@ -410,9 +444,11 @@ export function DrillRow({
   action,
   duration,
   trailing,
+  feedback,
 }: {
   drill: Drill;
   onPress: () => void;
+  feedback?: HapticFeedback;
   action?: string;
   duration?: string;
   trailing?: React.ReactNode;
@@ -433,7 +469,10 @@ export function DrillRow({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${action || "View"} ${drill.name}`}
-        onPress={onPress}
+        onPress={() => {
+          haptic(feedback ?? "selection");
+          onPress();
+        }}
         style={({ pressed }) => ({
           flex: 1,
           flexDirection: "row",
@@ -484,10 +523,12 @@ export function SettingRow({
   onPress,
   icon: Icon,
   danger = false,
+  feedback,
 }: {
   label: string;
   value?: string;
   onPress: () => void;
+  feedback?: HapticFeedback;
   icon?: LucideIcon;
   danger?: boolean;
 }) {
@@ -496,7 +537,10 @@ export function SettingRow({
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={() => {
+        haptic(feedback ?? "selection");
+        onPress();
+      }}
       style={({ pressed }) => ({
         paddingHorizontal: 16,
         paddingVertical: 16,
@@ -535,7 +579,10 @@ export function Disclosure({
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        onPress={() => setOpen(!open)}
+        onPress={() => {
+          haptic("selection");
+          setOpen(!open);
+        }}
         style={[s.row, { minHeight: 48 }]}
       >
         <Text style={s.h3}>{label}</Text>

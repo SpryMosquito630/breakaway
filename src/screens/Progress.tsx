@@ -1,3 +1,4 @@
+import { haptic } from "../utils/haptics";
 import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import {
@@ -244,10 +245,12 @@ export function Benchmark({ navigation }: { navigation: any }) {
           phase === "entry" ? (
             <Button
               label="Save result"
+              feedback={false}
               disabled={!valid}
               onPress={() => {
                 if (!valid || saved.current) return;
                 saved.current = true;
+                haptic("success");
                 const now = Date.now();
                 update((st) => ({
                   ...st,
@@ -266,6 +269,7 @@ export function Benchmark({ navigation }: { navigation: any }) {
           ) : (
             <Button
               label={live ? "Cancel test" : "Start touch test"}
+              feedback={live ? "warning" : false}
               kind={live ? "secondary" : "primary"}
               onPress={live ? cancel : start}
             />
@@ -308,7 +312,7 @@ export function Benchmark({ navigation }: { navigation: any }) {
                 Enter a whole number from 0 to 999.
               </Text>
             ) : null}
-            <Link label="Try again" onPress={start} />
+            <Link label="Try again" feedback={false} onPress={start} />
           </>
         ) : (
           <View style={{ alignItems: "center", gap: 12, paddingVertical: 32 }}>

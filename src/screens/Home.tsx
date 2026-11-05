@@ -1,6 +1,13 @@
+import { haptic } from "../utils/haptics";
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { ArrowRight, ArrowLeftRight, CalendarDays, Check, Settings2 } from "lucide-react-native";
+import {
+  ArrowRight,
+  ArrowLeftRight,
+  CalendarDays,
+  Check,
+  Settings2,
+} from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import { days, makeSession, time, getDrillDuration } from "../domain/model";
 import { drills } from "../data/drills";
@@ -12,7 +19,12 @@ import {
   Disclosure,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
-import { adaptDrill, planForDate, weeklyProgress, nextTrainingDate } from "../domain/planning";
+import {
+  adaptDrill,
+  planForDate,
+  weeklyProgress,
+  nextTrainingDate,
+} from "../domain/planning";
 export function Today({ navigation }: { navigation: any }) {
   const { data, update } = useApp();
   const { C, s } = useTheme();
@@ -21,13 +33,18 @@ export function Today({ navigation }: { navigation: any }) {
   const catalog = drills.map((d) => {
     const earned = adaptDrill(d, data.history);
     const snapshot = data.active?.snapshots?.[d.id];
-    const variant = snapshot ? d.variants?.find((v) => v.difficulty === snapshot.difficulty) : undefined;
+    const variant = snapshot
+      ? d.variants?.find((v) => v.difficulty === snapshot.difficulty)
+      : undefined;
     return variant ? { ...d, ...variant } : earned;
   });
-  const ids = data.active?.ids ?? planForDate(catalog, data.profile, data.plan, now, data.planCustomized);
+  const ids =
+    data.active?.ids ??
+    planForDate(catalog, data.profile, data.plan, now, data.planCustomized);
   const { profile } = data;
   const today = days[(new Date().getDay() + 6) % 7];
   const start = () => {
+    haptic("medium");
     if (!data.active)
       update((st) => ({
         ...st,
@@ -70,9 +87,9 @@ export function Today({ navigation }: { navigation: any }) {
                 ? "SESSION PAUSED"
                 : progress.doneToday
                   ? "SESSION COMPLETE"
-                : profile.days.includes(today)
-                  ? "TODAY’S SESSION"
-                  : "NEXT SESSION"}
+                  : profile.days.includes(today)
+                    ? "TODAY’S SESSION"
+                    : "NEXT SESSION"}
             </Text>
             <Text
               style={{
@@ -83,7 +100,11 @@ export function Today({ navigation }: { navigation: any }) {
                 color: C.onDeep,
               }}
             >
-              {data.active ? "Ready when you are" : progress.doneToday ? "Done for today" : profile.goal}
+              {data.active
+                ? "Ready when you are"
+                : progress.doneToday
+                  ? "Done for today"
+                  : profile.goal}
             </Text>
             <Text
               style={{
@@ -121,7 +142,11 @@ export function Today({ navigation }: { navigation: any }) {
                 color: C.onLime,
               }}
             >
-              {data.active ? "Resume" : progress.doneToday ? "Train again" : "Start session"}
+              {data.active
+                ? "Resume"
+                : progress.doneToday
+                  ? "Train again"
+                  : "Start session"}
             </Text>
             <ArrowRight size={17} color={C.onLime} />
           </Pressable>
@@ -137,14 +162,17 @@ export function Today({ navigation }: { navigation: any }) {
       <View style={{ gap: 8 }}>
         <View style={s.row}>
           <Text style={s.h2}>This week</Text>
-          <Text style={s.small}>{progress.count} of {progress.target} this week</Text>
+          <Text style={s.small}>
+            {progress.count} of {progress.target} this week
+          </Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Edit weekly schedule. ${progress.count} of ${progress.target} complete this week. Completed days: ${progress.completedDays.join(", ") || "none"}` }
-          onPress={() =>
-            navigation.navigate("Preferences", { section: "schedule" })
-          }
+          accessibilityLabel={`Edit weekly schedule. ${progress.count} of ${progress.target} complete this week. Completed days: ${progress.completedDays.join(", ") || "none"}`}
+          onPress={() => {
+            haptic("selection");
+            navigation.navigate("Preferences", { section: "schedule" });
+          }}
           style={{
             flexDirection: "row",
             backgroundColor: C.white,
@@ -162,7 +190,12 @@ export function Today({ navigation }: { navigation: any }) {
                 alignItems: "center",
                 gap: 7,
                 borderRadius: 9,
-                backgroundColor: d === today ? C.green : progress.completedDays.includes(d) ? C.pitchSoft : "transparent",
+                backgroundColor:
+                  d === today
+                    ? C.green
+                    : progress.completedDays.includes(d)
+                      ? C.pitchSoft
+                      : "transparent",
               }}
             >
               <Text
@@ -174,18 +207,22 @@ export function Today({ navigation }: { navigation: any }) {
               >
                 {d.slice(0, 1)}
               </Text>
-              {progress.completedDays.includes(d) ? <Check size={12} color={d === today ? C.onPrimary : C.green} /> : <View
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: profile.days.includes(d)
-                    ? d === today
-                      ? C.onPrimary
-                      : C.green
-                    : "transparent",
-                }}
-              />}
+              {progress.completedDays.includes(d) ? (
+                <Check size={12} color={d === today ? C.onPrimary : C.green} />
+              ) : (
+                <View
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: profile.days.includes(d)
+                      ? d === today
+                        ? C.onPrimary
+                        : C.green
+                      : "transparent",
+                  }}
+                />
+              )}
             </View>
           ))}
         </Pressable>
@@ -214,7 +251,13 @@ export function Plan({ navigation }: { navigation: any }) {
   const { data } = useApp();
   const { C, s } = useTheme();
   const catalog = drills.map((d) => adaptDrill(d, data.history));
-  const ids = planForDate(catalog, data.profile, data.plan, new Date(), data.planCustomized);
+  const ids = planForDate(
+    catalog,
+    data.profile,
+    data.plan,
+    new Date(),
+    data.planCustomized,
+  );
   const p = data.profile;
   const duration = time(getDrillDuration(p.minutes, ids.length));
   return (
@@ -231,9 +274,9 @@ export function Plan({ navigation }: { navigation: any }) {
           icon={CalendarDays}
           label={`${p.minutes} minutes per session`}
           value={p.days.join(" · ")}
-          onPress={() =>
-            navigation.navigate("Preferences", { section: "schedule" })
-          }
+          onPress={() => {
+            navigation.navigate("Preferences", { section: "schedule" });
+          }}
         />
         <SettingRow
           icon={Settings2}
@@ -244,7 +287,12 @@ export function Plan({ navigation }: { navigation: any }) {
       </View>
       <View style={{ gap: 8 }}>
         <Text style={s.h2}>Session drills</Text>
-        <Text style={s.small}>{data.planCustomized ? "Your custom plan" : `For ${days[(nextTrainingDate(p).getDay() + 6) % 7]} · rotates each training day`} · 2-minute warm-up</Text>
+        <Text style={s.small}>
+          {data.planCustomized
+            ? "Your custom plan"
+            : `For ${days[(nextTrainingDate(p).getDay() + 6) % 7]} · rotates each training day`}{" "}
+          · 2-minute warm-up
+        </Text>
         {ids.map((id, i) => (
           <DrillRow
             key={`${id}-${i}`}
@@ -253,6 +301,7 @@ export function Plan({ navigation }: { navigation: any }) {
             onPress={() => navigation.navigate("Detail", { id })}
             trailing={
               <IconButton
+                feedback="light"
                 icon={ArrowLeftRight}
                 label={`Swap ${drills.find((d) => d.id === id)!.name}`}
                 onPress={() =>
@@ -284,7 +333,25 @@ export function Plan({ navigation }: { navigation: any }) {
                   { flex: 1, color: p.days.includes(d) ? C.green : C.muted },
                 ]}
               >
-                {p.days.includes(d) ? (() => { const date = new Date(); date.setDate(date.getDate() - ((date.getDay() + 6) % 7) + days.indexOf(d)); return planForDate(catalog, p, data.plan, date, data.planCustomized).map((id) => catalog.find((x) => x.id === id)?.name).join(" · "); })() : "Rest"}
+                {p.days.includes(d)
+                  ? (() => {
+                      const date = new Date();
+                      date.setDate(
+                        date.getDate() -
+                          ((date.getDay() + 6) % 7) +
+                          days.indexOf(d),
+                      );
+                      return planForDate(
+                        catalog,
+                        p,
+                        data.plan,
+                        date,
+                        data.planCustomized,
+                      )
+                        .map((id) => catalog.find((x) => x.id === id)?.name)
+                        .join(" · ");
+                    })()
+                  : "Rest"}
               </Text>
               {p.days.includes(d) ? (
                 <Text style={s.small}>{p.minutes} min</Text>

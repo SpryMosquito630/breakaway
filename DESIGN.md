@@ -25,3 +25,9 @@ No fake scores, zero-dashboard, slogans, repeated disclaimers, decorative metric
 ## Review
 
 Pre-edit audit and screen plan: `work/redesign-audit.md`. Main-agent screenshot and interaction review covers the native app and390×844 browser surface. Domain tests retain session accounting guarantees.
+
+## Interaction feedback
+
+Native taps use a centralized, non-blocking haptic utility. Selection ticks acknowledge changed tabs, choices, filters, drill/settings rows, disclosure, navigation icons and appearance choices; weekday and reminder switches use toggle feedback. Primary actions use medium impacts, secondary actions and swaps use light impacts. Confirmed onboarding/preferences/benchmark saves use success feedback; skips, early-finish confirmations and confirmed resets use warning feedback. Invalid reminder-time submissions use error feedback, while reminder operations acknowledge intent without claiming an asynchronous success.
+
+Shared controls accept `feedback={false}` or a semantic override. Benchmark start/retry disable generic control feedback because the countdown already emits its own light ticks/start cue. Timer warning and finish patterns remain separate and occur once per block. Disabled controls, unchanged tabs, passive renders, scrolling and typing produce no haptics. Android uses the platform haptic engine; iOS uses selection, impact and notification feedback. Web and unavailable/background/OS-suppressed feedback stay silent; no permission or override is requested.
