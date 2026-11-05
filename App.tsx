@@ -92,23 +92,7 @@ function Main({ navigation }: { navigation: any }) {
         },
       })}
     >
-      <Tab.Screen
-        name="Today"
-        component={Today}
-        options={{
-          headerTitle: () => (
-            <Text
-              style={{
-                fontFamily: "BarlowCondensed_800ExtraBold",
-                fontSize: 28,
-                color: C.green,
-              }}
-            >
-              Breakaway
-            </Text>
-          ),
-        }}
-      />
+      <Tab.Screen name="Today" component={Today} />
       <Tab.Screen name="My Plan" component={Plan} />
       <Tab.Screen name="Drills" component={Library} />
       <Tab.Screen name="Progress" component={Progress} />
