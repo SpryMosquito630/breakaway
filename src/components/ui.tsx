@@ -93,10 +93,14 @@ export function Button({
   disabled = false,
   icon: Icon,
   feedback,
+  size = "default",
+  accessibilityLabel,
 }: {
   label: string;
   onPress: () => void;
   feedback?: HapticFeedback;
+  size?: "default" | "large";
+  accessibilityLabel?: string;
   kind?: "primary" | "secondary" | "lime" | "danger";
   disabled?: boolean;
   icon?: LucideIcon;
@@ -107,6 +111,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={() => {
@@ -122,7 +127,7 @@ export function Button({
         onPress();
       }}
       style={({ pressed }) => ({
-        minHeight: 52,
+        minHeight: size === "large" ? 68 : 52,
         borderRadius: 10,
         borderWidth: kind === "secondary" ? 1 : 0,
         borderColor: C.lineStrong,
@@ -146,8 +151,8 @@ export function Button({
       <Text
         style={{
           fontFamily: "Archivo_600SemiBold",
-          fontSize: 15,
-          lineHeight: 22,
+          fontSize: size === "large" ? 18 : 15,
+          lineHeight: size === "large" ? 24 : 22,
           color:
             kind === "danger"
               ? C.onDanger
@@ -163,7 +168,7 @@ export function Button({
       </Text>
       {Icon ? (
         <Icon
-          size={18}
+          size={size === "large" ? 22 : 18}
           color={
             kind === "danger"
               ? C.onDanger
