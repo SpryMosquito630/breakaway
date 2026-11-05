@@ -1,6 +1,6 @@
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { ArrowRight, ArrowLeftRight, CalendarDays, Check } from "lucide-react-native";
+import { ArrowRight, ArrowLeftRight, CalendarDays, Check, Settings2 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import { days, makeSession, time, getDrillDuration } from "../domain/model";
 import { drills } from "../data/drills";
@@ -234,6 +234,12 @@ export function Plan({ navigation }: { navigation: any }) {
           onPress={() =>
             navigation.navigate("Preferences", { section: "schedule" })
           }
+        />
+        <SettingRow
+          icon={Settings2}
+          label="Settings"
+          value="Appearance, reminders and onboarding"
+          onPress={() => navigation.navigate("Settings")}
         />
       </View>
       <View style={{ gap: 8 }}>
