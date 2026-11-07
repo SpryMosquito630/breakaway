@@ -1,3 +1,4 @@
+import { drillTarget } from "../domain/targets";
 import { profileForToday, trainingPlanToday } from "../domain/training";
 import { DrillMovement as Diagram } from "../components/DrillMovement";
 import { DrillDemo } from "../components/DrillDemo";
@@ -248,7 +249,7 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
               />
             ))}
           </View>
-          <Text style={s.body}>{variant?.target}</Text>
+          <Text style={s.body}>{drillTarget(variant?.target, getDrillDuration(5, 1))}</Text>
         </View>
       ) : null}
       <DrillDemo key={d.id} id={d.id} />

@@ -161,14 +161,14 @@ export const drills: Drill[] = [...originals, ...extra].map((d) => {
   const parts = raw.split(" / ");
   const suffix = parts[2].replace(/^\d+/, "");
   const numbers = parts.map((v) => v.match(/^\d+/)![0]);
-  return { ...d, version: 1, difficulty: 1,
+  return { ...d, version: 2, difficulty: 1,
     variants: ([1, 2, 3] as const).map((difficulty, i) => ({
       difficulty, label: ["Easier", "Build", "Harder"][i],
-      target: `${numbers[i]}${suffix} per block. Reset between sets.`,
+      target: `${numbers[i]}${suffix} per minute. Rest and reset as needed; control comes first.`,
       cue: d.cue, steps: [...d.steps, [
-        "Work slowly. Stop the ball and reset between repetitions.",
-        "Link two repetitions before a reset; use both sides where possible.",
-        "Link four repetitions before a reset. Lift your eyes between repetitions; keep your touches close.",
+        "Complete one repetition, stop the ball fully, and reset your feet before starting the next. Take a short rest after every four repetitions.",
+        "Complete two repetitions continuously before a full stop. Use both sides when the drill allows; for weaker-foot drills, stay on that foot. Reset after each pair.",
+        "Complete four repetitions continuously before a full stop. Lift your eyes after each repetition and keep the ball within one step. For weaker-foot drills, keep using that foot. Reset after each set of four.",
       ][i]], tip: d.tip,
     })),
   };

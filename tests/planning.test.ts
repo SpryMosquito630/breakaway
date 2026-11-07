@@ -5,7 +5,7 @@ import { allowed, initialData, type History } from "../src/domain/model";
 import { adaptDrill, planForDate, weeklyProgress } from "../src/domain/planning";
 const p = initialData().profile;
 const monday = new Date(2026, 10, 2, 12);
-const done = (id: string, date: Date, difficulty = 1, overrides: Partial<History> = {}): History => ({ id, date: date.toISOString(), completed: true, seconds: 180, done: 1, skipped: 0, total: 1, effort: "Easy", drills: [{id: "sole", version: 1, difficulty: difficulty as 1|2|3, status: "done", seconds: 180}], ...overrides });
+const done = (id: string, date: Date, difficulty = 1, overrides: Partial<History> = {}): History => ({ id, date: date.toISOString(), completed: true, seconds: 180, done: 1, skipped: 0, total: 1, effort: "Easy", drills: [{id: "sole", version: drills[0].version ?? 1, difficulty: difficulty as 1|2|3, status: "done", seconds: 180}], ...overrides });
 test("catalog keeps original IDs and offers 28 distinct complete drills with three targeted variants", () => {
   assert.equal(drills.length, 28);
   assert.equal(new Set(drills.map((d) => d.id)).size, 28);
@@ -35,7 +35,7 @@ test("only two Easy completed positive-time results at the actual version and st
   assert.equal(adaptDrill(d,[one]).difficulty,1);
   assert.equal(adaptDrill(d,[one,two]).difficulty,2);
   assert.equal(adaptDrill(d,[one,two,done("three",new Date(2026,10,6),1)]).difficulty,2);
-  for (const bad of [ {completed:false}, {seconds:0}, {drills:undefined}, {drills:[{id:"sole",version:1,difficulty:1 as const,status:"done" as const,seconds:0}]}, {drills:[{id:"sole",version:2,difficulty:1 as const,status:"done" as const,seconds:180}]}, {drills:[{id:"sole",version:1,difficulty:1 as const,status:"skipped" as const,seconds:180}]} ]) assert.equal(adaptDrill(d,[one,{...two,...bad}]).difficulty,1);
+  for (const bad of [ {completed:false}, {seconds:0}, {drills:undefined}, {drills:[{id:"sole",version:d.version ?? 1,difficulty:1 as const,status:"done" as const,seconds:0}]}, {drills:[{id:"sole",version:(d.version ?? 1) + 1,difficulty:1 as const,status:"done" as const,seconds:180}]}, {drills:[{id:"sole",version:d.version ?? 1,difficulty:1 as const,status:"skipped" as const,seconds:180}]} ]) assert.equal(adaptDrill(d,[one,{...two,...bad}]).difficulty,1);
   const hard=done("hard",new Date(2026,10,3),1,{effort:"Challenging"});
   assert.equal(adaptDrill(d,[one,hard,two]).difficulty,1);
   assert.equal(adaptDrill(d,[one,two,done("a",new Date(2026,10,6),2),done("b",new Date(2026,10,7),2)]).difficulty,3);

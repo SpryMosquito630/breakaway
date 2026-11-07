@@ -1,3 +1,4 @@
+import { drillTarget } from "../domain/targets";
 import { DrillMovement as Diagram } from "../components/DrillMovement";
 import { DrillDemo } from "../components/DrillDemo";
 import { haptic } from "../utils/haptics";
@@ -39,12 +40,12 @@ function resolvePracticeDrill(active: Active, index: number, drills: import("../
     ...(snapshot?.cue ? { cue: snapshot.cue } : {}),
     ...(snapshot?.steps ? { steps: snapshot.steps } : {}),
     ...(snapshot?.tip ? { tip: snapshot.tip } : {}),
-    target: snapshot?.target ?? variant?.target,
+    target: drillTarget(snapshot?.target ?? variant?.target, active.duration),
     stage,
   };
 }
 export function Practice({ navigation }: { navigation: any }) {
-  const { update, catalog: drills } = useApp();
+  const { data, update, catalog: drills, backgroundClockMessage, backgroundClockBusy, setBackgroundPractice } = useApp();
   const { width, height } = useWindowDimensions();
   const compact = width < 360 || height < 740;
   const { C, s } = useTheme();
@@ -136,7 +137,7 @@ export function Practice({ navigation }: { navigation: any }) {
         ? "Final 10 seconds"
         : "Running";
   const startBlock = () =>
-    clock.commit({ ...a, phase: "timer", running: true, last: Date.now() });
+    clock.commit({ ...a, backgroundClock: a.backgroundClock ?? data.backgroundPractice === true, phase: "timer", running: true, last: Date.now() });
   const skipLink = (
     <Link label="Skip drill" feedback="warning" onPress={() => next(true)} />
   );
@@ -154,6 +155,7 @@ export function Practice({ navigation }: { navigation: any }) {
           <Button
             size="large"
             label={`Start drill · ${time(a.duration)}`}
+            disabled={backgroundClockBusy}
             accessibilityLabel={`Start ${d.name}, ${time(a.duration)} practice block`}
             icon={Play}
             onPress={startBlock}
@@ -221,7 +223,7 @@ export function Practice({ navigation }: { navigation: any }) {
         Stage {upcoming.stage} · {time(a.duration)}
       </Text>
       {upcoming.target ? (
-        <Text style={s.body}>Aim for {upcoming.target}</Text>
+        <Text style={s.body}>{upcoming.target}</Text>
       ) : null}
     </View>
   ) : null;
@@ -274,6 +276,17 @@ export function Practice({ navigation }: { navigation: any }) {
           })}
         </View>
       </View>
+      {a.backgroundClock === undefined ? (
+        <View style={{ gap: 8 }}>
+          <Chip label={backgroundClockBusy ? "Checking notifications…" : "Continue when screen locks"}
+            selected={data.backgroundPractice === true}
+            onPress={() => { if (!backgroundClockBusy) void setBackgroundPractice(!data.backgroundPractice); }} />
+          <Text style={s.small}>{data.backgroundPractice
+            ? "Current block keeps time while locked or in another app. A notification marks the end; device settings may delay it. Next drill waits for you."
+            : "Optional · Off by default. Practice pauses when you leave the app. Turning this on requests notification permission."}</Text>
+          {backgroundClockMessage ? <Text style={s.small}>{backgroundClockMessage}</Text> : null}
+        </View>
+      ) : backgroundClockMessage ? <Text style={s.small}>{backgroundClockMessage}</Text> : null}
       {!a.warmed ? (
         <>
           <View style={{ gap: 12 }}>
@@ -365,7 +378,7 @@ export function Practice({ navigation }: { navigation: any }) {
                   },
                 ]}
               >
-                Aim for {d.target}
+                {d.target}
               </Text>
             ) : null}
           </View>
@@ -422,6 +435,7 @@ export function Practice({ navigation }: { navigation: any }) {
                 {status}
               </Text>
             </View>
+            {a.backgroundClock ? <Text style={s.small}>Keeps time when locked · Next drill waits for you</Text> : null}
           </View>
           <Text style={[s.body, { textAlign: "center", color: C.ink }]}>
             {d.cue}
@@ -447,7 +461,7 @@ export function Practice({ navigation }: { navigation: any }) {
             <Text style={s.small}>Stage {d.stage}</Text>
             {d.target ? (
               <Text style={[s.h3, { fontSize: 17, lineHeight: 25 }]}>
-                Aim for {d.target}
+                {d.target}
               </Text>
             ) : null}
             <Text style={s.body}>{d.cue}</Text>
