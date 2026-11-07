@@ -6,8 +6,7 @@ async function operation<T>(
     const r = indexedDB.open("breakaway-meals", 1);
     r.onupgradeneeded = () => r.result.createObjectStore("photos");
     r.onsuccess = () => resolve(r.result);
-    r.onerror = () =>
-      reject(new Error("Allow browser storage to save photos."));
+    r.onerror = () => reject(new Error("Allow browser storage to save photos."));
   });
   return new Promise((resolve, reject) => {
     const tx = db.transaction("photos", mode);
@@ -24,8 +23,7 @@ async function operation<T>(
 }
 export async function savePhoto(id: string, uri: string) {
   const blob = await (await fetch(uri)).blob();
-  if (blob.size > 10 * 1024 * 1024)
-    throw new Error("Choose a photo smaller than 10 MB.");
+  if (blob.size > 10 * 1024 * 1024) throw new Error("Choose a photo smaller than 10 MB.");
   await operation("readwrite", (s) => s.put(blob, id));
 }
 export async function openPhoto(id: string) {

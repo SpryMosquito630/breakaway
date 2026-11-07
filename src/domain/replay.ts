@@ -37,12 +37,7 @@ export function trailAt(analysis: ReplayAnalysis, index: number): BallFrame[] {
   const result: BallFrame[] = [];
   for (let i = index; i >= 0 && index - i < 12; i--) {
     const frame = analysis.frames[i];
-    if (
-      frame.x === null ||
-      frame.y === null ||
-      frame.trackId !== current.trackId
-    )
-      break;
+    if (frame.x === null || frame.y === null || frame.trackId !== current.trackId) break;
     result.unshift(frame);
   }
   return result;
@@ -90,12 +85,9 @@ export function validAnalysis(input: unknown): input is ReplayAnalysis {
         f.time >= 0 &&
         f.time <= a.duration &&
         (i === 0 || f.time >= a.frames[i - 1].time) &&
-        (f.trackId === null ||
-          (Number.isInteger(f.trackId) && f.trackId >= 0)) &&
+        (f.trackId === null || (Number.isInteger(f.trackId) && f.trackId >= 0)) &&
         (f.confidence === null ||
-          (Number.isFinite(f.confidence) &&
-            f.confidence >= 0 &&
-            f.confidence <= 1)) &&
+          (Number.isFinite(f.confidence) && f.confidence >= 0 && f.confidence <= 1)) &&
         (f.radius === undefined ||
           f.radius === null ||
           (Number.isFinite(f.radius) && f.radius >= 0 && f.radius <= 1)) &&

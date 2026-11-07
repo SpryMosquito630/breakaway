@@ -89,9 +89,7 @@ test("snapshot freezes selected-stage instructions and rejects malformed optiona
     active: {
       ...a,
       snapshots: { [d.id]: { version: "bad", difficulty: 2 } },
-      results: [
-        { id: d.id, version: 1, difficulty: 1, status: "done", seconds: 0 },
-      ],
+      results: [{ id: d.id, version: 1, difficulty: 1, status: "done", seconds: 0 }],
     },
     history: [
       {
@@ -122,9 +120,7 @@ test("malformed optional history cannot create a completion or typed difficulty"
     total: 1,
     completed: "false",
     effort: "Easy",
-    drills: [
-      { id: "sole", version: 1, difficulty: "2", status: "done", seconds: 30 },
-    ],
+    drills: [{ id: "sole", version: 1, difficulty: "2", status: "done", seconds: 30 }],
   };
   const malformed = {
     ...initialData(),

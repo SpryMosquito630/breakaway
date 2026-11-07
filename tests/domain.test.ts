@@ -13,16 +13,9 @@ import {
 } from "../src/domain/model";
 import { drills } from "../src/data/drills";
 test("plan satisfies equipment and small-space constraints for every focus", () => {
-  for (const goal of [
-    "Ball control",
-    "Passing",
-    "Dribbling",
-    "Weaker foot",
-  ] as const) {
+  for (const goal of ["Ball control", "Passing", "Dribbling", "Weaker foot"] as const) {
     const p = { ...initialData().profile, goal };
-    const plan = matchPlan(drills, p).map((id) =>
-      drills.find((d) => d.id === id)!,
-    );
+    const plan = matchPlan(drills, p).map((id) => drills.find((d) => d.id === id)!);
     assert.equal(plan.length, 3);
     assert.equal(new Set(plan.map((d) => d.id)).size, 3);
     assert.ok(plan.every((d) => allowed(d, p)));
@@ -111,9 +104,7 @@ test("replaying unchanged preferences preserves custom plan and all saved progre
       completed: false,
     },
   ];
-  data.benchmarks = [
-    { id: "baseline", date: new Date(0).toISOString(), count: 25 },
-  ];
+  data.benchmarks = [{ id: "baseline", date: new Date(0).toISOString(), count: 25 }];
   const replayed = completeOnboarding(
     data,
     {
@@ -143,11 +134,7 @@ test("changed replay answers rebuild the next plan without clearing saved sessio
   assert.equal(replayed.active, data.active);
   assert.equal(replayed.history, data.history);
   assert.equal(replayed.benchmarks, data.benchmarks);
-  const firstRun = completeOnboarding(
-    initialData(),
-    initialData().profile,
-    matched,
-  );
+  const firstRun = completeOnboarding(initialData(), initialData().profile, matched);
   assert.equal(firstRun.plan, matched);
   assert.equal(firstRun.onboarded, true);
 });

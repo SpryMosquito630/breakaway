@@ -1,4 +1,9 @@
-import { combinedCatalog, sanitizeCustomDrills, sanitizeTrainingFields } from "./training";
+import { restorePracticeClock } from "./practiceClock";
+import {
+  combinedCatalog,
+  sanitizeCustomDrills,
+  sanitizeTrainingFields,
+} from "./training";
 import { sanitizeAssessments } from "./assessments";
 import { sanitizeTodaySession } from "./sessionTime";
 import {
@@ -11,7 +16,9 @@ import {
   goals,
   positions,
   matchPlan,
+  initialData,
 } from "./model";
+const isRecord = (x: unknown): boolean => record(x);
 const record = (x: unknown): x is Record<string, unknown> =>
   x !== null && typeof x === "object" && !Array.isArray(x);
 function results(value: unknown): DrillResult[] | undefined {
@@ -51,56 +58,76 @@ function snapshots(value: unknown): Record<string, DrillSnapshot> | undefined {
   }
   return safe;
 }
-export function restoreAppData(raw: string, catalog: Drill[]): AppData {
+export function restoreAppData(raw: string, catalog: Drill[], now = Date.now()): AppData {
   const p = JSON.parse(raw);
+  if (!isRecord(p)) throw Error("Invalid saved data");
   p.customDrills = sanitizeCustomDrills(p.customDrills);
   catalog = combinedCatalog(catalog, p);
-  const profile = p.profile;
   if (
     p.version !== 1 ||
     typeof p.onboarded !== "boolean" ||
-    !profile ||
-    !goals.includes(profile.goal) ||
-    !["New to training", "Some experience"].includes(profile.experience) ||
-    ![15, 20, 30].includes(profile.minutes) ||
-    !Array.isArray(profile.days) ||
-    !profile.days.length ||
-    !profile.days.every((d: string) => days.includes(d)) ||
-    !Array.isArray(profile.gear) ||
-    !profile.gear.every((g: string) =>
-      ["markers", "wall", "partner"].includes(g),
-    ) ||
-    !["Small space", "Open space"].includes(profile.space) ||
     !Array.isArray(p.plan) ||
     !Array.isArray(p.history) ||
     !Array.isArray(p.benchmarks)
   )
-    throw Error("Invalid saved preferences");
+    throw Error("Invalid saved data");
+  const defaults = initialData().profile;
+  const profile = isRecord(p.profile) ? { ...p.profile } : {};
+  const preferenceChecks = {
+    goal: (value: any) => goals.includes(value),
+    experience: (value: any) => ["New to training", "Some experience"].includes(value),
+    minutes: (value: any) => [15, 20, 30].includes(value),
+    days: (value: any) =>
+      Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((day: any) => days.includes(day)),
+    gear: (value: any) =>
+      Array.isArray(value) &&
+      value.every((item: any) => ["markers", "wall", "partner"].includes(item)),
+    space: (value: any) => ["Small space", "Open space"].includes(value),
+  };
+  for (const key of Object.keys(preferenceChecks) as (keyof typeof preferenceChecks)[]) {
+    if (!preferenceChecks[key](profile[key])) {
+      profile[key] = defaults[key];
+      p.onboarded = false;
+    }
+  }
+  p.profile = profile;
   if (!positions.includes(profile.position)) delete profile.position;
+  if (!["under13", "13to17", "adult"].includes(profile.ageBand)) delete profile.ageBand;
   const known = (id: string) => catalog.some((d) => d.id === id);
-  const lostCustom = (id: unknown) => typeof id === "string" && id.startsWith("custom-") && !known(id);
-  const recoveryNotice = "Some custom drill data could not be read. Your saved history is intact. Review your plan and playlists before practicing.";
-  if (typeof p.trainingRecoveryNotice !== "string" || p.trainingRecoveryNotice.length > 300) delete p.trainingRecoveryNotice;
+  const lostCustom = (id: unknown) =>
+    typeof id === "string" && id.startsWith("custom-") && !known(id);
+  const recoveryNotice =
+    "Some custom drill data could not be read. Your saved history is intact. Review your plan and playlists before practicing.";
+  if (
+    typeof p.trainingRecoveryNotice !== "string" ||
+    p.trainingRecoveryNotice.length > 300
+  )
+    delete p.trainingRecoveryNotice;
   if (p.plan.some(lostCustom)) {
     p.trainingRecoveryNotice = recoveryNotice;
     p.plan = p.plan.filter(known);
     if (!p.plan.length) p.planCustomized = false;
   }
   if (p.active && Array.isArray(p.active.ids) && p.active.ids.some(lostCustom)) {
-    p.trainingRecoveryNotice = recoveryNotice + " The interrupted custom session could not be restored.";
+    p.trainingRecoveryNotice =
+      recoveryNotice + " The interrupted custom session could not be restored.";
     p.active = null;
   }
-  p.plan =
-    p.plan.length && p.plan.every(known) ? p.plan : matchPlan(catalog, profile);
+  p.plan = p.plan.length && p.plan.every(known) ? p.plan : matchPlan(catalog, profile);
   p.planCustomized = classifyPlanCustomization(
     p.plan,
     catalog,
     profile,
     p.planCustomized,
   );
+  p.backgroundPractice = p.backgroundPractice === true;
   if (p.active) {
     const a = p.active;
     if (
+      !isRecord(a) ||
+      typeof a.id !== "string" ||
       !Array.isArray(a.ids) ||
       !a.ids.length ||
       !a.ids.every(known) ||
@@ -114,23 +141,30 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
       a.duration < 1 ||
       a.remaining > a.duration
     )
-      throw Error("Invalid saved session");
-    p.active = {
-      ...a,
-      running: false,
-      blockElapsed: Math.min(
-        a.duration,
-        a.elapsed,
-        Number.isFinite(a.blockElapsed) && a.blockElapsed >= 0
-          ? a.blockElapsed
-          : Math.max(0, a.duration - a.remaining),
-      ),
-      results: results(a.results),
-      snapshots: snapshots(a.snapshots),
-      warningSent: a.warningSent === true,
-      finishSent: a.finishSent === true,
-    };
+      p.active = null;
+    else
+      p.active = restorePracticeClock(
+        {
+          ...a,
+          running: a.running === true,
+          backgroundClock:
+            typeof a.backgroundClock === "boolean" ? a.backgroundClock : undefined,
+          blockElapsed: Math.min(
+            a.duration,
+            a.elapsed,
+            Number.isFinite(a.blockElapsed) && a.blockElapsed >= 0
+              ? a.blockElapsed
+              : Math.max(0, a.duration - a.remaining),
+          ),
+          results: results(a.results),
+          snapshots: snapshots(a.snapshots),
+          warningSent: a.warningSent === true,
+          finishSent: a.finishSent === true,
+        },
+        now,
+      );
   }
+  if (!p.active) p.active = null;
   p.history = p.history
     .filter(
       (h: any) =>
@@ -151,6 +185,10 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
     )
     .map((h: any) => ({
       ...h,
+      skipped:
+        Number.isInteger(h.skipped) && h.skipped >= 0 && h.skipped <= h.total
+          ? h.skipped
+          : Math.max(0, h.total - h.done),
       completed: h.completed === true && h.done === h.total,
       effort: ["Easy", "Just right", "Challenging"].includes(h.effort)
         ? h.effort
@@ -198,7 +236,6 @@ export function classifyPlanCustomization(
     profile,
   );
   return !(
-    plan.length === originalPlan.length &&
-    plan.every((id, i) => id === originalPlan[i])
+    plan.length === originalPlan.length && plan.every((id, i) => id === originalPlan[i])
   );
 }

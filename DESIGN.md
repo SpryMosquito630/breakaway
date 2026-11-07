@@ -24,7 +24,7 @@ Archivo400/500/600 carries the interface. Screen titles27/34, section18/24, row1
 
 ## Visuals and content
 
-The bundled editorial photo `assets/training-editorial.png` is tightly cropped in the session panel and larger on the welcome screen. See `work/asset-notes.md` for provenance. Category icons identify library rows. Movement diagrams are specific to the drill and appear only in guidance/detail contexts, never as repeated decorative thumbnails. Actual drill instructions remain intact; operational reading is progressively disclosed.
+The bundled editorial photo `assets/training-editorial.webp` is tightly cropped in the session panel and larger on the welcome screen. See `assets/README.md` for tracked provenance. Category icons identify library rows. Movement diagrams are specific to the drill and appear only in guidance/detail contexts, never as repeated decorative thumbnails. Actual drill instructions remain intact; operational reading is progressively disclosed.
 
 No fake scores, zero-dashboard, slogans, repeated disclaimers, decorative metrics or invented progress. The app remains phone-first, local-only and Expo SDK58 compatible. Appearance follows the system by default, with Light and Dark overrides. Reference tokens live in `src/theme/tokens.json`; semantic palette roles resolve them for both themes. Control boundaries use line-strong, and inverse text uses dedicated on-fill roles.
 
@@ -78,3 +78,7 @@ Demonstrations start collapsed and paused, expose normal/half-speed playback, an
 ## Simplification review, November 6, 2026
 
 The user's critique identified clutter and too many competing actions. The taste skill's redesign audit was applied contextually to native product UI: variance 3, motion 1, density 2. Existing forest identity, typography, controls, accessibility and themes remain. No new animation, decoration or dependencies were added. Marketing-specific SEO, marquee and bento patterns do not apply. Audit: work/simplification-audit.md. Browser review covers 390px/320px primary screens and changed navigation paths.
+
+## Focused shipping scope
+
+The default app exposes training, drills, progress and reminders. Today’s drills are visible. Laptop-dependent replay and all other experimental products are hidden behind an explicit developer build flag, including their screen dependencies. Privacy and recovery protections are functional boundaries, not merely hidden buttons. Age onboarding is neutral and unanswered; local age ranges never become cloud profile data. No subscription benefits or public leaderboards are advertised. See docs/implementation-status.md.

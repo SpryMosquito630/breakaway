@@ -1,9 +1,5 @@
 import { Alert, Platform } from "react-native";
-export function confirmAthlete(
-  title: string,
-  message: string,
-  action: () => void,
-) {
+export function confirmAthlete(title: string, message: string, action: () => void) {
   if (Platform.OS === "web") {
     if (window.confirm(`${title}\n\n${message}`)) action();
     return;

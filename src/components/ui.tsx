@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  ScrollView,
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ViewStyle,
-} from "react-native";
+import { ScrollView, Text, View, Pressable, TextInput, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ArrowLeftRight,
@@ -19,13 +12,7 @@ import {
   Search,
   LucideIcon,
 } from "lucide-react-native";
-import Svg, {
-  Circle,
-  Line,
-  Path,
-  Rect,
-  Text as SvgText,
-} from "react-native-svg";
+import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { haptic, type HapticFeedback } from "../utils/haptics";
 import { Drill } from "../domain/model";
 export { palette as C } from "../theme/palette";
@@ -118,11 +105,7 @@ export function Button({
         if (disabled) return;
         haptic(
           feedback ??
-            (kind === "danger"
-              ? "warning"
-              : kind === "secondary"
-                ? "light"
-                : "medium"),
+            (kind === "danger" ? "warning" : kind === "secondary" ? "light" : "medium"),
         );
         onPress();
       }}
@@ -350,9 +333,7 @@ export function Choice({
           justifyContent: "center",
         }}
       >
-        {selected ? (
-          <Check size={14} color={C.onPrimary} strokeWidth={2.5} />
-        ) : null}
+        {selected ? <Check size={14} color={C.onPrimary} strokeWidth={2.5} /> : null}
       </View>
     </Pressable>
   );
@@ -506,11 +487,7 @@ export function DrillRow({
             {drill.gear.length
               ? drill.gear
                   .map((g) =>
-                    g === "wall"
-                      ? "Wall"
-                      : g === "markers"
-                        ? "Markers"
-                        : "Partner",
+                    g === "wall" ? "Wall" : g === "markers" ? "Markers" : "Partner",
                   )
                   .join(" + ")
               : "Ball only"}
@@ -598,9 +575,7 @@ export function Disclosure({
         />
       </Pressable>
       {open ? (
-        <View style={{ gap: 12, paddingTop: 8, paddingBottom: 16 }}>
-          {children}
-        </View>
+        <View style={{ gap: 12, paddingTop: 8, paddingBottom: 16 }}>{children}</View>
       ) : null}
     </View>
   );
@@ -670,30 +645,15 @@ export function Diagram({ drill }: { drill?: Drill; small?: boolean }) {
               d="M102 120 Q93 98 104 84 Q113 78 116 90 L122 115 Q116 128 102 120Z M214 120 Q225 98 214 84 Q205 78 202 90 L196 115 Q202 128 214 120Z"
               fill={id === "weak" ? C.lime : C.green}
             />
-            <SvgText
-              x="160"
-              y="150"
-              textAnchor="middle"
-              fill={C.green}
-              fontSize="11"
-            >
+            <SvgText x="160" y="150" textAnchor="middle" fill={C.green} fontSize="11">
               {id === "weak" ? "Less comfortable foot" : "Keep the ball close"}
             </SvgText>
           </>
         ) : null}
         {id === "wall" ? (
-          <Line
-            x1="80"
-            y1="30"
-            x2="235"
-            y2="30"
-            stroke={C.green}
-            strokeWidth="8"
-          />
+          <Line x1="80" y1="30" x2="235" y2="30" stroke={C.green} strokeWidth="8" />
         ) : null}
-        {id === "partner" ? (
-          <Circle cx="235" cy="50" r="11" fill={C.green} />
-        ) : null}
+        {id === "partner" ? <Circle cx="235" cy="50" r="11" fill={C.green} /> : null}
         {id === "gates" ? (
           <>
             <Path
@@ -733,8 +693,8 @@ export function Disclaimer() {
   const { s } = useTheme();
   return (
     <Text style={s.small}>
-      Starter drills are illustrative, not coach reviewed. Use a clear space and
-      stop if you feel pain.
+      Starter drills are illustrative, not coach reviewed. Use a clear space and stop if
+      you feel pain.
     </Text>
   );
 }

@@ -1,3 +1,5 @@
+import type { History } from "../domain/model";
+import { localDateKey } from "../domain/planning";
 /** Expo weekday numbers: Sunday = 1. Unknown days never schedule a reminder. */
 const weekdays: Record<string, number> = {
   Sun: 1,
@@ -22,22 +24,15 @@ export function normalizeReminders(value: unknown): ReminderPreferences {
   const p = value as Partial<ReminderPreferences> | null;
   return {
     enabled: p?.enabled === true,
-    hour:
-      Number.isInteger(p?.hour) && p!.hour! >= 0 && p!.hour! <= 23
-        ? p!.hour!
-        : 18,
+    hour: Number.isInteger(p?.hour) && p!.hour! >= 0 && p!.hour! <= 23 ? p!.hour! : 18,
     minute:
-      Number.isInteger(p?.minute) && p!.minute! >= 0 && p!.minute! <= 59
-        ? p!.minute!
-        : 0,
+      Number.isInteger(p?.minute) && p!.minute! >= 0 && p!.minute! <= 59 ? p!.minute! : 0,
   };
 }
 export const REMINDER_PREFIX = "breakaway-training-v1-";
 export type Reminder = {
   identifier: string;
-  weekday: number;
-  hour: number;
-  minute: number;
+  date: Date;
   signature: string;
 };
 export type ScheduledReminder = {
@@ -50,27 +45,45 @@ export interface ReminderScheduler {
   cancel(identifier: string): Promise<void>;
   schedule(reminder: Reminder): Promise<void>;
 }
+/** One finite local-calendar week, refreshed on foreground, history and preference changes.
+ * Calendar construction preserves the selected wall-clock time through DST transitions.
+ */
 export function desiredReminders(
   days: string[],
   preferences: ReminderPreferences,
+  history: Pick<History, "date" | "seconds">[] = [],
+  now = new Date(),
 ): Reminder[] {
   const p = normalizeReminders(preferences);
   if (!p.enabled) return [];
-  return [...new Set(days.map((day) => weekdays[day]).filter(Boolean))]
-    .sort()
-    .map((weekday) => ({
-      identifier: `${REMINDER_PREFIX}${weekday}`,
-      weekday,
-      hour: p.hour,
-      minute: p.minute,
-      signature: `${weekday}:${p.hour}:${p.minute}`,
-    }));
+  const selected = new Set(days.map((day) => weekdays[day]).filter(Boolean));
+  const trained = new Set(
+    history
+      .filter((h) => h.seconds > 0 && new Date(h.date) <= now)
+      .map((h) => localDateKey(new Date(h.date))),
+  );
+  const reminders: Reminder[] = [];
+  for (let offset = 0; offset < 7; offset++) {
+    const date = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + offset,
+      p.hour,
+      p.minute,
+    );
+    const key = localDateKey(date);
+    if (!selected.has(date.getDay() + 1) || date <= now || trained.has(key)) continue;
+    reminders.push({
+      identifier: `${REMINDER_PREFIX}${key}`,
+      date,
+      // Epoch includes the current timezone offset; travel replaces stale schedules.
+      signature: `${key}:${date.getTime()}`,
+    });
+  }
+  return reminders;
 }
 /** Reconcile against the OS, so retries and interrupted/relaunched apps stay idempotent. */
-export async function reconcileReminders(
-  api: ReminderScheduler,
-  desired: Reminder[],
-) {
+export async function reconcileReminders(api: ReminderScheduler, desired: Reminder[]) {
   const scheduled = await api.list();
   const retained = new Set<string>();
   for (const item of scheduled) {

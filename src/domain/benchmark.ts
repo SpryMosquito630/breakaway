@@ -22,8 +22,7 @@ export function tickBenchmark(
   run: BenchmarkRun,
   now = Date.now(),
 ): { run: BenchmarkRun; signals: ("warning" | "finish")[] } {
-  if (run.phase !== "countdown" && run.phase !== "running")
-    return { run, signals: [] };
+  if (run.phase !== "countdown" && run.phase !== "running") return { run, signals: [] };
   let next = { ...run };
   if (next.phase === "countdown") {
     if (now < next.deadline)

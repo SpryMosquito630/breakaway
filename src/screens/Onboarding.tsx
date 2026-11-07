@@ -3,19 +3,14 @@ import { Text, View } from "react-native";
 import { Image } from "expo-image";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import {
-  matchPlan,
-  time,
-  getDrillDuration,
-  completeOnboarding,
-} from "../domain/model";
+import { matchPlan, time, getDrillDuration, completeOnboarding } from "../domain/model";
 import {
   OnboardingDraft,
   isOnboardingStepReady,
   profileFromDraft,
 } from "../domain/onboarding";
 import { planForDate } from "../domain/planning";
-import { Page, Title, Button, IconButton } from "../components/ui";
+import { Page, Title, Button, IconButton, Choice } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import { PreferenceFields } from "../components/Preferences";
 export function Onboarding({
@@ -30,6 +25,7 @@ export function Onboarding({
   const sections = ["position", "goal", "experience", "schedule", "setup"] as const;
   const titles = [
     "",
+    "How old are you?",
     "Where do you usually play?",
     "What do you want to work on?",
     "Your training experience",
@@ -53,22 +49,28 @@ export function Onboarding({
     const complete = profileFromDraft(draft);
     if (!complete) return;
     update((st) =>
-      completeOnboarding(st, complete, matchPlan(drills, complete), replay),
+      completeOnboarding(
+        st,
+        {
+          ...complete,
+          ageBand: st.profile.ageBand === "under13" ? "under13" : complete.ageBand,
+        },
+        matchPlan(drills, complete),
+        replay,
+      ),
     );
     onComplete?.();
   };
   const proceed = () => {
     if (!isOnboardingStepReady(draft, step)) return;
-    if (step === 6) finish();
+    if (step === 7) finish();
     else setStep(step + 1);
   };
   const footer = (
     <Button
-      label={
-        step === 0 ? "Get started" : step === 6 ? "Use this plan" : "Continue"
-      }
+      label={step === 0 ? "Get started" : step === 7 ? "Use this plan" : "Continue"}
       icon={ArrowRight}
-      feedback={step === 6 ? "success" : "medium"}
+      feedback={step === 7 ? "success" : "medium"}
       disabled={!isOnboardingStepReady(draft, step)}
       onPress={proceed}
     />
@@ -87,7 +89,7 @@ export function Onboarding({
           Breakaway
         </Text>
         <Image
-          source={require("../../assets/training-editorial.png")}
+          source={require("../../assets/training-editorial.webp")}
           contentFit="cover"
           contentPosition={{ left: "50%", top: "75%" }}
           accessibilityLabel="Soccer player controlling a ball on a grass pitch"
@@ -118,15 +120,11 @@ export function Onboarding({
   return (
     <Page footer={footer} contentStyle={{ gap: 24 }}>
       <View style={[s.row, { marginLeft: -12 }]}>
-        <IconButton
-          label="Back"
-          icon={ArrowLeft}
-          onPress={() => setStep(step - 1)}
-        />
-        <Text style={s.small}>{step} of 6</Text>
+        <IconButton label="Back" icon={ArrowLeft} onPress={() => setStep(step - 1)} />
+        <Text style={s.small}>{step} of 7</Text>
       </View>
       <View style={{ flexDirection: "row", gap: 4 }}>
-        {[1, 2, 3, 4, 5, 6].map((n) => (
+        {[1, 2, 3, 4, 5, 6, 7].map((n) => (
           <View
             key={n}
             style={{
@@ -139,12 +137,32 @@ export function Onboarding({
         ))}
       </View>
       <Title title={titles[step]} />
-      {step < 6 ? (
+      {step === 1 ? (
+        <View style={{ gap: 12 }}>
+          {(
+            [
+              ["under13", "Under 13"],
+              ["13to17", "13–17"],
+              ["adult", "18 or older"],
+            ] as const
+          ).map(([value, label]) => (
+            <Choice
+              key={value}
+              label={label}
+              selected={draft.ageBand === value}
+              onPress={() => setDraft({ ...draft, ageBand: value })}
+            />
+          ))}
+          <Text style={s.small}>
+            Your age range stays on this device. Training works without an account.
+          </Text>
+        </View>
+      ) : step < 7 ? (
         <PreferenceFields
           profile={draft}
           onChange={setDraft}
           explicitEquipment
-          section={sections[step - 1]}
+          section={sections[step - 2]}
         />
       ) : profile ? (
         <>
@@ -186,9 +204,7 @@ export function Onboarding({
                   borderColor: C.line,
                 }}
               >
-                <Text style={s.h3}>
-                  {drills.find((d) => d.id === id)!.name}
-                </Text>
+                <Text style={s.h3}>{drills.find((d) => d.id === id)!.name}</Text>
                 <Text style={s.small}>
                   {time(getDrillDuration(profile.minutes, ids.length))}
                 </Text>
@@ -197,7 +213,9 @@ export function Onboarding({
           </View>
           <Text style={s.small}>
             Includes a 2-minute warm-up.{" "}
-            {nextData?.planCustomized ? "Your custom drill choices stay in place." : "Your focus leads; position helps choose supporting drills."}{" "}
+            {nextData?.planCustomized
+              ? "Your custom drill choices stay in place."
+              : "Your focus leads; position helps choose supporting drills."}{" "}
             You can swap drills anytime.
           </Text>
         </>

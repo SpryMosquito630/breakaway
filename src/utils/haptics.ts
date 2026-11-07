@@ -14,8 +14,7 @@ export type HapticFeedback =
 
 /** User-action feedback. Native settings retain control; unsupported platforms fail silently. */
 export function haptic(feedback: HapticFeedback = "selection"): void {
-  if (!feedback || Platform.OS === "web" || AppState.currentState !== "active")
-    return;
+  if (!feedback || Platform.OS === "web" || AppState.currentState !== "active") return;
   try {
     let request: Promise<void>;
     if (Platform.OS === "android") {
