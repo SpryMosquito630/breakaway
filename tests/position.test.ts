@@ -10,12 +10,12 @@ const monday = new Date(2026, 10, 2, 12);
 test("position is an explicit required onboarding answer, including exploring; no answer is inferred", () => {
   const oldProfile = initialData().profile;
   assert.equal(oldProfile.position, undefined);
-  assert.equal(isOnboardingStepReady({}, 1), false);
-  assert.equal(isOnboardingStepReady({ position: undefined }, 1), false);
+  assert.equal(isOnboardingStepReady({}, 2), false);
+  assert.equal(isOnboardingStepReady({ position: undefined }, 2), false);
   assert.equal(profileFromDraft(oldProfile), null);
   for (const position of positions) {
-    assert.equal(isOnboardingStepReady({ position }, 1), true);
-    assert.equal(profileFromDraft({ ...oldProfile, position })?.position, position);
+    assert.equal(isOnboardingStepReady({ position }, 2), true);
+    assert.equal(profileFromDraft({ ...oldProfile, position, ageBand: "13to17" })?.position, position);
   }
 });
 test("saved positions round-trip; legacy and malformed positions stay unset without rejecting progress", () => {
@@ -70,4 +70,12 @@ test("position-only edits and replay preserve customized plans and all data; unr
   // Canonical comparison must not depend on object key insertion order.
   const positionFirst = { position: "Forward" as const, ...state.profile };
   assert.equal(updateTrainingProfile({ ...edited }, positionFirst, drills).planCustomized, true);
+});
+
+
+test("replaying onboarding or editing training cannot upgrade a saved under-13 restriction", () => {
+  const state = initialData(); state.profile.ageBand = "under13";
+  const incoming = { ...state.profile, ageBand: "adult" as const, position: "Forward" as const };
+  assert.equal(completeOnboarding(state, incoming, matchPlan(drills, incoming), true).profile.ageBand, "under13");
+  assert.equal(updateTrainingProfile(state, incoming, drills).profile.ageBand, "under13");
 });

@@ -1,3 +1,4 @@
+import { DEVELOPER_FEATURES } from "../config/features";
 import { replays } from "../replays/storage";
 import { resetFeatureStores } from "../features/localStore";
 import { haptic } from "../utils/haptics";
@@ -67,7 +68,7 @@ export function Settings({ navigation }: { navigation: any }) {
           onPress={() => navigation.navigate("Preferences", { section: "all" })}
         />
         <SettingRow icon={ListChecks} label="My plan" onPress={() => navigation.navigate("MyPlan")} />
-        <SettingRow icon={Compass} label="More tools" onPress={() => navigation.navigate("Tools")} />
+        {DEVELOPER_FEATURES ? <SettingRow icon={Compass} label="Developer tools" onPress={() => navigation.navigate("Tools")} /> : null}
       </View>
       <View style={{ gap: 12 }}>
         <Text style={s.h2}>Appearance</Text>
@@ -130,7 +131,7 @@ export function Settings({ navigation }: { navigation: any }) {
         />
       </View>
       <Disclosure label="Privacy & practice notes">
-        <Text style={s.small}>Training stays on this device unless you upload it through Account & sync. Videos, meal photos and GPS routes stay local.</Text>
+        <Text style={s.small}>Your training preferences and progress stay on this device. Reset all data clears this device’s saved training.</Text>
         <Disclaimer />
       </Disclosure>
       <View style={s.group}>

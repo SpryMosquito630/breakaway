@@ -1,6 +1,6 @@
 import { requireClient } from './client';
 export type Backup = { user_id: string; revision: number; updated_at: string; payload: Record<string, unknown> };
-export type Identity = { user_id: string; alias: string; leaderboard_opt_in: boolean; practice_points: number };
+export type Identity = { user_id: string; alias: string;  };
 export type FriendRequest = { id: string; sender_id: string; recipient_id: string; accepted: boolean };
 export type Space = { id: string; owner_id: string; title: string; kind: 'team' | 'challenge'; goal: string };
 export type SpaceEntry = { id: string; space_id: string; author_id: string; kind: 'message' | 'event' | 'poll'; body: string; starts_at: string | null; options: string[]; created_at: string };
@@ -36,17 +36,22 @@ export async function loadCommunity() {
   const client = requireClient(); const id = await currentUserId();
   const results = await Promise.all([
     client.from('community_profiles').select('*').eq('user_id', id).maybeSingle(),
-    client.from('community_profiles').select('*').eq('leaderboard_opt_in', true).order('practice_points', { ascending: false }).limit(30),
     client.from('friend_requests').select('*').or(`sender_id.eq.${id},recipient_id.eq.${id}`),
     client.from('community_spaces').select('*').limit(50),
   ]);
   for (const result of results) if (result.error) throw result.error;
-  return { id, profile: results[0].data as Identity | null, leaders: (results[1].data ?? []) as Identity[], requests: (results[2].data ?? []) as FriendRequest[], spaces: (results[3].data ?? []) as Space[] };
+  return { id, profile: results[0].data as Identity | null, requests: (results[1].data ?? []) as FriendRequest[], spaces: (results[2].data ?? []) as Space[] };
 }
-export async function saveIdentity(alias: string, optIn: boolean, points: number) {
+export async function saveIdentity(alias: string) {
   const id = await currentUserId();
   if (!alias.trim() || alias.trim().length > 32) throw Error('Choose an alias between 1 and 32 characters.');
-  const { error } = await requireClient().from('community_profiles').upsert({ user_id: id, alias: alias.trim(), leaderboard_opt_in: optIn, practice_points: Math.max(0, Math.min(1000000, Math.floor(points))) });
+  const client = requireClient();
+  const existing = await client.from('community_profiles').select('user_id').eq('user_id', id).maybeSingle();
+  if (existing.error) throw existing.error;
+  // Avoid upsert: it updates user_id too, while SQL grants alias-only updates.
+  const { error } = existing.data
+    ? await client.from('community_profiles').update({ alias: alias.trim() }).eq('user_id', id)
+    : await client.from('community_profiles').insert({ user_id: id, alias: alias.trim() });
   if (error) throw error;
 }
 export async function requestFriend(recipientId: string) {

@@ -43,3 +43,15 @@ test('unknown nested fields cannot piggyback on training sync', () => {
   assert.equal('gps' in restored.profile, false);
   assert.equal('replay' in restored.history[0], false);
 });
+
+
+test("connected features fail closed for shipping builds, unknown ages and under-13 players", async () => {
+  const { canUseConnectedFeatures } = await import("../src/connected/access");
+  for (const age of [undefined, "under13", "13to17", "adult"] as const) assert.equal(canUseConnectedFeatures(age, false), false);
+  assert.equal(canUseConnectedFeatures(undefined, true), false);
+  assert.equal(canUseConnectedFeatures("under13", true), false);
+  assert.equal(canUseConnectedFeatures("13to17", true), true);
+  assert.equal(canUseConnectedFeatures("adult", true), true);
+  const local = initialData(); local.profile.ageBand = "under13";
+  assert.equal("ageBand" in (buildTrainingPayload(local).profile as object), false);
+});

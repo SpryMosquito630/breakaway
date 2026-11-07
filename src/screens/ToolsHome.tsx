@@ -1,3 +1,4 @@
+import { DEVELOPER_FEATURES } from "../config/features";
 import { View } from "react-native";
 import { Apple, Brain, CalendarDays, ClipboardList, CreditCard, Dumbbell, Flag, Layers, MapPin, MessageCircle, ScanLine, Users, UserRound, Video, NotebookPen } from "lucide-react-native";
 import { Page, SettingRow, useTheme } from "../components/ui";
@@ -44,6 +45,7 @@ type Category = keyof typeof categories;
 
 export function ToolsHome({ navigation }: { navigation: any }) {
   const { s } = useTheme();
+  if (!DEVELOPER_FEATURES) return null;
   return <Page><View style={s.group}>
     {(Object.keys(categories) as Category[]).map((key) => {
       const category = categories[key];
@@ -55,6 +57,7 @@ export function ToolsHome({ navigation }: { navigation: any }) {
 export function ToolCategory({ navigation, route }: { navigation: any; route: any }) {
   const { s } = useTheme();
   const category = categories[route.params?.category as Category] ?? categories.training;
+  if (!DEVELOPER_FEATURES) return null;
   return <Page><View style={s.group}>
     {category.items.map((item) => <SettingRow key={item.route} icon={item.icon} label={item.label} value={"value" in item ? item.value : undefined} onPress={() => navigation.navigate(item.route)} />)}
   </View></Page>;

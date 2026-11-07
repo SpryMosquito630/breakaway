@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Text, TextInput, View } from 'react-native';
 import { Button, Page, Title, useTheme } from '../components/ui';
 import type { AppData, Drill } from '../domain/model';
 import { drills } from '../data/drills';
 import { useApp } from '../state/AppState';
-import { connectedClient } from '../connected/client';
+import { requireClient } from '../connected/client';
+import { connectedAccessAllowed } from '../connected/access';
 import { useConnection } from '../connected/useConnection';
 import { assertUnchangedTraining, buildTrainingPayload, parseTrainingPayload } from '../connected/sync';
 import * as api from '../connected/service';
@@ -27,13 +28,14 @@ export function AccountScreen({ data, onRestore, catalog = drills }: AccountScre
   async function run(work: () => Promise<void>) { setBusy(true); setMessage(''); try { await work(); } catch (e) { setMessage(e instanceof Error ? e.message : 'The request failed. Try again.'); } finally { setBusy(false); } }
   async function auth(signUp: boolean) {
     if (!email.trim() || !password) throw Error('Enter your email and password.');
-    const result = signUp ? await connectedClient!.auth.signUp({ email: email.trim(), password }) : await connectedClient!.auth.signInWithPassword({ email: email.trim(), password });
+    const result = signUp ? await requireClient().auth.signUp({ email: email.trim(), password }) : await requireClient().auth.signInWithPassword({ email: email.trim(), password });
     if (result.error) throw result.error;
     setPassword(''); setMessage(signUp && !result.data.session ? 'Check your email to verify your account, then sign in here.' : 'Signed in. Cloud sync is always your choice.');
     setChecked(false); setBackup(null);
   }
+  if (!connectedAccessAllowed()) return <Page><Title title="Accounts unavailable" body="Accounts require an age answer of 13 or older. You can update your answer in training preferences." /></Page>;
   return <Page><Title title="Account & cloud" body="Optional account. Training stays on this device until you choose to upload." />
-    {!connection.configured ? <Disconnected /> : connection.loading ? <Text style={s.body}>Checking your account…</Text> : !connection.user ? <View style={{ gap: 12 }}><Field label="Email" value={email} onChange={setEmail} /><Field label="Password" value={password} onChange={setPassword} secret /><Button label="Sign in" disabled={busy} onPress={() => void run(() => auth(false))} /><Button label="Create account" kind="secondary" disabled={busy} onPress={() => void run(() => auth(true))} /><Button label="Resend verification email" kind="secondary" disabled={busy || !email.trim()} onPress={() => void run(async () => { const { error } = await connectedClient!.auth.resend({ type: 'signup', email: email.trim() }); if (error) throw error; setMessage('If verification is pending, check your email.'); })} /></View> : <View style={{ gap: 12 }}>
+    {!connection.configured ? <Disconnected /> : connection.loading ? <Text style={s.body}>Checking your account…</Text> : !connection.user ? <View style={{ gap: 12 }}><Field label="Email" value={email} onChange={setEmail} /><Field label="Password" value={password} onChange={setPassword} secret /><Button label="Sign in" disabled={busy} onPress={() => void run(() => auth(false))} /><Button label="Create account" kind="secondary" disabled={busy} onPress={() => void run(() => auth(true))} /><Button label="Resend verification email" kind="secondary" disabled={busy || !email.trim()} onPress={() => void run(async () => { const { error } = await requireClient().auth.resend({ type: 'signup', email: email.trim() }); if (error) throw error; setMessage('If verification is pending, check your email.'); })} /></View> : <View style={{ gap: 12 }}>
       <Text style={s.body}>Signed in as {connection.user.email}</Text><Text style={s.body}>Backups include your training profile, plan, custom drills, sessions, benchmarks and assessments. Active practice, GPS routes, food photos and replay videos are excluded.</Text>
       <Button label="Check cloud backup" disabled={busy} kind="secondary" onPress={() => void run(async () => { setBackup(await api.loadBackup()); setChecked(true); setMessage('Cloud backup checked.'); })} />
       <Text style={s.body}>{checked ? backup ? `Cloud revision ${backup.revision} · ${new Date(backup.updated_at).toLocaleString()}` : 'No cloud training backup yet.' : 'Check the cloud before uploading or downloading.'}</Text>
@@ -41,7 +43,7 @@ export function AccountScreen({ data, onRestore, catalog = drills }: AccountScre
       <Button label="Download cloud training" kind="secondary" disabled={busy || !checked || !backup || !!data.active || !onRestore} onPress={() => confirm('Replace local training?', 'Cloud training will replace your local plan and history. Upload any local changes you want to keep first. Active practices must be finished or discarded.', () => void run(async () => { const captured = JSON.stringify(buildTrainingPayload(latest.current)); const remote = await api.loadBackup(); if (!remote) throw Error('The cloud backup was removed. Refresh and try again.'); const restored = parseTrainingPayload(remote.payload, catalog); assertUnchangedTraining(latest.current, captured); onRestore?.(restored); setBackup(remote); setMessage('Cloud training restored.'); }))} />
       {data.active ? <Text style={s.body}>Finish or discard your active practice before downloading.</Text> : null}
       <Button label="Delete cloud training backup" kind="danger" disabled={busy || !backup} onPress={() => confirm('Delete cloud backup?', 'Your training on this device stays saved.', () => void run(async () => { await api.deleteBackup(); setBackup(null); setChecked(true); setMessage('Cloud training backup deleted.'); }))} />
-      <Button label="Sign out" kind="secondary" disabled={busy} onPress={() => void run(async () => { const { error } = await connectedClient!.auth.signOut(); if (error) throw error; setBackup(null); setChecked(false); setMessage('Signed out. Local training remains saved.'); })} />
+      <Button label="Sign out" kind="secondary" disabled={busy} onPress={() => void run(async () => { const { error } = await requireClient().auth.signOut(); if (error) throw error; setBackup(null); setChecked(false); setMessage('Signed out. Local training remains saved.'); })} />
     </View>}
     {message || connection.error ? <Text accessibilityLiveRegion="polite" style={s.body}>{message || connection.error}</Text> : null}
   </Page>;
@@ -49,19 +51,19 @@ export function AccountScreen({ data, onRestore, catalog = drills }: AccountScre
 export function CommunityScreen() {
   const connection = useConnection(); const { data } = useApp(); const { s } = useTheme();
   const [community, setCommunity] = useState<Awaited<ReturnType<typeof api.loadCommunity>> | null>(null);
-  const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [alias, setAlias] = useState(''); const [optIn, setOptIn] = useState(false); const [friendId, setFriendId] = useState(''); const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [alias, setAlias] = useState(''); const [friendId, setFriendId] = useState(''); const [reason, setReason] = useState('');
   const [title, setTitle] = useState(''); const [goal, setGoal] = useState(''); const [selected, setSelected] = useState<api.Space | null>(null); const [entries, setEntries] = useState<api.SpaceEntry[]>([]); const [body, setBody] = useState(''); const [date, setDate] = useState(''); const [options, setOptions] = useState(''); const [tallies, setTallies] = useState<Record<string, { option: number }[]>>({});
-  useEffect(() => { setCommunity(null); setSelected(null); setEntries([]); setAlias(''); setOptIn(false); setMessage(''); }, [connection.user?.id]);
-  async function refresh() { const result = await api.loadCommunity(); setCommunity(result); setAlias(result.profile?.alias ?? ''); setOptIn(result.profile?.leaderboard_opt_in ?? false); }
+  useEffect(() => { setCommunity(null); setSelected(null); setEntries([]); setAlias(''); setMessage(''); }, [connection.user?.id]);
+  async function refresh() { const result = await api.loadCommunity(); setCommunity(result); setAlias(result.profile?.alias ?? ''); }
   async function run(work: () => Promise<void>) { setBusy(true); setMessage(''); try { await work(); } catch(e) { setMessage(e instanceof Error ? e.message : 'The request failed.'); } finally { setBusy(false); } }
   async function open(space: api.Space) { setSelected(space); setEntries(await api.loadEntries(space.id)); setTallies({}); }
-  return <Page><Title title="Community" body="Private invitations, shared practice and optional community standings." />
+  if (!connectedAccessAllowed()) return <Page><Title title="Community unavailable" body="Community requires an age answer of 13 or older. You can update your answer in training preferences." /></Page>;
+  return <Page><Title title="Community" body="Developer preview: private invitations and shared practice." />
     {!connection.configured ? <Disconnected /> : connection.loading ? <Text style={s.body}>Checking your account…</Text> : !connection.user ? <Text style={s.body}>Sign in under Account & cloud to use community features.</Text> : <View style={{ gap: 16 }}>
       <Text style={s.body}>Use a nickname. Share your player ID only with people you know; there is no public player directory.</Text><Text selectable style={s.body}>Your private player ID: {connection.user.id}</Text>
       <Button label="Refresh community" kind="secondary" disabled={busy} onPress={() => void run(refresh)} />
-      <Field label="Display alias" value={alias} onChange={setAlias} /><Text style={s.body}>Show my alias on community standings</Text><Switch accessibilityLabel="Opt into community standings" value={optIn} onValueChange={setOptIn} /><Button label="Save alias & sharing choice" disabled={busy} onPress={() => void run(async () => { await api.saveIdentity(alias, optIn, data.history.filter(h => h.completed).length); await refresh(); })} />
-      <Text style={s.h2}>Practice standings</Text><Text style={s.body}>Self-reported completed sessions, not verified competition scores. Refresh your sharing choice to update your total.</Text>
-      {community?.leaders.length ? community.leaders.map(p => <Text key={p.user_id} style={s.body}>{p.alias} · {p.practice_points} sessions</Text>) : <Text style={s.body}>No standings loaded. Players appear only after opting in.</Text>}
+      <Field label="Display alias" value={alias} onChange={setAlias} /><Button label="Save alias" disabled={busy} onPress={() => void run(async () => { await api.saveIdentity(alias); await refresh(); })} />
+      <Text style={s.body}>Standings are disabled. No authoritative scoring service is configured.</Text>
       <Text style={s.h2}>Friends & safety</Text><Field label="Friend’s private player ID" value={friendId} onChange={setFriendId} /><Button label="Send friend request" disabled={busy} onPress={() => void run(async () => { await api.requestFriend(friendId.trim()); await refresh(); })} />
       {community?.requests.map(r => <View key={r.id} style={{ gap: 8 }}><Text selectable style={s.body}>{r.sender_id === community.id ? r.recipient_id : r.sender_id} · {r.accepted ? 'Connected' : 'Pending'}</Text>{!r.accepted && r.recipient_id === community.id ? <Button label="Accept request" disabled={busy} onPress={() => void run(async () => { await api.acceptFriend(r.id); await refresh(); })} /> : null}<Button label={r.accepted ? 'Remove friend' : 'Decline / cancel request'} kind="secondary" disabled={busy} onPress={() => void run(async () => { await api.removeFriend(r.id); await refresh(); })} /></View>)}
       <Field label="Report reason" value={reason} onChange={setReason} /><Button label="Report the entered player ID" kind="secondary" disabled={busy || !friendId.trim()} onPress={() => void run(async () => { await api.reportPlayer(friendId.trim(), reason); setMessage('Report submitted privately for moderation.'); })} /><Button label="Block the entered player ID" kind="danger" disabled={busy || !friendId.trim()} onPress={() => confirm('Block player?', 'Their profile, requests and messages will be hidden from you. A shared space owner can also remove members.', () => void run(async () => { await api.blockPlayer(friendId.trim()); await refresh(); setSelected(null); setEntries([]); setMessage('Player blocked.'); }))} />

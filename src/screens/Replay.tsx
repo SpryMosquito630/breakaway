@@ -41,7 +41,8 @@ import { SavedReplay, ReplayInput } from "../replays/repository";
 import { haptic } from "../utils/haptics";
 
 const SAMPLE = sample as ReplayAnalysis;
-const SAMPLE_VIDEO = require("../../assets/replay/footwork.mp4");
+// Optional developer-hosted sample; never package the replay binary into training builds.
+const SAMPLE_VIDEO = process.env.EXPO_PUBLIC_REPLAY_SAMPLE_URL ?? "";
 const VOLT = "#C6EF2E",
   DARK = "#10271D",
   INVERSE = "#FFFFFF";
@@ -494,7 +495,7 @@ export function Replay() {
         </View>
         <Text style={s.small}>
           {isSample
-            ? "Sample · authored moments · automatic ball tracking"
+            ? (SAMPLE_VIDEO ? "Sample · authored moments · automatic ball tracking" : "No developer sample URL configured. Choose your own clip below.")
             : "Your clip · automatic ball tracking"}
         </Text>
       </View>

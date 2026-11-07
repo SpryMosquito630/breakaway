@@ -1,3 +1,4 @@
+import { DEVELOPER_FEATURES } from "../config/features";
 import { trainingPlanToday, profileForToday } from "../domain/training";
 import { useState } from "react";
 import { haptic } from "../utils/haptics";
@@ -167,7 +168,7 @@ export function Today({ navigation }: { navigation: any }) {
           </Pressable>
         </View>
         <Image
-          source={require("../../assets/training-editorial.png")}
+          source={require("../../assets/training-editorial.webp")}
           contentFit="cover"
           contentPosition={{ left: "52%", top: "82%" }}
           style={{ width: 116, alignSelf: "stretch", minHeight: 180 }}
@@ -277,16 +278,17 @@ export function Today({ navigation }: { navigation: any }) {
           ))}
         </Pressable>
       </View>
-      <Disclosure label={`Today’s drills · ${ids.length}`}>
+      <View style={{ gap: 12 }}>
+        <Text style={s.h2}>{`Today’s drills · ${ids.length}`}</Text>
         <Text style={s.small}>Ball{profile.gear.length ? " + " + profile.gear.join(" + ") : " only"}</Text>
         {!ids.length ? <Text style={s.body}>Update today’s check-in or choose another playlist to use the equipment you have.</Text> : null}
         {ids.map((id) => (
           <DrillRow key={id} duration={duration} drill={catalog.find((d) => d.id === id)!} onPress={() => navigation.navigate("Detail", { id })} />
         ))}
-      </Disclosure>
+      </View>
       <View style={s.group}>
         <SettingRow label="My plan" value={profile.goal} onPress={() => navigation.navigate("MyPlan")} />
-        <SettingRow label="Video replay" onPress={() => navigation.navigate("Replay")} />
+        {DEVELOPER_FEATURES ? <SettingRow label="Video replay (developer)" onPress={() => navigation.navigate("Replay")} /> : null}
       </View>
     </Page>
   );
