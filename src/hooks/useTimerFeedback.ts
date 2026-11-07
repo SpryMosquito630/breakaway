@@ -26,7 +26,7 @@ export function useTimerFeedback() {
   useEffect(() => {
     mounted.current = true;
     void setAudioModeAsync({
-      playsInSilentMode: false,
+      playsInSilentMode: true,
       shouldPlayInBackground: false,
       allowsRecording: false,
     }).catch(() => {});

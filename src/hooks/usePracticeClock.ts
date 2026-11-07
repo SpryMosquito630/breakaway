@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { Active, pause, tick, tickWithSignals } from "../domain/model";
+import { practiceLifecycle } from "../domain/practiceClock";
 import { useApp } from "../state/AppState";
 import { useKeepTimerAwake, useTimerFeedback } from "./useTimerFeedback";
 export function usePracticeClock() {
@@ -72,8 +73,13 @@ export function usePracticeClock() {
         checkpointActive(result.active);
       }
     }, 200);
-    const sub = AppState.addEventListener("change", (status) => {
-      if (status !== "active" && ref.current?.running) pauseCurrent();
+    const sub = AppState.addEventListener("change", status => {
+      const local = ref.current;
+      if (!local?.running) return;
+      // Reconcile before the next interval so a completed background block cannot replay a beep.
+      const next = practiceLifecycle(local, status === "active");
+      ref.current = next;
+      setActive(next);
     });
     return () => {
       clearInterval(id);

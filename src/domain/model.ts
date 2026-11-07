@@ -3,7 +3,10 @@ import type { SkillAssessment } from "./assessments";
 export type Goal = "Ball control" | "Dribbling" | "Passing" | "Weaker foot";
 export const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward", "Still exploring"] as const;
 export type Position = typeof positions[number];
+export const ageBands = ["under13", "13to17", "adult"] as const;
+export type AgeBand = typeof ageBands[number];
 export type Profile = {
+  ageBand?: AgeBand;
   position?: Position;
   goal: Goal;
   experience: string;
@@ -52,6 +55,8 @@ export type DrillSnapshot = {
   target?: string;
 };
 export type Active = {
+  /** Frozen when the first block starts; absent until then. */
+  backgroundClock?: boolean;
   id: string;
   ids: string[];
   index: number;
@@ -84,6 +89,7 @@ export type History = {
 export type Benchmark = { id: string; date: string; count: number };
 export type TodaySession = { date: string; minutes: 10 | 15 | 20 | 30 };
 export type AppData = {
+  backgroundPractice?: boolean;
   version: 1;
   customDrills?: Drill[];
   trainingRecoveryNotice?: string;
@@ -362,7 +368,11 @@ const profileKey = (profile: Profile, ignorePosition = false) => JSON.stringify(
 export function keepsCustomPlanForPosition(data: AppData, profile: Profile) {
   return data.planCustomized === true && profileKey(data.profile, true) === profileKey(profile, true);
 }
+export function preserveAgeRestriction(current: Profile, incoming: Profile): Profile {
+  return current.ageBand === "under13" ? { ...incoming, ageBand: "under13" } : incoming;
+}
 export function updateTrainingProfile(data: AppData, profile: Profile, catalog: Drill[]): AppData {
+  profile = preserveAgeRestriction(data.profile, profile);
   const changed = profileKey(data.profile) !== profileKey(profile);
   const keepPlan = !changed || keepsCustomPlanForPosition(data, profile);
   return { ...data, profile, plan: keepPlan ? data.plan : matchPlan(catalog, profile), planCustomized: keepPlan ? data.planCustomized : false };
@@ -373,6 +383,7 @@ export function completeOnboarding(
   matchedPlan: string[],
   replay = false,
 ): AppData {
+  profile = preserveAgeRestriction(data.profile, profile);
   const keepPlan =
     replay && data.onboarded && (profileKey(data.profile) === profileKey(profile) || keepsCustomPlanForPosition(data, profile));
   return {

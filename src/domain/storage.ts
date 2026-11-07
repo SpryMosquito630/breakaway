@@ -1,3 +1,4 @@
+import { restorePracticeClock } from "./practiceClock";
 import { combinedCatalog, sanitizeCustomDrills, sanitizeTrainingFields } from "./training";
 import { sanitizeAssessments } from "./assessments";
 import { sanitizeTodaySession } from "./sessionTime";
@@ -11,7 +12,9 @@ import {
   goals,
   positions,
   matchPlan,
+  initialData,
 } from "./model";
+const isRecord = (x: unknown): boolean => record(x);
 const record = (x: unknown): x is Record<string, unknown> =>
   x !== null && typeof x === "object" && !Array.isArray(x);
 function results(value: unknown): DrillResult[] | undefined {
@@ -51,15 +54,17 @@ function snapshots(value: unknown): Record<string, DrillSnapshot> | undefined {
   }
   return safe;
 }
-export function restoreAppData(raw: string, catalog: Drill[]): AppData {
+export function restoreAppData(raw: string, catalog: Drill[], now = Date.now()): AppData {
   const p = JSON.parse(raw);
+  if (!isRecord(p)) throw Error("Invalid saved data");
   p.customDrills = sanitizeCustomDrills(p.customDrills);
   catalog = combinedCatalog(catalog, p);
-  const profile = p.profile;
+  if (p.version !== 1 || typeof p.onboarded !== "boolean" ||
+      !Array.isArray(p.plan) || !Array.isArray(p.history) || !Array.isArray(p.benchmarks))
+    throw Error("Invalid saved data");
+  let profile = p.profile;
   if (
-    p.version !== 1 ||
-    typeof p.onboarded !== "boolean" ||
-    !profile ||
+    !isRecord(profile) ||
     !goals.includes(profile.goal) ||
     !["New to training", "Some experience"].includes(profile.experience) ||
     ![15, 20, 30].includes(profile.minutes) ||
@@ -70,13 +75,13 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
     !profile.gear.every((g: string) =>
       ["markers", "wall", "partner"].includes(g),
     ) ||
-    !["Small space", "Open space"].includes(profile.space) ||
-    !Array.isArray(p.plan) ||
-    !Array.isArray(p.history) ||
-    !Array.isArray(p.benchmarks)
-  )
-    throw Error("Invalid saved preferences");
+    !["Small space", "Open space"].includes(profile.space)
+  ) {
+    profile = p.profile = initialData().profile;
+    p.onboarded = false;
+  }
   if (!positions.includes(profile.position)) delete profile.position;
+  if (!["under13", "13to17", "adult"].includes(profile.ageBand)) delete profile.ageBand;
   const known = (id: string) => catalog.some((d) => d.id === id);
   const lostCustom = (id: unknown) => typeof id === "string" && id.startsWith("custom-") && !known(id);
   const recoveryNotice = "Some custom drill data could not be read. Your saved history is intact. Review your plan and playlists before practicing.";
@@ -98,9 +103,12 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
     profile,
     p.planCustomized,
   );
+  p.backgroundPractice = p.backgroundPractice === true;
   if (p.active) {
     const a = p.active;
     if (
+      !isRecord(a) ||
+      typeof a.id !== "string" ||
       !Array.isArray(a.ids) ||
       !a.ids.length ||
       !a.ids.every(known) ||
@@ -114,10 +122,11 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
       a.duration < 1 ||
       a.remaining > a.duration
     )
-      throw Error("Invalid saved session");
-    p.active = {
+      p.active = null;
+    else p.active = restorePracticeClock({
       ...a,
-      running: false,
+      running: a.running === true,
+      backgroundClock: typeof a.backgroundClock === "boolean" ? a.backgroundClock : undefined,
       blockElapsed: Math.min(
         a.duration,
         a.elapsed,
@@ -129,8 +138,9 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
       snapshots: snapshots(a.snapshots),
       warningSent: a.warningSent === true,
       finishSent: a.finishSent === true,
-    };
+    }, now);
   }
+  if (!p.active) p.active = null;
   p.history = p.history
     .filter(
       (h: any) =>
@@ -151,6 +161,8 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
     )
     .map((h: any) => ({
       ...h,
+      skipped: Number.isInteger(h.skipped) && h.skipped >= 0 && h.skipped <= h.total
+        ? h.skipped : Math.max(0, h.total - h.done),
       completed: h.completed === true && h.done === h.total,
       effort: ["Easy", "Just right", "Challenging"].includes(h.effort)
         ? h.effort

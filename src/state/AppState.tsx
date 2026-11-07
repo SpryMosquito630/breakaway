@@ -1,138 +1,91 @@
 import { combinedCatalog } from "../domain/training";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AppData, initialData, pause } from "../domain/model";
-import { restoreAppData } from "../domain/storage";
-import { Active } from "../domain/model";
+import { practiceLifecycle } from "../domain/practiceClock";
+import { allowBackgroundPractice, backgroundPracticeAllowed, onPracticeNotificationFailure, practiceNotifications } from "../notifications/practiceNative";
 import { drills } from "../data/drills";
-const KEY = "player-accelerator-v1";
-type Store = {
-  data: AppData;
+import { createAppStoreCore } from "./appStoreCore";
+
+type Store = ReturnType<typeof createAppStoreCore>;
+type ContextValue = ReturnType<Store["getSnapshot"]> & {
   catalog: import("../domain/model").Drill[];
-  update: (fn: (s: AppData) => AppData) => void;
-  loading: boolean;
-  error: string | null;
+  update: Store["update"];
   retry: () => void;
-  checkpointActive: (active: Active) => void;
+  checkpointActive: Store["checkpointActive"];
+  backgroundClockMessage: string;
+  backgroundClockBusy: boolean;
+  setBackgroundPractice: (enabled: boolean) => Promise<void>;
 };
-const Context = createContext<Store | null>(null);
+const Context = createContext<ContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState(initialData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const latest = useRef(data);
-  const pending = useRef<AppData | null>(null);
-  const writing = useRef(false);
-  const persist = useCallback((next: AppData) => {
-    pending.current = next;
-    if (writing.current) return;
-    writing.current = true;
-    void (async () => {
-      while (pending.current) {
-        const value = pending.current;
-        pending.current = null;
-        try {
-          await AsyncStorage.setItem(KEY, JSON.stringify(value));
-          setError(null);
-        } catch {
-          setError(
-            "Changes could not be saved on this device. Keep the app open and try again.",
-          );
-        }
+  const [store] = useState(() => createAppStoreCore(AsyncStorage));
+  const [backgroundClockMessage, setBackgroundClockMessage] = useState("");
+  const [backgroundClockBusy, setBackgroundClockBusy] = useState(false);
+  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  useEffect(() => { void store.load(); }, [store]);
+  useEffect(() => {
+    const verifyPermission = async () => {
+      if (!store.getData().backgroundPractice && !store.getData().active?.backgroundClock) return;
+      let allowed = false;
+      try { allowed = await backgroundPracticeAllowed(); } catch { /* Foreground fallback. */ }
+      if (!allowed) {
+        store.update(s => ({ ...s, backgroundPractice: false, active: s.active
+          ? { ...practiceLifecycle(s.active, false), backgroundClock: false, running: false } : null }));
+        setBackgroundClockMessage("Notifications are unavailable. Practice pauses when you leave the app. Allow notifications in device Settings to enable background practice.");
       }
-      writing.current = false;
-    })();
-  }, []);
-  const apply = useCallback(
-    (fn: (s: AppData) => AppData, save = true) => {
-      const next = fn(latest.current);
-      latest.current = next;
-      setData(next);
-      if (save) persist(next);
-    },
-    [persist],
-  );
-  const update = useCallback(
-    (fn: (s: AppData) => AppData) => apply(fn),
-    [apply],
-  );
-  useEffect(() => {
-    let mounted = true;
-    AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        if (!mounted) return;
-        if (raw) {
-          const restored = restoreAppData(raw, drills);
-          latest.current = restored;
-          setData(restored);
-          persist(restored);
-        }
-      })
-      .catch(() => {
-        if (mounted)
-          setError(
-            "Saved data could not be read. A fresh plan is available. Reset in Settings to clear damaged data.",
-          );
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-    return () => {
-      mounted = false;
     };
-  }, [persist]);
-  useEffect(() => {
+    if (!snapshot.loading && !snapshot.recovery) void verifyPermission();
     const sub = AppState.addEventListener("change", (status) => {
-      if (status !== "active" && latest.current.active?.running)
-        update((s) => ({ ...s, active: pause(s.active!) }));
+      if (store.getData().active?.running)
+        store.update((s) => ({ ...s, active: s.active ? practiceLifecycle(s.active, status === "active") : null }));
+      if (status === "active") void verifyPermission();
     });
-    return () => {
-      sub.remove();
+    return () => sub.remove();
+  }, [store, snapshot.loading, snapshot.recovery]);
+  useEffect(() => {
+    const stopListening = onPracticeNotificationFailure(() => {
+      setBackgroundClockMessage("The end alert could not be updated. Practice is paused and background practice is off. An older alert may remain; check device notification settings before trying again.");
+      const data = store.getData();
+      // A failing cancellation during fallback must not publish another identical update forever.
+      if (data.backgroundPractice || data.active?.backgroundClock)
+        store.update(s => ({ ...s, backgroundPractice: false, active: s.active
+          ? { ...practiceLifecycle(s.active, false), backgroundClock: false, running: false } : null }));
+    });
+    const sync = () => {
+      const state = store.getSnapshot();
+      if (!state.loading && !state.recovery) void practiceNotifications.sync(store.getData().active);
     };
-  }, [apply, update]);
-  const checkpointActive = useCallback(
-    (active: Active) => {
-      const current = latest.current.active;
-      if (
-        !current ||
-        current.id !== active.id ||
-        current.index !== active.index ||
-        current.ids[current.index] !== active.ids[active.index] ||
-        !current.running
-      )
+    sync();
+    const unsubscribe = store.subscribe(sync);
+    return () => { unsubscribe(); stopListening(); };
+  }, [store]);
+  const setBackgroundPractice = async (enabled: boolean) => {
+    if (backgroundClockBusy) return;
+    const sessionId = store.getData().active?.id;
+    setBackgroundClockBusy(true);
+    try {
+      if (enabled && !(await allowBackgroundPractice())) {
+        setBackgroundClockMessage("Notifications are unavailable. Practice pauses when you leave the app. Allow notifications in device Settings to enable background practice.");
         return;
-      const next = { ...latest.current, active };
-      latest.current = next;
-      persist(next);
-    },
-    [persist],
-  );
+      }
+      if (store.getData().active?.id !== sessionId) return;
+      store.update(s => ({ ...s, backgroundPractice: enabled }));
+      setBackgroundClockMessage("");
+    } catch {
+      setBackgroundClockMessage("Background practice could not be enabled. Practice will pause when you leave the app.");
+    } finally { setBackgroundClockBusy(false); }
+  };
   return (
-    <Context.Provider
-      value={{
-        data,
-        catalog: combinedCatalog(drills, data),
-        update,
-        loading,
-        error,
-        retry: () => persist(latest.current),
-        checkpointActive,
-      }}
-    >
+    <Context.Provider value={{ ...snapshot, catalog: combinedCatalog(drills, snapshot.data),
+      backgroundClockMessage, backgroundClockBusy, setBackgroundPractice,
+      update: store.update, retry: () => { void store.retry(); }, checkpointActive: store.checkpointActive }}>
       {children}
     </Context.Provider>
   );
 }
 export function useApp() {
-  const v = useContext(Context);
-  if (!v) throw Error("Missing AppProvider");
-  return v;
+  const value = useContext(Context);
+  if (!value) throw Error("Missing AppProvider");
+  return value;
 }
