@@ -7,9 +7,7 @@ function database(): Promise<IDBDatabase> {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () =>
       reject(
-        new Error(
-          "Browser storage is unavailable. Allow site storage and try again.",
-        ),
+        new Error("Browser storage is unavailable. Allow site storage and try again."),
       );
   });
 }
@@ -37,9 +35,9 @@ async function transaction<T>(
 }
 const driver: ReplayDriver = {
   async list() {
-    return (
-      await transaction<any[]>("readonly", (store) => store.getAll())
-    ).map((row) => row.record);
+    return (await transaction<any[]>("readonly", (store) => store.getAll())).map(
+      (row) => row.record,
+    );
   },
   async size(input) {
     return (input.file ?? (await (await fetch(input.uri)).blob())).size;

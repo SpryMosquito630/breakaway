@@ -1,9 +1,10 @@
 import { ageBands, days, goals, positions, Profile } from "./model";
 export type OnboardingDraft = Partial<Profile>;
-const validAge = (d: OnboardingDraft) => d.ageBand !== undefined && ageBands.includes(d.ageBand);
-const validPosition = (d: OnboardingDraft) => d.position !== undefined && positions.includes(d.position);
-const validGoal = (d: OnboardingDraft) =>
-  d.goal !== undefined && goals.includes(d.goal);
+const validAge = (d: OnboardingDraft) =>
+  d.ageBand !== undefined && ageBands.includes(d.ageBand);
+const validPosition = (d: OnboardingDraft) =>
+  d.position !== undefined && positions.includes(d.position);
+const validGoal = (d: OnboardingDraft) => d.goal !== undefined && goals.includes(d.goal);
 const validExperience = (d: OnboardingDraft) =>
   d.experience === "New to training" || d.experience === "Some experience";
 const validSchedule = (d: OnboardingDraft) =>
@@ -15,20 +16,26 @@ const validSetup = (d: OnboardingDraft) =>
   (d.space === "Small space" || d.space === "Open space") &&
   Array.isArray(d.gear) &&
   d.gear.every((g) => ["markers", "wall", "partner"].includes(g));
-export function isOnboardingStepReady(
-  d: OnboardingDraft,
-  step: number,
-): boolean {
+export function isOnboardingStepReady(d: OnboardingDraft, step: number): boolean {
   switch (step) {
-    case 0: return true;
-    case 1: return validAge(d);
-    case 2: return validPosition(d);
-    case 3: return validGoal(d);
-    case 4: return validExperience(d);
-    case 5: return validSchedule(d);
-    case 6: return validSetup(d);
-    case 7: return profileFromDraft(d) !== null;
-    default: return false;
+    case 0:
+      return true;
+    case 1:
+      return validAge(d);
+    case 2:
+      return validPosition(d);
+    case 3:
+      return validGoal(d);
+    case 4:
+      return validExperience(d);
+    case 5:
+      return validSchedule(d);
+    case 6:
+      return validSetup(d);
+    case 7:
+      return profileFromDraft(d) !== null;
+    default:
+      return false;
   }
 }
 

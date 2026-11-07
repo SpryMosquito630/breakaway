@@ -70,8 +70,7 @@ export const emptyAthlete = (): AthleteData => ({
   bests: [],
   routines: [],
 });
-export const id = () =>
-  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+export const id = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 export function today(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -91,9 +90,7 @@ export function distance(a: Point, b: Point) {
   const dlng = (b.longitude - a.longitude) * r;
   const h =
     Math.sin(dlat / 2) ** 2 +
-    Math.cos(a.latitude * r) *
-      Math.cos(b.latitude * r) *
-      Math.sin(dlng / 2) ** 2;
+    Math.cos(a.latitude * r) * Math.cos(b.latitude * r) * Math.sin(dlng / 2) ** 2;
   return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
 }
 export function validPoint(p: unknown): p is Point {
@@ -119,8 +116,7 @@ export function appendPoint(points: Point[], next: Point): Point[] {
     last &&
     (next.timestamp <= last.timestamp ||
       (last.segment === next.segment &&
-        (distance(last, next) >
-          ((next.timestamp - last.timestamp) / 1000) * 12 ||
+        (distance(last, next) > ((next.timestamp - last.timestamp) / 1000) * 12 ||
           distance(last, next) < 2)))
   )
     return points;
@@ -130,9 +126,7 @@ export function routeDistance(points: Point[]) {
   return points.reduce(
     (sum, p, i) =>
       sum +
-      (i > 0 && p.segment === points[i - 1].segment
-        ? distance(points[i - 1], p)
-        : 0),
+      (i > 0 && p.segment === points[i - 1].segment ? distance(points[i - 1], p) : 0),
     0,
   );
 }
@@ -144,9 +138,7 @@ export function clock(seconds: number) {
   return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
 }
 export function pace(meters: number, seconds: number) {
-  return meters >= 50 && seconds > 0
-    ? `${clock(seconds / (meters / 1000))} /km`
-    : "—";
+  return meters >= 50 && seconds > 0 ? `${clock(seconds / (meters / 1000))} /km` : "—";
 }
 export function seasonStats(matches: Match[], year: string) {
   return matches
@@ -220,10 +212,7 @@ export function restoreAthlete(raw: unknown): AthleteData {
       (m.source === undefined ||
         ["Open Food Facts", "AI photo estimate"].includes(m.source)),
   );
-  out.recovery = rows(
-    "recovery",
-    (r) => bounded(r.water, 10000) && bounded(r.sleep, 24),
-  );
+  out.recovery = rows("recovery", (r) => bounded(r.water, 10000) && bounded(r.sleep, 24));
   out.bests = rows(
     "bests",
     (b) => text(b.exercise) && text(b.unit, 20) && bounded(b.value, 100000),

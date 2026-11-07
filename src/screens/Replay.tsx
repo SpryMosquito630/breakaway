@@ -71,10 +71,7 @@ export function ReplayEntry({ onPress }: { onPress: () => void }) {
         haptic("light");
         onPress();
       }}
-      style={[
-        styles.entry,
-        { borderColor: C.lineStrong, backgroundColor: C.white },
-      ]}
+      style={[styles.entry, { borderColor: C.lineStrong, backgroundColor: C.white }]}
     >
       <Film size={23} color={C.green} />
       <View style={{ flex: 1, gap: 3 }}>
@@ -140,9 +137,7 @@ export function Replay() {
       setClip(null);
       held.current.clear();
     } catch (e) {
-      setHistoryError(
-        e instanceof Error ? e.message : "Could not open replay.",
-      );
+      setHistoryError(e instanceof Error ? e.message : "Could not open replay.");
     }
   }
   async function saveReplay() {
@@ -158,8 +153,7 @@ export function Replay() {
         analysis,
         abort.signal,
       );
-      if (mounted.current && candidate.current?.id === saved.id)
-        setSavedId(saved.id);
+      if (mounted.current && candidate.current?.id === saved.id) setSavedId(saved.id);
     } catch (e) {
       if (mounted.current)
         setError(
@@ -184,9 +178,7 @@ export function Replay() {
     };
     if (Platform.OS === "web") {
       if (
-        window.confirm(
-          "Delete this saved replay and its video? This cannot be undone.",
-        )
+        window.confirm("Delete this saved replay and its video? This cannot be undone.")
       )
         remove();
     } else
@@ -495,26 +487,25 @@ export function Replay() {
         </View>
         <Text style={s.small}>
           {isSample
-            ? (SAMPLE_VIDEO ? "Sample · authored moments · automatic ball tracking" : "No developer sample URL configured. Choose your own clip below.")
+            ? SAMPLE_VIDEO
+              ? "Sample · authored moments · automatic ball tracking"
+              : "No developer sample URL configured. Choose your own clip below."
             : "Your clip · automatic ball tracking"}
         </Text>
       </View>
       <Disclosure label={`My replays (${history.length})`}>
         <Text style={s.small}>
-          Saved on this device · {history.length}/10 clips · up to 200 MB. No
-          cloud backup.
+          Saved on this device · {history.length}/10 clips · up to 200 MB. No cloud
+          backup.
         </Text>
         {history.length === 0 ? (
           <Text style={s.body}>
-            Analyze a recording, then tap Save replay to keep the video and ball
-            tracking for offline review.
+            Analyze a recording, then tap Save replay to keep the video and ball tracking
+            for offline review.
           </Text>
         ) : null}
         {history.map((item) => (
-          <View
-            key={item.id}
-            style={[styles.historyRow, { borderBottomColor: C.line }]}
-          >
+          <View key={item.id} style={[styles.historyRow, { borderBottomColor: C.line }]}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Open ${item.title}, ${new Date(item.createdAt).toLocaleString()}`}
@@ -572,11 +563,7 @@ export function Replay() {
         <View style={{ gap: 8 }}>
           <Button
             label={
-              savedId
-                ? "Saved on this device"
-                : saving
-                  ? "Saving replay…"
-                  : "Save replay"
+              savedId ? "Saved on this device" : saving ? "Saving replay…" : "Save replay"
             }
             disabled={!!savedId || saving || busy || !candidate.current}
             onPress={() => void saveReplay()}
@@ -589,12 +576,7 @@ export function Replay() {
         </View>
       ) : null}
       <View style={styles.replay}>
-        <View
-          style={[
-            styles.stage,
-            { aspectRatio: analysis.width / analysis.height },
-          ]}
-        >
+        <View style={[styles.stage, { aspectRatio: analysis.width / analysis.height }]}>
           <VideoView
             player={player}
             nativeControls={false}
@@ -612,10 +594,7 @@ export function Replay() {
                 {trail.length > 1 ? (
                   <Polyline
                     points={trail
-                      .map(
-                        (f) =>
-                          `${f.x! * analysis.width},${f.y! * analysis.height}`,
-                      )
+                      .map((f) => `${f.x! * analysis.width},${f.y! * analysis.height}`)
                       .join(" ")}
                     fill="none"
                     stroke={VOLT}
@@ -771,9 +750,7 @@ export function Replay() {
               { name: "decrement", label: "Back half a second" },
             ]}
             onAccessibilityAction={(e) =>
-              seek(
-                time + (e.nativeEvent.actionName === "increment" ? 0.5 : -0.5),
-              )
+              seek(time + (e.nativeEvent.actionName === "increment" ? 0.5 : -0.5))
             }
             onPress={(e) =>
               seek(
@@ -786,12 +763,7 @@ export function Replay() {
             }}
             style={{ height: 80 }}
           >
-            <Svg
-              width="100%"
-              height={80}
-              viewBox="0 0 320 80"
-              preserveAspectRatio="none"
-            >
+            <Svg width="100%" height={80} viewBox="0 0 320 80" preserveAspectRatio="none">
               <Line x1={0} y1={65} x2={320} y2={65} stroke="#50715C" />
               <Path d={graphPath} stroke={VOLT} strokeWidth={2} fill="none" />
               <Line
@@ -865,8 +837,7 @@ export function Replay() {
           <View style={{ gap: 12 }}>
             <Text style={s.h2}>{moment?.title ?? "Look closer"}</Text>
             <Text style={s.body}>
-              {moment?.body ??
-                "Jump to a moment, then compare both sides at half speed."}
+              {moment?.body ?? "Jump to a moment, then compare both sides at half speed."}
             </Text>
             {review.moments.map((m) => (
               <Pressable
@@ -875,16 +846,12 @@ export function Replay() {
                 onPress={() => seek(m.time)}
                 style={[styles.moment, { borderBottomColor: C.line }]}
               >
-                <Text style={[s.small, { width: 44 }]}>
-                  {m.time.toFixed(2)}s
-                </Text>
+                <Text style={[s.small, { width: 44 }]}>{m.time.toFixed(2)}s</Text>
                 <Text style={[s.h3, { flex: 1 }]}>{m.title}</Text>
                 <ChevronRight color={C.green} size={19} />
               </Pressable>
             ))}
-            <Text style={s.small}>
-              Sample moments are authored observations.
-            </Text>
+            <Text style={s.small}>Sample moments are authored observations.</Text>
           </View>
         </>
       ) : (
@@ -911,8 +878,8 @@ export function Replay() {
       >
         <Text style={s.h2}>Review your own clip</Text>
         <Text style={s.body}>
-          Keep the ball and your full body in frame. Include the move and two
-          steps after it.
+          Keep the ball and your full body in frame. Include the move and two steps after
+          it.
         </Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1 }}>
@@ -936,13 +903,11 @@ export function Replay() {
         </View>
         {clip ? (
           <View style={[styles.selection, { backgroundColor: C.soft }]}>
-            <Text style={s.h3}>
-              {clip.fileName ?? "Selected practice clip"}
-            </Text>
+            <Text style={s.h3}>{clip.fileName ?? "Selected practice clip"}</Text>
             <Text style={s.small}>Up to 30 seconds · tap Analyze to send.</Text>
             <Text style={s.small}>
-              Video processed on this computer; deleted after analysis. Replay
-              uses your original clip.
+              Video processed on this computer; deleted after analysis. Replay uses your
+              original clip.
             </Text>
             {busy ? (
               <>
@@ -969,8 +934,8 @@ export function Replay() {
         {!service ? (
           <View style={{ gap: 8 }}>
             <Text style={s.small}>
-              Personal analysis needs this computer online. The sample replay
-              works offline.
+              Personal analysis needs this computer online. The sample replay works
+              offline.
             </Text>
             <Button
               label="Reconnect analysis"
@@ -995,25 +960,23 @@ export function Replay() {
       </View>
       <Disclosure label="How this replay works">
         <Text style={s.body}>
-          The ring follows actual YOLOX Nano sports-ball detections. The graph
-          shows adjacent ball-center movement relative to this clip’s largest
-          movement. Camera motion is included; this is not physical speed.
+          The ring follows actual YOLOX Nano sports-ball detections. The graph shows
+          adjacent ball-center movement relative to this clip’s largest movement. Camera
+          motion is included; this is not physical speed.
         </Text>
         <Text style={s.body}>
-          Missing detections break the trail. Detector scores are not
-          correctness probabilities. This feature does not classify a cut,
-          assess technique, or change your skill profile.
+          Missing detections break the trail. Detector scores are not correctness
+          probabilities. This feature does not classify a cut, assess technique, or change
+          your skill profile.
         </Text>
         {isSample ? (
           <>
             <Text style={s.small}>
-              Sample: {sample.acceptedFrames}/{sample.totalFrames} frames
-              accepted. Coverage is not accuracy. Phases and notes were marked
-              through AI-assisted visual review.
+              Sample: {sample.acceptedFrames}/{sample.totalFrames} frames accepted.
+              Coverage is not accuracy. Phases and notes were marked through AI-assisted
+              visual review.
             </Text>
-            <Text style={s.small}>
-              Footage: RDNE Stock project · Pexels 7187047.
-            </Text>
+            <Text style={s.small}>Footage: RDNE Stock project · Pexels 7187047.</Text>
             <Button
               label="Footage & license"
               kind="secondary"

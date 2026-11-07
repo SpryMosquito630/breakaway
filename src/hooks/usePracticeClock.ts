@@ -20,10 +20,7 @@ export function usePracticeClock() {
     },
     [update],
   );
-  const current = useCallback(
-    () => (ref.current ? tick(ref.current) : null),
-    [],
-  );
+  const current = useCallback(() => (ref.current ? tick(ref.current) : null), []);
   const pauseCurrent = useCallback(() => {
     const a = ref.current;
     if (!a) return null;
@@ -73,7 +70,7 @@ export function usePracticeClock() {
         checkpointActive(result.active);
       }
     }, 200);
-    const sub = AppState.addEventListener("change", status => {
+    const sub = AppState.addEventListener("change", (status) => {
       const local = ref.current;
       if (!local?.running) return;
       // Reconcile before the next interval so a completed background block cannot replay a beep.

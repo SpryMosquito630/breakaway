@@ -30,7 +30,9 @@ function native() {
     // Match SDK 58's foreground presentation defaults, including our training reminders.
     n.setNotificationHandler({
       handleNotification: async (notification) => {
-        const practiceInForeground = notification.request.identifier === PRACTICE_NOTIFICATION_ID && AppState.currentState === "active";
+        const practiceInForeground =
+          notification.request.identifier === PRACTICE_NOTIFICATION_ID &&
+          AppState.currentState === "active";
         return {
           shouldShowBanner: !practiceInForeground,
           shouldShowList: !practiceInForeground,
@@ -166,17 +168,13 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
         if (!mounted) return;
-        const restored = raw
-          ? normalizeReminders(JSON.parse(raw))
-          : defaultReminders();
+        const restored = raw ? normalizeReminders(JSON.parse(raw)) : defaultReminders();
         prefs.current = restored;
         setPreferences(restored);
       })
       .catch(() => {
         if (mounted)
-          setMessage(
-            "Saved reminder settings could not be read. Set them again below.",
-          );
+          setMessage("Saved reminder settings could not be read. Set them again below.");
       })
       .finally(() => {
         if (mounted) setReady(true);
@@ -196,16 +194,22 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
     const refresh = () => {
       const now = new Date();
       const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      timer = setTimeout(() => {
-        if (AppState.currentState === "active" && ready && !loading) void run(sync);
-        refresh();
-      }, midnight.getTime() - now.getTime() + 1000);
+      timer = setTimeout(
+        () => {
+          if (AppState.currentState === "active" && ready && !loading) void run(sync);
+          refresh();
+        },
+        midnight.getTime() - now.getTime() + 1000,
+      );
     };
     refresh();
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active" && ready && !loading) void run(sync);
     });
-    return () => { clearTimeout(timer); sub.remove(); };
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
   }, [ready, loading, run, sync]);
   const setEnabled = (enabled: boolean) =>
     run(async () => {
@@ -238,9 +242,7 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
         message,
         setEnabled,
         setTime: (hour, minute) =>
-          run(() =>
-            commit(normalizeReminders({ ...prefs.current, hour, minute })),
-          ),
+          run(() => commit(normalizeReminders({ ...prefs.current, hour, minute }))),
         reset: () => run(() => commit(defaultReminders())),
       }}
     >

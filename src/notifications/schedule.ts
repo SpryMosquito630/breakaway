@@ -24,14 +24,9 @@ export function normalizeReminders(value: unknown): ReminderPreferences {
   const p = value as Partial<ReminderPreferences> | null;
   return {
     enabled: p?.enabled === true,
-    hour:
-      Number.isInteger(p?.hour) && p!.hour! >= 0 && p!.hour! <= 23
-        ? p!.hour!
-        : 18,
+    hour: Number.isInteger(p?.hour) && p!.hour! >= 0 && p!.hour! <= 23 ? p!.hour! : 18,
     minute:
-      Number.isInteger(p?.minute) && p!.minute! >= 0 && p!.minute! <= 59
-        ? p!.minute!
-        : 0,
+      Number.isInteger(p?.minute) && p!.minute! >= 0 && p!.minute! <= 59 ? p!.minute! : 0,
   };
 }
 export const REMINDER_PREFIX = "breakaway-training-v1-";
@@ -62,11 +57,20 @@ export function desiredReminders(
   const p = normalizeReminders(preferences);
   if (!p.enabled) return [];
   const selected = new Set(days.map((day) => weekdays[day]).filter(Boolean));
-  const trained = new Set(history.filter((h) => h.seconds > 0 && new Date(h.date) <= now)
-    .map((h) => localDateKey(new Date(h.date))));
+  const trained = new Set(
+    history
+      .filter((h) => h.seconds > 0 && new Date(h.date) <= now)
+      .map((h) => localDateKey(new Date(h.date))),
+  );
   const reminders: Reminder[] = [];
   for (let offset = 0; offset < 7; offset++) {
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, p.hour, p.minute);
+    const date = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + offset,
+      p.hour,
+      p.minute,
+    );
     const key = localDateKey(date);
     if (!selected.has(date.getDay() + 1) || date <= now || trained.has(key)) continue;
     reminders.push({
@@ -79,10 +83,7 @@ export function desiredReminders(
   return reminders;
 }
 /** Reconcile against the OS, so retries and interrupted/relaunched apps stay idempotent. */
-export async function reconcileReminders(
-  api: ReminderScheduler,
-  desired: Reminder[],
-) {
+export async function reconcileReminders(api: ReminderScheduler, desired: Reminder[]) {
   const scheduled = await api.list();
   const retained = new Set<string>();
   for (const item of scheduled) {

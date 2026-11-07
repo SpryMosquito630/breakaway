@@ -17,12 +17,7 @@ function dayIndex(date: Date) {
 }
 export function nextTrainingDate(profile: Profile, now = new Date()) {
   for (let offset = 0; offset < 7; offset++) {
-    const date = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + offset,
-      12,
-    );
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 12);
     if (profile.days.includes(days[dayIndex(date)])) return date;
   }
   return now;
@@ -38,12 +33,13 @@ export function planForDate(
 ) {
   if (customized !== false && basePlan.length) return [...new Set(basePlan)];
   const date = nextTrainingDate(profile, now);
-  const eligible = catalog.filter((d) => allowed(d, profile) && recommendedForPosition(d, profile));
+  const eligible = catalog.filter(
+    (d) => allowed(d, profile) && recommendedForPosition(d, profile),
+  );
   const ranked = matchPlan(eligible, profile);
   const ordered = [...eligible].sort(
     (a, b) =>
-      Number(b.level === profile.experience) -
-      Number(a.level === profile.experience),
+      Number(b.level === profile.experience) - Number(a.level === profile.experience),
   );
   const focus = ordered.filter((d) => d.skill === profile.goal);
   const scheduled = days.filter((d) => profile.days.includes(d));
@@ -56,9 +52,7 @@ export function planForDate(
   );
   const week = Math.floor(monday / (7 * 86400000));
   const rotate = (list: Drill[], offset: number) =>
-    list.map(
-      (_, i) => list[(i + (offset % list.length) + list.length) % list.length],
-    );
+    list.map((_, i) => list[(i + (offset % list.length) + list.length) % list.length]);
   const primary = rotate(focus, week + slot)
     .slice(0, 2)
     .map((d) => d.id);
@@ -75,9 +69,7 @@ export function planForDate(
 export function adaptDrill(drill: Drill, history: History[]): Drill {
   let difficulty: 1 | 2 | 3 = 1;
   let easy = 0;
-  const ordered = [...history].sort(
-    (a, b) => Date.parse(a.date) - Date.parse(b.date),
-  );
+  const ordered = [...history].sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
   for (const session of ordered) {
     if (!session.completed || session.seconds <= 0) continue;
     const result = session.drills?.find(
@@ -99,21 +91,13 @@ export function adaptDrill(drill: Drill, history: History[]): Drill {
   return variant ? { ...drill, ...variant, difficulty } : drill;
 }
 
-export function weeklyProgress(
-  history: History[],
-  profile: Profile,
-  now = new Date(),
-) {
+export function weeklyProgress(history: History[], profile: Profile, now = new Date()) {
   const monday = new Date(
     now.getFullYear(),
     now.getMonth(),
     now.getDate() - dayIndex(now),
   );
-  const end = new Date(
-    monday.getFullYear(),
-    monday.getMonth(),
-    monday.getDate() + 7,
-  );
+  const end = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 7);
   const completedDates = new Set(
     history
       .filter(

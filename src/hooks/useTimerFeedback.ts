@@ -48,8 +48,7 @@ export function useTimerFeedback() {
       void player
         .seekTo(0)
         .then(() => {
-          if (mounted.current && AppState.currentState === "active")
-            player.play();
+          if (mounted.current && AppState.currentState === "active") player.play();
         })
         .catch(() => {});
     },

@@ -25,7 +25,14 @@ import {
 import { useApp } from "../state/AppState";
 import { initialData, updateTrainingProfile, pause } from "../domain/model";
 import { Preferences } from "../components/Preferences";
-import { Button, Disclaimer, Disclosure, Page, SettingRow, Title } from "../components/ui";
+import {
+  Button,
+  Disclaimer,
+  Disclosure,
+  Page,
+  SettingRow,
+  Title,
+} from "../components/ui";
 export function Settings({ navigation }: { navigation: any }) {
   const { data, update } = useApp();
   const { C, s, mode, setMode, error: themeError } = useTheme();
@@ -42,9 +49,7 @@ export function Settings({ navigation }: { navigation: any }) {
         update(() => initialData());
       })
       .catch(() =>
-        setResetError(
-          "Reset could not finish. Free device space and try again.",
-        ),
+        setResetError("Reset could not finish. Free device space and try again."),
       );
   }
   function confirmReset() {
@@ -67,8 +72,18 @@ export function Settings({ navigation }: { navigation: any }) {
           value={`${data.profile.goal} · ${data.profile.position ?? "Position not set"}`}
           onPress={() => navigation.navigate("Preferences", { section: "all" })}
         />
-        <SettingRow icon={ListChecks} label="My plan" onPress={() => navigation.navigate("MyPlan")} />
-        {DEVELOPER_FEATURES ? <SettingRow icon={Compass} label="Developer tools" onPress={() => navigation.navigate("Tools")} /> : null}
+        <SettingRow
+          icon={ListChecks}
+          label="My plan"
+          onPress={() => navigation.navigate("MyPlan")}
+        />
+        {DEVELOPER_FEATURES ? (
+          <SettingRow
+            icon={Compass}
+            label="Developer tools"
+            onPress={() => navigation.navigate("Tools")}
+          />
+        ) : null}
       </View>
       <View style={{ gap: 12 }}>
         <Text style={s.h2}>Appearance</Text>
@@ -94,23 +109,14 @@ export function Settings({ navigation }: { navigation: any }) {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Text
-                style={[s.h3, { color: mode === value ? C.onPrimary : C.ink }]}
-              >
-                {value === "system"
-                  ? "System"
-                  : value === "light"
-                    ? "Light"
-                    : "Dark"}
+              <Text style={[s.h3, { color: mode === value ? C.onPrimary : C.ink }]}>
+                {value === "system" ? "System" : value === "light" ? "Light" : "Dark"}
               </Text>
             </Pressable>
           ))}
         </View>
         {themeError ? (
-          <Text
-            accessibilityRole="alert"
-            style={[s.small, { color: C.danger }]}
-          >
+          <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
             {themeError}
           </Text>
         ) : null}
@@ -131,16 +137,14 @@ export function Settings({ navigation }: { navigation: any }) {
         />
       </View>
       <Disclosure label="Privacy & practice notes">
-        <Text style={s.small}>Your training preferences and progress stay on this device. Reset all data clears this device’s saved training.</Text>
+        <Text style={s.small}>
+          Your training preferences and progress stay on this device. Reset all data
+          clears this device’s saved training.
+        </Text>
         <Disclaimer />
       </Disclosure>
       <View style={s.group}>
-        <SettingRow
-          icon={Trash2}
-          label="Reset all data"
-          danger
-          onPress={confirmReset}
-        />
+        <SettingRow icon={Trash2} label="Reset all data" danger onPress={confirmReset} />
       </View>
       {resetError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
@@ -150,13 +154,7 @@ export function Settings({ navigation }: { navigation: any }) {
     </Page>
   );
 }
-export function EditPreferences({
-  navigation,
-  route,
-}: {
-  navigation: any;
-  route: any;
-}) {
+export function EditPreferences({ navigation, route }: { navigation: any; route: any }) {
   const { data, update, catalog } = useApp();
   const { s } = useTheme();
   const [profile, setProfile] = useState(data.profile);
@@ -219,9 +217,11 @@ function ReminderSettings() {
           thumbColor={C.white}
         />
       </View>
-      {preferences.enabled ? <Text style={s.small}>
-        On this device · {data.profile.days.join(", ")} · local time
-      </Text> : null}
+      {preferences.enabled ? (
+        <Text style={s.small}>
+          On this device · {data.profile.days.join(", ")} · local time
+        </Text>
+      ) : null}
       {supported && preferences.enabled ? (
         <>
           <Text style={s.small}>Reminder time (24-hour HH:MM)</Text>
@@ -241,10 +241,7 @@ function ReminderSettings() {
             }}
           />
           {error ? (
-            <Text
-              accessibilityRole="alert"
-              style={[s.small, { color: C.danger }]}
-            >
+            <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
               {error}
             </Text>
           ) : null}

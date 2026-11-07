@@ -1,5 +1,7 @@
 // Metro substitutes this module in default builds, excluding the developer dependency graph.
-function Disabled() { return null; }
+function Disabled() {
+  return null;
+}
 export const Replay = Disabled;
 export const AthleteFitnessScreen = Disabled;
 export const AthleteRunsScreen = Disabled;

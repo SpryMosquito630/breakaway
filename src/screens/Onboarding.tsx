@@ -3,12 +3,7 @@ import { Text, View } from "react-native";
 import { Image } from "expo-image";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import {
-  matchPlan,
-  time,
-  getDrillDuration,
-  completeOnboarding,
-} from "../domain/model";
+import { matchPlan, time, getDrillDuration, completeOnboarding } from "../domain/model";
 import {
   OnboardingDraft,
   isOnboardingStepReady,
@@ -54,7 +49,15 @@ export function Onboarding({
     const complete = profileFromDraft(draft);
     if (!complete) return;
     update((st) =>
-      completeOnboarding(st, { ...complete, ageBand: st.profile.ageBand === "under13" ? "under13" : complete.ageBand }, matchPlan(drills, complete), replay),
+      completeOnboarding(
+        st,
+        {
+          ...complete,
+          ageBand: st.profile.ageBand === "under13" ? "under13" : complete.ageBand,
+        },
+        matchPlan(drills, complete),
+        replay,
+      ),
     );
     onComplete?.();
   };
@@ -65,9 +68,7 @@ export function Onboarding({
   };
   const footer = (
     <Button
-      label={
-        step === 0 ? "Get started" : step === 7 ? "Use this plan" : "Continue"
-      }
+      label={step === 0 ? "Get started" : step === 7 ? "Use this plan" : "Continue"}
       icon={ArrowRight}
       feedback={step === 7 ? "success" : "medium"}
       disabled={!isOnboardingStepReady(draft, step)}
@@ -119,11 +120,7 @@ export function Onboarding({
   return (
     <Page footer={footer} contentStyle={{ gap: 24 }}>
       <View style={[s.row, { marginLeft: -12 }]}>
-        <IconButton
-          label="Back"
-          icon={ArrowLeft}
-          onPress={() => setStep(step - 1)}
-        />
+        <IconButton label="Back" icon={ArrowLeft} onPress={() => setStep(step - 1)} />
         <Text style={s.small}>{step} of 7</Text>
       </View>
       <View style={{ flexDirection: "row", gap: 4 }}>
@@ -142,12 +139,23 @@ export function Onboarding({
       <Title title={titles[step]} />
       {step === 1 ? (
         <View style={{ gap: 12 }}>
-          {([
-            ["under13", "Under 13"],
-            ["13to17", "13–17"],
-            ["adult", "18 or older"],
-          ] as const).map(([value, label]) => <Choice key={value} label={label} selected={draft.ageBand === value} onPress={() => setDraft({ ...draft, ageBand: value })} />)}
-          <Text style={s.small}>Your age range stays on this device. Training works without an account.</Text>
+          {(
+            [
+              ["under13", "Under 13"],
+              ["13to17", "13–17"],
+              ["adult", "18 or older"],
+            ] as const
+          ).map(([value, label]) => (
+            <Choice
+              key={value}
+              label={label}
+              selected={draft.ageBand === value}
+              onPress={() => setDraft({ ...draft, ageBand: value })}
+            />
+          ))}
+          <Text style={s.small}>
+            Your age range stays on this device. Training works without an account.
+          </Text>
         </View>
       ) : step < 7 ? (
         <PreferenceFields
@@ -196,9 +204,7 @@ export function Onboarding({
                   borderColor: C.line,
                 }}
               >
-                <Text style={s.h3}>
-                  {drills.find((d) => d.id === id)!.name}
-                </Text>
+                <Text style={s.h3}>{drills.find((d) => d.id === id)!.name}</Text>
                 <Text style={s.small}>
                   {time(getDrillDuration(profile.minutes, ids.length))}
                 </Text>
@@ -207,7 +213,9 @@ export function Onboarding({
           </View>
           <Text style={s.small}>
             Includes a 2-minute warm-up.{" "}
-            {nextData?.planCustomized ? "Your custom drill choices stay in place." : "Your focus leads; position helps choose supporting drills."}{" "}
+            {nextData?.planCustomized
+              ? "Your custom drill choices stay in place."
+              : "Your focus leads; position helps choose supporting drills."}{" "}
             You can swap drills anytime.
           </Text>
         </>
