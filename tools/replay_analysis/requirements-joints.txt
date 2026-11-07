@@ -1,0 +1,2 @@
+# Optional; install into the same Python 3.13 environment as server.py.
+mediapipe==0.10.32

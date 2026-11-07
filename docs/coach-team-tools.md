@@ -1,0 +1,25 @@
+# Offline coach and team tools
+
+`src/screens/CoachTools.tsx` exports the stack routes `CoachWorkspace`, `CoachSessionBuilder`, `CoachSessionDetail` (parameter `{ id: string }`) and `TeamWorkspace`.
+
+Coach sessions use original, independently written ground-ball starter activities in `src/coach/domain.ts`. The generator filters the actual player bounds, focus and all selected equipment constraints; it rejects impossible combinations instead of adding equipment. This is a small curated offline generator, not an AI model. Organizer notes are carried into the saved plan but are not interpreted as generation instructions. Time includes a 3-minute gentle start, 2-minute walking finish, and rests/water within the remaining activity blocks. Gentle and moderate work/rest suggestions differ. Users can save up to 200 sessions, favorite them, keep pitch checklist state, read setup/coaching points/common mistakes and diagrams, and export/share a PDF.
+
+Content references reviewed on 2026-11-06:
+
+- [FIFA Training Centre grassroots library](https://www.fifatrainingcentre.com/en/practice/grassroots.php)
+- [FIFA general principles: a safe and effective environment](https://www.fifatrainingcentre.com/en/practice/grassroots/grassroots-and-youth-football-essentials/grassroots-coaching-essentials/jene-general-principles-1.php)
+- [FIFA technical activation and small-sided games](https://www.fifatrainingcentre.com/en/practice/grassroots/8-to-12/technical-activation-and-small-sided-games.php)
+
+These sources support broad concepts (space, progression, movement and small-sided play). No source instructions, images or diagrams were copied, and no professional coach review is claimed. These activities are not age-specific prescriptions or rehabilitation plans. There are no heading, diving, forceful tackling or contact exercises.
+
+Local groups support 30 aliases each and 20 groups total. The organizer enters all eight subjective 1–10 ratings and a preferred role. No ability score, peer rating or anonymous review is invented. RSVP values are manually recorded; nothing is sent to another player. Online joining, invites, messages and polls are intentionally outside this offline module.
+
+Match generation supports 5, 6, 7, 8 and 11 players per side including a keeper. Exactly twice that format's player count must be marked Yes. An odd count must be handled by marking a substitute Maybe; no phantom player is added. A bitmask search considers every unique split and returns up to five best splits by average attribute difference plus preferred-role-count difference. Every together/apart constraint is mandatory, including rejection when a rule references an unavailable player. Contradictory rules produce a clear error. Formation position suggestions prioritize preferred roles then relevant manual attributes. They are editable organizational suggestions through side swaps, not tracked positions or tactical analysis.
+
+Keeper assignment considers fewest saved match assignments first, then Keeping rating. Scheduled matches count as assignments, so later saved lineups rotate keepers. Saved-result lineups cannot be swapped, preserving career attribution. Score/goals/saves/MVP entries update local player cards, group points standings, teammate shared-win rankings and opponent loss comparisons. Goal counts cannot exceed the side score; unassigned goals can represent unknown scorers or own goals. The match cap is 500. Weekly/fortnightly recurrence creates the next dated match only when explicitly selected and copies attendance with an explicit reconfirmation notice.
+
+Sharing is explicitly user initiated. Native PDF sharing uses expo-print/expo-sharing; web uses browser print. A locally generated SVG formation image is exportable (receiving apps must support SVG), and UTF-8 BOM CSV opens in Excel. HTML/SVG user strings are escaped; CSV formulas are neutralized. Native temporary exports are removed from app cache after sharing. Sharing does not upload through this module or send messages automatically.
+
+Data lives under the independent versioned `breakaway-coach-v1` AsyncStorage key using the shared local store. Restore validates bounds, equipment, saved activity references, player ratings, format, dates, team membership and result ranges. Corrupt/legacy data is not silently rewritten; shared-store recovery exposes an error and retry while unrelated training stores remain untouched. The feature registers its reset automatically. Deleting a player referenced by a saved match is blocked until those matches are removed. Every destructive record action requires a native Alert or browser confirmation.
+
+Verification: `npx tsx --test tests/coach.test.ts` covers bounds/equipment/group activity applicability, random ordering, every team format, hard constraints, odd and missing players, valid/invalid swaps, keeper rotation, result statistics, dates, storage guards, HTML/SVG escaping and CSV formula safety. Native OS share sheets and native PDF output require device QA.

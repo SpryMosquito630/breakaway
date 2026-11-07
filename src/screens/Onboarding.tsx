@@ -14,7 +14,6 @@ import {
   isOnboardingStepReady,
   profileFromDraft,
 } from "../domain/onboarding";
-import { drills } from "../data/drills";
 import { planForDate } from "../domain/planning";
 import { Page, Title, Button, IconButton } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
@@ -24,13 +23,14 @@ export function Onboarding({
   replay = false,
 }: { onComplete?: () => void; replay?: boolean } = {}) {
   const { C, s } = useTheme();
-  const { data, update } = useApp();
+  const { data, update, catalog: drills } = useApp();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<OnboardingDraft>({});
   const profile = profileFromDraft(draft);
-  const sections = ["goal", "experience", "schedule", "setup"] as const;
+  const sections = ["position", "goal", "experience", "schedule", "setup"] as const;
   const titles = [
     "",
+    "Where do you usually play?",
     "What do you want to work on?",
     "Your training experience",
     "When can you practice?",
@@ -59,16 +59,16 @@ export function Onboarding({
   };
   const proceed = () => {
     if (!isOnboardingStepReady(draft, step)) return;
-    if (step === 5) finish();
+    if (step === 6) finish();
     else setStep(step + 1);
   };
   const footer = (
     <Button
       label={
-        step === 0 ? "Get started" : step === 5 ? "Use this plan" : "Continue"
+        step === 0 ? "Get started" : step === 6 ? "Use this plan" : "Continue"
       }
       icon={ArrowRight}
-      feedback={step === 5 ? "success" : "medium"}
+      feedback={step === 6 ? "success" : "medium"}
       disabled={!isOnboardingStepReady(draft, step)}
       onPress={proceed}
     />
@@ -123,10 +123,10 @@ export function Onboarding({
           icon={ArrowLeft}
           onPress={() => setStep(step - 1)}
         />
-        <Text style={s.small}>{step} of 5</Text>
+        <Text style={s.small}>{step} of 6</Text>
       </View>
       <View style={{ flexDirection: "row", gap: 4 }}>
-        {[1, 2, 3, 4, 5].map((n) => (
+        {[1, 2, 3, 4, 5, 6].map((n) => (
           <View
             key={n}
             style={{
@@ -139,7 +139,7 @@ export function Onboarding({
         ))}
       </View>
       <Title title={titles[step]} />
-      {step < 5 ? (
+      {step < 6 ? (
         <PreferenceFields
           profile={draft}
           onChange={setDraft}
@@ -151,6 +151,7 @@ export function Onboarding({
           <View style={[s.row, { paddingVertical: 8 }]}>
             <View style={{ gap: 6 }}>
               <Text style={s.h2}>{profile.goal}</Text>
+              <Text style={s.small}>{profile.position}</Text>
               <Text style={s.body}>
                 {profile.minutes} min · {profile.days.join(", ")}
               </Text>
@@ -195,7 +196,9 @@ export function Onboarding({
             ))}
           </View>
           <Text style={s.small}>
-            Includes a 2-minute warm-up. You can swap drills anytime.
+            Includes a 2-minute warm-up.{" "}
+            {nextData?.planCustomized ? "Your custom drill choices stay in place." : "Your focus leads; position helps choose supporting drills."}{" "}
+            You can swap drills anytime.
           </Text>
         </>
       ) : null}

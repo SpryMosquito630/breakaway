@@ -1,8 +1,11 @@
+import { replays } from "../replays/storage";
+import { resetFeatureStores } from "../features/localStore";
 import { haptic } from "../utils/haptics";
 import { useState } from "react";
 import {
   Alert,
   Linking,
+  Platform,
   Pressable,
   Switch,
   Text,
@@ -12,46 +15,59 @@ import {
 import { useTheme } from "../theme/ThemeProvider";
 import { useReminders } from "../notifications/RemindersProvider";
 import {
-  CalendarDays,
   SlidersHorizontal,
-  Goal,
   Trash2,
   RotateCcw,
+  ListChecks,
+  Compass,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { initialData, matchPlan, pause } from "../domain/model";
-import { drills } from "../data/drills";
+import { initialData, updateTrainingProfile, pause } from "../domain/model";
 import { Preferences } from "../components/Preferences";
-import { Button, Disclaimer, Page, SettingRow, Title } from "../components/ui";
+import { Button, Disclaimer, Disclosure, Page, SettingRow, Title } from "../components/ui";
 export function Settings({ navigation }: { navigation: any }) {
   const { data, update } = useApp();
   const { C, s, mode, setMode, error: themeError } = useTheme();
   const reminders = useReminders();
+  const [resetError, setResetError] = useState("");
+  function resetData() {
+    setResetError("");
+    haptic("warning");
+    void replays
+      .clear()
+      .then(async () => {
+        await resetFeatureStores();
+        await reminders.reset();
+        update(() => initialData());
+      })
+      .catch(() =>
+        setResetError(
+          "Reset could not finish. Free device space and try again.",
+        ),
+      );
+  }
+  function confirmReset() {
+    const message =
+      "Your local preferences, sessions, assessments, notebooks, photos and saved replay videos will be permanently cleared. Your online account is not deleted.";
+    if (Platform.OS === "web") {
+      if (window.confirm(`Reset all data? ${message}`)) resetData();
+    } else
+      Alert.alert("Reset all data?", message, [
+        { text: "Cancel", style: "cancel" },
+        { text: "Reset all data", style: "destructive", onPress: resetData },
+      ]);
+  }
   return (
     <Page>
       <View style={s.group}>
         <SettingRow
-          icon={Goal}
-          label="Focus"
-          value={data.profile.goal}
-          onPress={() =>
-            navigation.navigate("Preferences", { section: "goal" })
-          }
-        />
-        <SettingRow
-          icon={CalendarDays}
-          label="Schedule"
-          value={`${data.profile.days.join(", ")} · ${data.profile.minutes} min`}
-          onPress={() =>
-            navigation.navigate("Preferences", { section: "schedule" })
-          }
-        />
-        <SettingRow
           icon={SlidersHorizontal}
-          label="Training setup"
-          value={`${data.profile.space} · ${data.profile.gear.length ? "Ball + " + data.profile.gear.join(" + ") : "Ball only"}`}
+          label="Training preferences"
+          value={`${data.profile.goal} · ${data.profile.position ?? "Position not set"}`}
           onPress={() => navigation.navigate("Preferences", { section: "all" })}
         />
+        <SettingRow icon={ListChecks} label="My plan" onPress={() => navigation.navigate("MyPlan")} />
+        <SettingRow icon={Compass} label="More tools" onPress={() => navigation.navigate("Tools")} />
       </View>
       <View style={{ gap: 12 }}>
         <Text style={s.h2}>Appearance</Text>
@@ -113,41 +129,23 @@ export function Settings({ navigation }: { navigation: any }) {
           }}
         />
       </View>
-      <View style={{ gap: 12 }}>
-        <Text style={s.h2}>On this device</Text>
-        <Text style={s.body}>
-          Your plan and results stay here. No account or cloud backup.
-        </Text>
-      </View>
-      <View style={{ gap: 12 }}>
-        <Text style={s.h2}>Practice safely</Text>
+      <Disclosure label="Privacy & practice notes">
+        <Text style={s.small}>Training stays on this device unless you upload it through Account & sync. Videos, meal photos and GPS routes stay local.</Text>
         <Disclaimer />
-      </View>
+      </Disclosure>
       <View style={s.group}>
         <SettingRow
           icon={Trash2}
           label="Reset all data"
           danger
-          onPress={() =>
-            Alert.alert(
-              "Reset all data?",
-              "Your preferences, sessions and benchmarks will be permanently cleared.",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Reset all data",
-                  style: "destructive",
-                  onPress: () => {
-                    haptic("warning");
-                    void reminders.reset();
-                    update(() => initialData());
-                  },
-                },
-              ],
-            )
-          }
+          onPress={confirmReset}
         />
       </View>
+      {resetError ? (
+        <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+          {resetError}
+        </Text>
+      ) : null}
     </Page>
   );
 }
@@ -158,7 +156,7 @@ export function EditPreferences({
   navigation: any;
   route: any;
 }) {
-  const { data, update } = useApp();
+  const { data, update, catalog } = useApp();
   const { s } = useTheme();
   const [profile, setProfile] = useState(data.profile);
   const section = route.params?.section || "all";
@@ -170,21 +168,7 @@ export function EditPreferences({
           label="Save changes"
           feedback="success"
           onPress={() => {
-            update((st) => {
-              const normalized = (p: typeof profile) =>
-                JSON.stringify({
-                  ...p,
-                  days: [...p.days].sort(),
-                  gear: [...p.gear].sort(),
-                });
-              const changed = normalized(profile) !== normalized(st.profile);
-              return {
-                ...st,
-                profile,
-                plan: changed ? matchPlan(drills, profile) : st.plan,
-                planCustomized: changed ? false : st.planCustomized,
-              };
-            });
+            update((st) => updateTrainingProfile(st, profile, catalog));
             navigation.goBack();
           }}
         />
@@ -192,7 +176,13 @@ export function EditPreferences({
     >
       {section !== "all" ? (
         <Title
-          title={section === "schedule" ? "Your schedule" : "Training focus"}
+          title={
+            section === "schedule"
+              ? "Your schedule"
+              : section === "position"
+                ? "Your position"
+                : "Training focus"
+          }
         />
       ) : null}
       <Preferences profile={profile} onChange={setProfile} section={section} />
@@ -228,10 +218,10 @@ function ReminderSettings() {
           thumbColor={C.white}
         />
       </View>
-      <Text style={s.small}>
+      {preferences.enabled ? <Text style={s.small}>
         On this device · {data.profile.days.join(", ")} · local time
-      </Text>
-      {supported ? (
+      </Text> : null}
+      {supported && preferences.enabled ? (
         <>
           <Text style={s.small}>Reminder time (24-hour HH:MM)</Text>
           <TextInput

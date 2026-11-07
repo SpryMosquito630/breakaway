@@ -1,7 +1,11 @@
+import { profileForToday, trainingPlanToday } from "../domain/training";
+import { DrillMovement as Diagram } from "../components/DrillMovement";
+import { DrillDemo } from "../components/DrillDemo";
 import { haptic } from "../utils/haptics";
 import { useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
-import { Play } from "lucide-react-native";
+import { Pressable, Text, View } from "react-native";
+import { AppAlert as Alert } from "../utils/alerts";
+import { ChevronDown, MoreHorizontal, Play, SlidersHorizontal } from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import {
   allowed,
@@ -11,7 +15,6 @@ import {
   getDrillDuration,
   time,
 } from "../domain/model";
-import { drills } from "../data/drills";
 import {
   Page,
   Title,
@@ -19,22 +22,28 @@ import {
   Chip,
   DrillRow,
   SearchField,
-  Diagram,
   Steps,
   Note,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
-import { adaptDrill, planForDate } from "../domain/planning";
+import { adaptDrill } from "../domain/planning";
 export function Library({ navigation }: { navigation: any }) {
-  const { data } = useApp();
+  const { data, catalog: drills } = useApp();
   const { C, s } = useTheme();
-  const [filter, setFilter] = useState("My setup");
+  const [scope, setScope] = useState("My setup");
+  const [skill, setSkill] = useState("All skills");
+  const [customOnly, setCustomOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const extraFilters = Number(skill !== "All skills") + Number(customOnly);
   const list = drills.filter(
     (d) =>
-      (filter === "All" ||
-        (filter === "My setup" && allowed(d, data.profile)) ||
-        d.skill === filter) &&
+      (scope === "All" ||
+        (scope === "Saved" && data.favorites?.includes(d.id)) ||
+        (scope === "My setup" && allowed(d, profileForToday(data)))) &&
+      (skill === "All skills" || d.skill === skill) &&
+      (!customOnly || d.id.startsWith("custom-")) &&
       (d.name + " " + d.skill)
         .toLowerCase()
         .includes(search.toLowerCase().trim()),
@@ -42,23 +51,82 @@ export function Library({ navigation }: { navigation: any }) {
   return (
     <Page contentStyle={{ gap: 16 }}>
       <SearchField value={search} onChangeText={setSearch} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
-      >
-        {["My setup", "All", ...goals].map((f) => (
-          <Chip
-            key={f}
-            label={f}
-            selected={f === filter}
-            onPress={() => setFilter(f)}
-          />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {["My setup", "Saved", "All"].map((f) => (
+          <Chip key={f} label={f} selected={f === scope} onPress={() => setScope(f)} />
         ))}
-      </ScrollView>
-      <Text style={s.small}>
-        {list.length} drills{filter === "My setup" ? " for your setup" : ""}
-      </Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text style={[s.small, { flex: 1 }]}>
+          {list.length} {list.length === 1 ? "drill" : "drills"}
+          {scope === "My setup" ? " for your setup" : ""}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Filters${extraFilters ? `, ${extraFilters} active` : ""}`}
+          accessibilityState={{ expanded: filtersOpen }}
+          onPress={() => {
+            haptic("selection");
+            setFiltersOpen(!filtersOpen);
+            setManageOpen(false);
+          }}
+          style={({ pressed }) => ({
+            minHeight: 48,
+            paddingHorizontal: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            borderRadius: 10,
+            backgroundColor: pressed ? C.soft : "transparent",
+          })}
+        >
+          <SlidersHorizontal size={18} color={extraFilters ? C.green : C.muted} />
+          <Text style={[s.small, { color: extraFilters ? C.green : C.muted }]}>
+            Filters{extraFilters ? ` · ${extraFilters}` : ""}
+          </Text>
+          <ChevronDown size={16} color={C.muted} style={{ transform: [{ rotate: filtersOpen ? "180deg" : "0deg" }] }} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Manage library"
+          accessibilityState={{ expanded: manageOpen }}
+          onPress={() => {
+            haptic("selection");
+            setManageOpen(!manageOpen);
+            setFiltersOpen(false);
+          }}
+          style={({ pressed }) => ({
+            minWidth: 48,
+            minHeight: 48,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 10,
+            backgroundColor: pressed ? C.soft : "transparent",
+          })}
+        >
+          <MoreHorizontal size={22} color={C.muted} />
+        </Pressable>
+      </View>
+      {filtersOpen ? (
+        <View style={{ gap: 12 }}>
+          <Text style={s.h3}>Filter drills</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {["All skills", ...goals].map((f) => (
+              <Chip key={f} label={f} selected={skill === f} onPress={() => setSkill(f)} />
+            ))}
+          </View>
+          <View style={{ alignItems: "flex-start" }}>
+            <Chip label="Only my drills" selected={customOnly} onPress={() => setCustomOnly(!customOnly)} />
+          </View>
+        </View>
+      ) : null}
+      {manageOpen ? (
+        <View style={{ gap: 8 }}>
+          <Text style={s.h3}>Manage library</Text>
+          <Button kind="secondary" label="Create drill" onPress={() => navigation.navigate("CustomDrillEditor")} />
+          <Button kind="secondary" label="Playlists" onPress={() => navigation.navigate("Playlists")} />
+        </View>
+      ) : null}
       <View>
         {list.map((d) => (
           <DrillRow
@@ -68,9 +136,19 @@ export function Library({ navigation }: { navigation: any }) {
           />
         ))}
         {!list.length ? (
-          <View style={{ paddingVertical: 40, gap: 8 }}>
-            <Text style={s.h2}>No drills found</Text>
-            <Text style={s.body}>Try another search or choose All.</Text>
+          <View style={{ paddingVertical: 40, gap: 12 }}>
+            <Text style={s.h2}>{scope === "Saved" && !search && !extraFilters ? "No saved drills yet" : "No drills found"}</Text>
+            <Text style={s.body}>
+              {scope === "Saved" && !search && !extraFilters
+                ? "Open a drill and save it to find it here."
+                : "Try another search or reset your filters."}
+            </Text>
+            <Button kind="secondary" label="Browse all drills" onPress={() => {
+              setScope("All");
+              setSkill("All skills");
+              setCustomOnly(false);
+              setSearch("");
+            }} />
           </View>
         ) : null}
       </View>
@@ -78,14 +156,14 @@ export function Library({ navigation }: { navigation: any }) {
   );
 }
 export function Detail({ navigation, route }: { navigation: any; route: any }) {
-  const { data, update } = useApp();
+  const { data, update, catalog: drills } = useApp();
   const { C, s } = useTheme();
-  const base = drills.find((x) => x.id === route.params.id)!;
-  const earned = adaptDrill(base, data.history);
-  const [difficulty, setDifficulty] = useState(earned.difficulty ?? 1);
+  const base = drills.find((x) => x.id === route.params.id);
+  const [difficulty, setDifficulty] = useState(base ? adaptDrill(base, data.history).difficulty ?? 1 : 1);
+  if (!base) return <Page><Title title="Drill no longer available" body="Your saved practice history is still available in Progress." /><Button label="Back to drills" onPress={() => navigation.popToTop()} /></Page>;
   const variant = base.variants?.find((v) => v.difficulty === difficulty);
   const d = variant ? { ...base, ...variant, difficulty } : base;
-  const fits = allowed(d, data.profile);
+  const fits = allowed(d, profileForToday(data));
   const begin = () => {
     if (data.active) {
       Alert.alert(
@@ -146,29 +224,34 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
       }
     >
       <Title title={d.name} body={d.cue} />
+      <Button kind="secondary" label={data.favorites?.includes(d.id) ? "Remove from saved drills" : "Save drill"} onPress={() => update(st => ({ ...st, favorites: st.favorites?.includes(d.id) ? st.favorites.filter(id => id !== d.id) : [...(st.favorites ?? []), d.id] }))} />
+      {d.id.startsWith("custom-") ? <Button kind="secondary" label="Edit your drill" onPress={() => navigation.navigate("CustomDrillEditor", { id: d.id })} /> : null}
       <View style={s.row}>
         <Text style={s.small}>{d.skill}</Text>
         <Text style={s.small}>
           {d.gear.length ? `Ball + ${d.gear.join(" + ")}` : "Ball only"}
         </Text>
       </View>
-      <View style={{ gap: 8 }}>
-        <Text style={s.h2}>Choose your challenge</Text>
-        <Text style={s.small}>
-          Two completed Easy sessions move your plan up a level.
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {base.variants?.map((v) => (
-            <Chip
-              key={v.difficulty}
-              label={v.label}
-              selected={difficulty === v.difficulty}
-              onPress={() => setDifficulty(v.difficulty)}
-            />
-          ))}
+      {base.variants?.length ? (
+        <View style={{ gap: 8 }}>
+          <Text style={s.h2}>Choose your challenge</Text>
+          <Text style={s.small}>
+            Two completed Easy sessions move your plan up a level.
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {base.variants?.map((v) => (
+              <Chip
+                key={v.difficulty}
+                label={v.label}
+                selected={difficulty === v.difficulty}
+                onPress={() => setDifficulty(v.difficulty)}
+              />
+            ))}
+          </View>
+          <Text style={s.body}>{variant?.target}</Text>
         </View>
-        <Text style={s.body}>{variant?.target}</Text>
-      </View>
+      ) : null}
+      <DrillDemo key={d.id} id={d.id} />
       <Diagram drill={d} />
       <View style={{ gap: 16 }}>
         <Text style={s.h2}>How to do it</Text>
@@ -191,22 +274,16 @@ export function Replace({
   navigation: any;
   route: any;
 }) {
-  const { data, update } = useApp();
+  const { data, update, catalog: drills } = useApp();
   const { C, s } = useTheme();
   const { index, mode } = route.params;
   const ids =
     mode === "active"
       ? data.active?.ids || []
-      : planForDate(
-          drills,
-          data.profile,
-          data.plan,
-          new Date(),
-          data.planCustomized,
-        );
+      : trainingPlanToday(data, drills);
   const current = drills.find((d) => d.id === ids[index]);
   const list = drills.filter(
-    (d) => allowed(d, data.profile) && !ids.includes(d.id),
+    (d) => allowed(d, profileForToday(data)) && !ids.includes(d.id),
   );
   return (
     <Page>

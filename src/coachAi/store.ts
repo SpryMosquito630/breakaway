@@ -1,0 +1,6 @@
+import { createLocalStore } from '../features/localStore';
+import type { Feedback } from './service';
+type SavedFeedback={id:string;date:string;feedback:Feedback};
+function validFeedback(v:any):v is Feedback { return v?.source==='openai' && typeof v.summary==='string' && v.summary.length<=1200 && typeof v.limitations==='string' && v.limitations.length<=1000 && Array.isArray(v.observations) && v.observations.length<=6 && v.observations.every((x:any)=>Number.isFinite(x.timestampSeconds)&&x.timestampSeconds>=0&&x.timestampSeconds<=30&&typeof x.observation==='string'&&x.observation.length<=700&&typeof x.uncertainty==='string'&&x.uncertainty.length<=500&&(x.drillId===null||typeof x.drillId==='string')); }
+export const feedbackStore=createLocalStore<SavedFeedback[]>({key:'breakaway-coach-feedback-v1',initial:()=>[],restore(value){return Array.isArray(value)?value.filter((v:any)=>typeof v.id==='string'&&typeof v.date==='string'&&validFeedback(v.feedback)).slice(0,20):[];}});
+export function saveFeedback(feedback:Feedback) {if(!validFeedback(feedback)) return Promise.resolve(false); return feedbackStore.update(old=>[{id:`feedback-${Date.now()}`,date:new Date().toISOString(),feedback},...old].slice(0,20));}

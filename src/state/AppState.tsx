@@ -1,3 +1,4 @@
+import { combinedCatalog } from "../domain/training";
 import React, {
   createContext,
   useCallback,
@@ -15,6 +16,7 @@ import { drills } from "../data/drills";
 const KEY = "player-accelerator-v1";
 type Store = {
   data: AppData;
+  catalog: import("../domain/model").Drill[];
   update: (fn: (s: AppData) => AppData) => void;
   loading: boolean;
   error: string | null;
@@ -117,6 +119,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <Context.Provider
       value={{
         data,
+        catalog: combinedCatalog(drills, data),
         update,
         loading,
         error,

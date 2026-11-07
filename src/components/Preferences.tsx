@@ -1,6 +1,6 @@
 import { haptic } from "../utils/haptics";
 import { Text, View, ScrollView, Pressable } from "react-native";
-import { Profile, days, goals } from "../domain/model";
+import { Profile, days, goals, positions } from "../domain/model";
 import { Chip, Choice } from "./ui";
 import { useTheme } from "../theme/ThemeProvider";
 export function PreferenceFields({
@@ -12,7 +12,7 @@ export function PreferenceFields({
   profile: Partial<Profile>;
   onChange: (p: Partial<Profile>) => void;
   explicitEquipment?: boolean;
-  section?: "all" | "goal" | "experience" | "schedule" | "setup";
+  section?: "all" | "position" | "goal" | "experience" | "schedule" | "setup";
 }) {
   const { C, s } = useTheme();
   const set = <K extends keyof Profile>(
@@ -33,6 +33,11 @@ export function PreferenceFields({
   };
   return (
     <View style={{ gap: 28 }}>
+      {section === "all" || section === "position" ? <View style={s.stack}>
+        {section === "all" ? <Text style={s.h2}>Position</Text> : null}
+        {positions.map((position) => <Choice key={position} label={position} selected={profile.position === position} detail={position === "Goalkeeper" ? "Ball work and distribution" : position === "Defender" ? "Receiving and playing out" : position === "Midfielder" ? "Passing and both-foot confidence" : position === "Forward" ? "Dribbling and close control" : "Keep your training balanced"} onPress={() => set("position", position)} />)}
+        <Text style={s.small}>Your focus comes first. Position helps choose supporting drills.</Text>
+      </View> : null}
       {section === "all" || section === "goal" ? (
         <View style={s.stack}>
           {section === "all" ? <Text style={s.h2}>Focus</Text> : null}
@@ -211,7 +216,7 @@ export function Preferences({
 }: {
   profile: Profile;
   onChange: (p: Profile) => void;
-  section?: "all" | "goal" | "experience" | "schedule" | "setup";
+  section?: "all" | "position" | "goal" | "experience" | "schedule" | "setup";
 }) {
   return (
     <PreferenceFields
@@ -227,6 +232,7 @@ export function Preferences({
           p.space !== undefined
         )
           onChange({
+            ...(p.position !== undefined ? { position: p.position } : {}),
             goal: p.goal,
             experience: p.experience,
             days: p.days,

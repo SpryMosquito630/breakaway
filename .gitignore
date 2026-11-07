@@ -47,6 +47,9 @@ yarn-error.*
 /work/
 /outputs/
 
+# Browser QA logs and snapshots
+/.playwright-cli/
+
 /work/export-sdk58/
 
 /work/redesign-export/

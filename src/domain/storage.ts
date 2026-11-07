@@ -1,3 +1,6 @@
+import { combinedCatalog, sanitizeCustomDrills, sanitizeTrainingFields } from "./training";
+import { sanitizeAssessments } from "./assessments";
+import { sanitizeTodaySession } from "./sessionTime";
 import {
   AppData,
   Drill,
@@ -6,6 +9,7 @@ import {
   Profile,
   days,
   goals,
+  positions,
   matchPlan,
 } from "./model";
 const record = (x: unknown): x is Record<string, unknown> =>
@@ -49,6 +53,8 @@ function snapshots(value: unknown): Record<string, DrillSnapshot> | undefined {
 }
 export function restoreAppData(raw: string, catalog: Drill[]): AppData {
   const p = JSON.parse(raw);
+  p.customDrills = sanitizeCustomDrills(p.customDrills);
+  catalog = combinedCatalog(catalog, p);
   const profile = p.profile;
   if (
     p.version !== 1 ||
@@ -70,7 +76,20 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
     !Array.isArray(p.benchmarks)
   )
     throw Error("Invalid saved preferences");
+  if (!positions.includes(profile.position)) delete profile.position;
   const known = (id: string) => catalog.some((d) => d.id === id);
+  const lostCustom = (id: unknown) => typeof id === "string" && id.startsWith("custom-") && !known(id);
+  const recoveryNotice = "Some custom drill data could not be read. Your saved history is intact. Review your plan and playlists before practicing.";
+  if (typeof p.trainingRecoveryNotice !== "string" || p.trainingRecoveryNotice.length > 300) delete p.trainingRecoveryNotice;
+  if (p.plan.some(lostCustom)) {
+    p.trainingRecoveryNotice = recoveryNotice;
+    p.plan = p.plan.filter(known);
+    if (!p.plan.length) p.planCustomized = false;
+  }
+  if (p.active && Array.isArray(p.active.ids) && p.active.ids.some(lostCustom)) {
+    p.trainingRecoveryNotice = recoveryNotice + " The interrupted custom session could not be restored.";
+    p.active = null;
+  }
   p.plan =
     p.plan.length && p.plan.every(known) ? p.plan : matchPlan(catalog, profile);
   p.planCustomized = classifyPlanCustomization(
@@ -149,6 +168,11 @@ export function restoreAppData(raw: string, catalog: Drill[]): AppData {
       b.count >= 0 &&
       b.count <= 999,
   );
+  sanitizeTrainingFields(p, catalog);
+  p.assessments = sanitizeAssessments(p.assessments);
+  const todaySession = sanitizeTodaySession(p.todaySession);
+  if (todaySession) p.todaySession = todaySession;
+  else delete p.todaySession;
   return p;
 }
 

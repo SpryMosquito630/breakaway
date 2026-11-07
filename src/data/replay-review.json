@@ -1,0 +1,124 @@
+{
+  "title": "Footwork, frame by frame.",
+  "subtitle": "Watch the sequence. Hold the detail. Choose your next rep.",
+  "source": "Pexels 7187047 \u00b7 clean practice footage",
+  "video": "../clean-source/pexels-7187047.mp4",
+  "coordinates": "../clean-second/coordinates.csv",
+  "fps": 24,
+  "width": 1920,
+  "height": 1080,
+  "duration": 7,
+  "review_status": "Authored demo moments \u00b7 automatic ball tracking",
+  "phases": [
+    {
+      "id": "set",
+      "start": 0,
+      "end": 0.35,
+      "label": "Set",
+      "detail": "Ball between the feet",
+      "source": "Authored demo timestamp"
+    },
+    {
+      "id": "footwork",
+      "start": 0.35,
+      "end": 2.65,
+      "label": "Footwork",
+      "detail": "Alternating feet around the ball",
+      "source": "Authored demo timestamp"
+    },
+    {
+      "id": "repeat",
+      "start": 2.65,
+      "end": 5.8,
+      "label": "Repeat",
+      "detail": "The footwork sequence continues",
+      "source": "Authored demo timestamp"
+    },
+    {
+      "id": "pause",
+      "start": 5.8,
+      "end": 7,
+      "label": "Pause",
+      "detail": "The sequence ends; player bends down",
+      "source": "Authored demo timestamp"
+    }
+  ],
+  "moments": [
+    {
+      "id": "around",
+      "time": 0.5,
+      "end": 0.95,
+      "title": "Around the ball",
+      "short": "Footwork detail",
+      "body": "A foot moves around the ball while the other stays beside it. Hold this frame, then watch the pass at half speed.",
+      "source": "AI-assisted visual observation",
+      "freeze_s": 1.0
+    },
+    {
+      "id": "shift",
+      "time": 1.75,
+      "end": 2.15,
+      "title": "Watch the next pass",
+      "short": "Watch the feet",
+      "body": "The next foot comes around from the opposite side. Compare the two passes in slow replay; this clip does not show an exit touch.",
+      "source": "AI-assisted visual observation",
+      "freeze_s": 1.0
+    },
+    {
+      "id": "finish",
+      "time": 5.9,
+      "end": 6.5,
+      "title": "Where is the exit?",
+      "short": "Sequence ends",
+      "body": "The player pauses and bends down. Add the first exit touch and two steps after the move in your next recording.",
+      "source": "Authored demo recording guidance",
+      "freeze_s": 0
+    }
+  ],
+  "notes": [
+    {
+      "type": "positive",
+      "title": "Both sides are visible",
+      "body": "The feet alternate around the ball, so each side can be compared in replay.",
+      "time": 0.5,
+      "end": 2.4,
+      "source": "AI-assisted visual observation"
+    },
+    {
+      "type": "positive",
+      "title": "A clear reset position",
+      "body": "The ball sits between the feet between passes. Use that reset as your replay checkpoint.",
+      "time": 2.65,
+      "end": 3.3,
+      "source": "AI-assisted visual observation"
+    },
+    {
+      "type": "improvement",
+      "title": "Show the full move",
+      "body": "Record head to foot and finish with an exit touch plus two steps. This angle cannot show an upper-body feint or its outcome.",
+      "time": 5.9,
+      "end": 7,
+      "source": "Authored demo recording guidance"
+    }
+  ],
+  "next_rep": "Record one full-body feint, the cut, and the first two exit steps.",
+  "measurement": {
+    "detector": "YOLOX Nano / COCO sports-ball",
+    "accepted_frames": 163,
+    "total_frames": 168,
+    "label": "Normalized image motion",
+    "definition": "Adjacent accepted ball-center displacement in normalized image coordinates, divided by the maximum observed in this clip. Missing frames or new track IDs create gaps. No physical units, no speed claim; camera movement is included.",
+    "confidence_note": "Detector scores are not correctness probabilities. Coverage is not accuracy."
+  },
+  "limits": [
+    "Phase names, moment timing and review notes were marked by AI-assisted visual review; they are not an automatic skill classifier.",
+    "The ball ring and motion graph use actual detector output. Coordinates are never filled across a tracking loss.",
+    "The source shows footwork followed by a pause, not a complete body feint and cut. No skill rating or speed is inferred."
+  ],
+  "credit": {
+    "title": "Man Training on a Soccer Field",
+    "creator": "RDNE Stock project",
+    "url": "https://www.pexels.com/video/man-training-on-a-soccer-field-7187047/",
+    "license": "https://www.pexels.com/license/"
+  }
+}

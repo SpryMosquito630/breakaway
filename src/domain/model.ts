@@ -1,5 +1,10 @@
+import type { Playlist, TrainingPreferences, DailyReadiness } from "./training";
+import type { SkillAssessment } from "./assessments";
 export type Goal = "Ball control" | "Dribbling" | "Passing" | "Weaker foot";
+export const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward", "Still exploring"] as const;
+export type Position = typeof positions[number];
 export type Profile = {
+  position?: Position;
   goal: Goal;
   experience: string;
   days: string[];
@@ -14,6 +19,8 @@ export type Drill = {
   gear: string[];
   space: string;
   level: string;
+  /** Limits automatic recommendations; explicit drill and path choices remain available. */
+  recommendedPositions?: readonly Position[];
   cue: string;
   steps: string[];
   tip: string;
@@ -75,15 +82,24 @@ export type History = {
   drills?: DrillResult[];
 };
 export type Benchmark = { id: string; date: string; count: number };
+export type TodaySession = { date: string; minutes: 10 | 15 | 20 | 30 };
 export type AppData = {
   version: 1;
+  customDrills?: Drill[];
+  trainingRecoveryNotice?: string;
+  favorites?: string[];
+  playlists?: Playlist[];
+  trainingPreferences?: TrainingPreferences;
+  dailyReadiness?: DailyReadiness;
   planCustomized?: boolean;
+  todaySession?: TodaySession;
   onboarded: boolean;
   profile: Profile;
   plan: string[];
   active: Active | null;
   history: History[];
   benchmarks: Benchmark[];
+  assessments?: SkillAssessment[];
 };
 export const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 export const goals: Goal[] = [
@@ -115,12 +131,30 @@ export function allowed(d: Drill, p: Profile) {
     (p.space === "Open space" || d.space === "Small space")
   );
 }
+/** Position supports the chosen focus; no specialist goalkeeper curriculum is implied. */
+export function positionSupportSkills(position?: Position): readonly string[] {
+  switch (position) {
+    case "Goalkeeper":
+    case "Defender": return ["Passing", "Ball control"];
+    case "Midfielder": return ["Passing", "Weaker foot"];
+    case "Forward": return ["Dribbling", "Ball control"];
+    default: return [];
+  }
+}
+export function positionPriority(d: Drill, p: Profile) {
+  const index = positionSupportSkills(p.position).indexOf(d.skill);
+  return index < 0 ? 0 : 2 - index;
+}
+export function recommendedForPosition(d: Drill, p: Profile) {
+  return !d.recommendedPositions || (p.position !== undefined && d.recommendedPositions.includes(p.position));
+}
 export function matchPlan(all: Drill[], p: Profile) {
   return all
-    .filter((d) => allowed(d, p))
+    .filter((d) => allowed(d, p) && recommendedForPosition(d, p))
     .sort(
       (a, b) =>
         Number(b.skill === p.goal) - Number(a.skill === p.goal) ||
+        positionPriority(b, p) - positionPriority(a, p) ||
         Number(b.level === p.experience) - Number(a.level === p.experience),
     )
     .slice(0, 3)
@@ -316,20 +350,31 @@ export function time(seconds: number) {
   return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
 }
 
+const profileKey = (profile: Profile, ignorePosition = false) => JSON.stringify({
+  position: ignorePosition ? undefined : profile.position,
+  goal: profile.goal,
+  experience: profile.experience,
+  days: [...profile.days].sort(),
+  minutes: profile.minutes,
+  gear: [...profile.gear].sort(),
+  space: profile.space,
+});
+export function keepsCustomPlanForPosition(data: AppData, profile: Profile) {
+  return data.planCustomized === true && profileKey(data.profile, true) === profileKey(profile, true);
+}
+export function updateTrainingProfile(data: AppData, profile: Profile, catalog: Drill[]): AppData {
+  const changed = profileKey(data.profile) !== profileKey(profile);
+  const keepPlan = !changed || keepsCustomPlanForPosition(data, profile);
+  return { ...data, profile, plan: keepPlan ? data.plan : matchPlan(catalog, profile), planCustomized: keepPlan ? data.planCustomized : false };
+}
 export function completeOnboarding(
   data: AppData,
   profile: Profile,
   matchedPlan: string[],
   replay = false,
 ): AppData {
-  const normalize = (p: Profile) =>
-    JSON.stringify({
-      ...p,
-      days: [...p.days].sort(),
-      gear: [...p.gear].sort(),
-    });
   const keepPlan =
-    replay && data.onboarded && normalize(data.profile) === normalize(profile);
+    replay && data.onboarded && (profileKey(data.profile) === profileKey(profile) || keepsCustomPlanForPosition(data, profile));
   return {
     ...data,
     profile,

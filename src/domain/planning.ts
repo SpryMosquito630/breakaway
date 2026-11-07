@@ -2,6 +2,8 @@ import {
   allowed,
   days,
   matchPlan,
+  positionPriority,
+  recommendedForPosition,
   type Drill,
   type History,
   type Profile,
@@ -36,7 +38,7 @@ export function planForDate(
 ) {
   if (customized !== false && basePlan.length) return [...new Set(basePlan)];
   const date = nextTrainingDate(profile, now);
-  const eligible = catalog.filter((d) => allowed(d, profile));
+  const eligible = catalog.filter((d) => allowed(d, profile) && recommendedForPosition(d, profile));
   const ranked = matchPlan(eligible, profile);
   const ordered = [...eligible].sort(
     (a, b) =>
@@ -60,8 +62,10 @@ export function planForDate(
   const primary = rotate(focus, week + slot)
     .slice(0, 2)
     .map((d) => d.id);
+  const supportCandidates = ordered.filter((d) => d.skill !== profile.goal);
+  const preferred = supportCandidates.filter((d) => positionPriority(d, profile) > 0);
   const support = rotate(
-    ordered.filter((d) => d.skill !== profile.goal),
+    preferred.length ? preferred : supportCandidates,
     week + slot * 2,
   ).map((d) => d.id);
   return [...new Set([...primary, ...support, ...ranked])].slice(0, 3);

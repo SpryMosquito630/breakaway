@@ -1,6 +1,9 @@
+import { DrillMovement as Diagram } from "../components/DrillMovement";
+import { DrillDemo } from "../components/DrillDemo";
 import { haptic } from "../utils/haptics";
 import { useEffect } from "react";
-import { Alert, Text, View, useWindowDimensions } from "react-native";
+import { Text, View, useWindowDimensions } from "react-native";
+import { AppAlert as Alert } from "../utils/alerts";
 import {
   Check,
   Pause,
@@ -12,11 +15,9 @@ import {
 import { useApp } from "../state/AppState";
 import { Active, advance, recap, time } from "../domain/model";
 import { usePracticeClock } from "../hooks/usePracticeClock";
-import { drills } from "../data/drills";
 import {
   Button,
   Chip,
-  Diagram,
   Disclosure,
   Link,
   Note,
@@ -25,7 +26,7 @@ import {
   Title,
   useTheme,
 } from "../components/ui";
-function resolvePracticeDrill(active: Active, index: number) {
+function resolvePracticeDrill(active: Active, index: number, drills: import("../domain/model").Drill[]) {
   const base = drills.find((d) => d.id === active.ids[index]);
   if (!base) return null;
   const snapshot = active.snapshots?.[base.id];
@@ -43,7 +44,7 @@ function resolvePracticeDrill(active: Active, index: number) {
   };
 }
 export function Practice({ navigation }: { navigation: any }) {
-  const { update } = useApp();
+  const { update, catalog: drills } = useApp();
   const { width, height } = useWindowDimensions();
   const compact = width < 360 || height < 740;
   const { C, s } = useTheme();
@@ -63,8 +64,8 @@ export function Practice({ navigation }: { navigation: any }) {
         <Button label="Back to Today" onPress={() => navigation.popToTop()} />
       </Page>
     );
-  const d = resolvePracticeDrill(a, a.index)!;
-  const upcoming = resolvePracticeDrill(a, a.index + 1);
+  const d = resolvePracticeDrill(a, a.index, drills)!;
+  const upcoming = resolvePracticeDrill(a, a.index + 1, drills);
   const finish = (active = a) => {
     const result = recap(active);
     clock.commit(null);
@@ -451,6 +452,7 @@ export function Practice({ navigation }: { navigation: any }) {
             ) : null}
             <Text style={s.body}>{d.cue}</Text>
           </View>
+          <DrillDemo key={d.id} id={d.id} />
           <Steps drill={d} />
           <Disclosure label="Setup tips and movement">
             <Note>{d.tip}</Note>
@@ -463,7 +465,7 @@ export function Practice({ navigation }: { navigation: any }) {
 }
 
 export function Recap({ navigation, route }: { navigation: any; route: any }) {
-  const { data, update } = useApp();
+  const { data, update, catalog: drills } = useApp();
   const { C, s } = useTheme();
   const h = data.history.find((h) => h.id === route.params.id);
   if (!h) return null;

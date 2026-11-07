@@ -1,5 +1,6 @@
-import { days, goals, Profile } from "./model";
+import { days, goals, positions, Profile } from "./model";
 export type OnboardingDraft = Partial<Profile>;
+const validPosition = (d: OnboardingDraft) => d.position !== undefined && positions.includes(d.position);
 const validGoal = (d: OnboardingDraft) =>
   d.goal !== undefined && goals.includes(d.goal);
 const validExperience = (d: OnboardingDraft) =>
@@ -18,24 +19,20 @@ export function isOnboardingStepReady(
   step: number,
 ): boolean {
   switch (step) {
-    case 0:
-      return true;
-    case 1:
-      return validGoal(d);
-    case 2:
-      return validExperience(d);
-    case 3:
-      return validSchedule(d);
-    case 4:
-      return validSetup(d);
-    case 5:
-      return profileFromDraft(d) !== null;
-    default:
-      return false;
+    case 0: return true;
+    case 1: return validPosition(d);
+    case 2: return validGoal(d);
+    case 3: return validExperience(d);
+    case 4: return validSchedule(d);
+    case 5: return validSetup(d);
+    case 6: return profileFromDraft(d) !== null;
+    default: return false;
   }
 }
+
 export function profileFromDraft(d: OnboardingDraft): Profile | null {
   if (
+    !validPosition(d) ||
     !validGoal(d) ||
     !validExperience(d) ||
     !validSchedule(d) ||
@@ -49,6 +46,7 @@ export function profileFromDraft(d: OnboardingDraft): Profile | null {
   )
     return null;
   return {
+    position: d.position,
     goal: d.goal,
     experience: d.experience,
     days: [...d.days],

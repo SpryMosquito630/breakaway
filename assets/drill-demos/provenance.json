@@ -1,0 +1,48 @@
+{
+  "clips": [
+    {
+      "file": "marker-slalom.mp4",
+      "drillIds": [
+        "slalom"
+      ],
+      "pexelsId": 7187061,
+      "creator": "RDNE Stock project",
+      "discoveryPage": "https://www.pexels.com/video/man-training-on-a-soccer-field-7187047/",
+      "originalDownload": "https://videos.pexels.com/video-files/7187061/7187061-hd_1920_1080_24fps.mp4",
+      "license": "https://www.pexels.com/license/",
+      "reviewDate": "2026-11-06",
+      "reviewMethod": "Full-clip chronological 2fps frame inspection; ball and feet visible; weave, turn, return. No qualified coach review.",
+      "mappedMovement": "Marker slalom",
+      "limits": "Tall cones and demonstration pace differ; follow written flat-marker spacing and selected stage.",
+      "transform": "Entire clip; resize 960x540; H264 CRF24; remove audio",
+      "sha256": "4541dc23f5ddb7f3a0ba1525bbd66403002737f33eef53587d8a63bbb3413969"
+    },
+    {
+      "file": "sole-contact.mp4",
+      "drillIds": [
+        "sole"
+      ],
+      "pexelsId": 19216281,
+      "creator": "Videas Cl",
+      "page": "https://www.pexels.com/video/two-men-in-red-and-black-soccer-uniforms-playing-soccer-19216281/",
+      "originalDownload": "https://videos.pexels.com/video-files/19216281/19216281-hd_1920_1080_30fps.mp4",
+      "license": "https://www.pexels.com/license/",
+      "reviewDate": "2026-11-06",
+      "reviewMethod": "First8s inspected2fps, first4s6fps; sole contact, controlled rolling. No qualified coach review.",
+      "mappedMovement": "Sole roll: foot contact only",
+      "limits": "Not a complete alternating-foot drill example. UI explicitly instructs repeat with other foot; written drill steps remain authoritative.",
+      "transform": "Source0\u20137.5s; resize960x540; silent H264 CRF24",
+      "sha256": "3fb933ab3d6ffabf9cc5c21a52bf8b7cca4d0e90af162cf0a7b97d7ca9a35974"
+    }
+  ],
+  "excluded": [
+    {
+      "id": 30147550,
+      "reason": "Mixed footwork closeup, no complete matching drill sequence."
+    },
+    {
+      "id": 7187047,
+      "reason": "Stationary circles then kneels; no step-over exit."
+    }
+  ]
+}
