@@ -18,3 +18,17 @@ Original download: https://videos.pexels.com/video-files/19216281/19216281-hd_19
 Same Pexels License, reviewed 2026-11-06.
 
 Adaptation: source 0–7.5 seconds only, silent H.264, resized to 960×540. Inspected focused frames at 2fps and first4s at6fps. The front player guides the ball with sole contact. This is explicitly a foot-contact example; it does not establish complete alternating-foot drill execution. The app tells the user to repeat with the other foot and follow the written alternating steps. No coach review or endorsement. Other players visible are not part of this individual drill.
+
+
+## Encoding and coverage review — 2026-11-08
+
+Both existing assets were re-encoded to silent H.264 CRF27, preset slow, yuv420p, with faststart at the same 960×540 size and original trim. Source identity, movement, and mapping are unchanged. The complete encoded clips were inspected chronologically at 2 fps; ball and feet remain readable. Full ffmpeg decoding passed and ffprobe confirms one H.264 video stream with no audio.
+
+- `sole-contact.mp4`: 7.500 seconds, 573,604 bytes (previously 904,010).
+- `marker-slalom.mp4`: 7.542 seconds, 1,421,198 bytes (previously 2,167,823).
+
+Total is 1,994,802 bytes, a reduction of 1,077,031 bytes (35.1%). Updated asset SHA-256 values are in `provenance.json`.
+
+The Pexels License was checked again at https://www.pexels.com/license/ on 2026-11-08. It permits free use and modification, including in apps, with optional attribution; its restrictions still prohibit implied endorsement and redistribution on stock or wallpaper platforms.
+
+Additional research found no qualified footage for alternating inside touches, alternating toe taps, pull-back turns, or V pulls. Three newly downloaded official Pexels sources (9502515, 6077703, 10349012) were rejected after full chronological 2 fps visual inspection. No additional clip or drill mapping was added. Research evidence, source URLs, original download URLs, source hashes, and exclusions are in `work/demo-footage-research/review.json`. This result is a limited search, not a claim that no licensed footage exists.

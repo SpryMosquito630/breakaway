@@ -14,8 +14,11 @@
       "reviewMethod": "Full-clip chronological 2fps frame inspection; ball and feet visible; weave, turn, return. No qualified coach review.",
       "mappedMovement": "Marker slalom",
       "limits": "Tall cones and demonstration pace differ; follow written flat-marker spacing and selected stage.",
-      "transform": "Entire clip; resize 960x540; H264 CRF24; remove audio",
-      "sha256": "4541dc23f5ddb7f3a0ba1525bbd66403002737f33eef53587d8a63bbb3413969"
+      "transform": "Entire clip; resize 960x540; H264 CRF27; remove audio; re-encoded 2026-11-08 libx264 preset slow, yuv420p, faststart; source trim and movement unchanged",
+      "sha256": "8db8646c1bcd52f800f9f8a00673b949f53ada707ceeb94f650f6aa73906411d",
+      "previousSha256": "4541dc23f5ddb7f3a0ba1525bbd66403002737f33eef53587d8a63bbb3413969",
+      "sizeBytes": 1421198,
+      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540."
     },
     {
       "file": "sole-contact.mp4",
@@ -31,8 +34,11 @@
       "reviewMethod": "First8s inspected2fps, first4s6fps; sole contact, controlled rolling. No qualified coach review.",
       "mappedMovement": "Sole roll: foot contact only",
       "limits": "Not a complete alternating-foot drill example. UI explicitly instructs repeat with other foot; written drill steps remain authoritative.",
-      "transform": "Source0\u20137.5s; resize960x540; silent H264 CRF24",
-      "sha256": "3fb933ab3d6ffabf9cc5c21a52bf8b7cca4d0e90af162cf0a7b97d7ca9a35974"
+      "transform": "Source0\u20137.5s; resize960x540; silent H264 CRF27; re-encoded 2026-11-08 libx264 preset slow, yuv420p, faststart; source trim and movement unchanged",
+      "sha256": "96017fe42a12161e75e586ec382313502e12ac280b913988fe562327f5d2c1a3",
+      "previousSha256": "3fb933ab3d6ffabf9cc5c21a52bf8b7cca4d0e90af162cf0a7b97d7ca9a35974",
+      "sizeBytes": 573604,
+      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540."
     }
   ],
   "excluded": [
@@ -44,5 +50,17 @@
       "id": 7187047,
       "reason": "Stationary circles then kneels; no step-over exit."
     }
-  ]
+  ],
+  "additionalFootageReview": {
+    "date": "2026-11-08",
+    "qualifiedNewClips": 0,
+    "notes": "work/demo-footage-research/review.json",
+    "priorityGaps": [
+      "inside touches",
+      "alternating toe taps",
+      "pull-back turn",
+      "V pull"
+    ],
+    "licenseChecked": "https://www.pexels.com/license/"
+  }
 }
