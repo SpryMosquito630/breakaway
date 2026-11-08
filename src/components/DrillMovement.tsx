@@ -9,7 +9,7 @@ export function DrillMovement({ drill }: { drill: Drill }) {
   if (!movement) return null;
   return (
     <View style={{ gap: 8 }}>
-      <Text style={s.small}>Movement diagram · top view</Text>
+      <Text style={s.small}>Movement guide · top view</Text>
       <View
         accessible
         accessibilityLabel={`${drill.name}: ${movement.caption}`}
@@ -107,7 +107,7 @@ export function DrillMovement({ drill }: { drill: Drill }) {
       <Text style={s.body}>{movement.caption}</Text>
       <Text style={s.small}>
         Solid arrow: ball path{movement.footPath ? " · Dashed arrow: foot movement" : ""}.
-        Follow the steps for foot placement; diagram is not to scale.
+        Direction only · not to scale. See steps for foot placement.
       </Text>
     </View>
   );

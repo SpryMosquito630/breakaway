@@ -1,7 +1,6 @@
 import { drillTarget } from "../domain/targets";
 import { profileForToday, trainingPlanToday } from "../domain/training";
-import { DrillMovement as Diagram } from "../components/DrillMovement";
-import { DrillDemo } from "../components/DrillDemo";
+import { DrillInstructions } from "../components/DrillInstructions";
 import { haptic } from "../utils/haptics";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -21,16 +20,7 @@ import {
   getDrillDuration,
   time,
 } from "../domain/model";
-import {
-  Page,
-  Title,
-  Button,
-  Chip,
-  DrillRow,
-  SearchField,
-  Steps,
-  Note,
-} from "../components/ui";
+import { Page, Title, Button, Chip, DrillRow, SearchField } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import { adaptDrill } from "../domain/planning";
 export function Library({ navigation }: { navigation: any }) {
@@ -263,7 +253,8 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
         />
       }
     >
-      <Title title={d.name} body={d.cue} />
+      <Title title={d.name} />
+      <DrillInstructions key={d.id} drill={d} />
       <Button
         kind="secondary"
         label={data.favorites?.includes(d.id) ? "Remove from saved drills" : "Save drill"}
@@ -310,13 +301,6 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
           </Text>
         </View>
       ) : null}
-      <DrillDemo key={d.id} id={d.id} />
-      <Diagram drill={d} />
-      <View style={{ gap: 16 }}>
-        <Text style={s.h2}>How to do it</Text>
-        <Steps drill={d} />
-      </View>
-      <Note>{d.tip}</Note>
       {!fits ? (
         <Text style={[s.small, { color: C.danger }]}>
           Requires a different setup from your plan.

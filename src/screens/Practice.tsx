@@ -1,6 +1,5 @@
 import { drillTarget } from "../domain/targets";
-import { DrillMovement as Diagram } from "../components/DrillMovement";
-import { DrillDemo } from "../components/DrillDemo";
+import { DrillInstructions } from "../components/DrillInstructions";
 import { haptic } from "../utils/haptics";
 import { useEffect } from "react";
 import { Text, View, useWindowDimensions } from "react-native";
@@ -21,7 +20,6 @@ import {
   Chip,
   Disclosure,
   Link,
-  Note,
   Page,
   Steps,
   Title,
@@ -470,14 +468,8 @@ export function Practice({ navigation }: { navigation: any }) {
             {d.target ? (
               <Text style={[s.h3, { fontSize: 17, lineHeight: 25 }]}>{d.target}</Text>
             ) : null}
-            <Text style={s.body}>{d.cue}</Text>
           </View>
-          <DrillDemo key={d.id} id={d.id} />
-          <Steps drill={d} />
-          <Disclosure label="Setup tips and movement">
-            <Note>{d.tip}</Note>
-            <Diagram drill={d} />
-          </Disclosure>
+          <DrillInstructions key={d.id} drill={d} />
         </>
       )}
     </Page>

@@ -71,9 +71,11 @@ Today offers 10, 15, 20 or 30 minutes for the current local calendar day. The op
 
 ## Drill demonstrations
 
-All 28 drills have labeled top-view movement schematics, which show direction rather than measured technique. Two bundled filmed examples are available: sole-roll foot contact and marker slalom. The sole example demonstrates one-foot contact; written instructions explain alternating feet. Remaining drills retain schematics and instructions without pretending to have filmed demonstrations. Source, licensing and review limits are recorded in assets/drill-demos.
+Drill details and pre-timer setup share one instruction flow. Sole rolls and marker slalom lead with visible, paused filmed examples. Playback uses one Play/Pause/Replay control and a Slow 0.5× toggle. Clips play offline, pause on blur/background, release on unmount, and never remain mounted once timed practice starts, including paused timed blocks.
 
-Demonstrations start collapsed and paused, expose normal/half-speed playback, and pause on blur or background. They appear in drill details and pre-timer setup, and unmount before timed practice so video playback never competes with the drill clock.
+The other 26 base drills lead with labeled top-view movement guides; the two keeper drills and custom drills without a guide use written instructions. All 30 starter drills have a specific authored observation cue and common mistake, separate from any measured result. Custom drills never inherit starter feedback. Selected-stage steps and tips expand on demand; source credits are disclosed below the coaching prompts. This content is illustrative and not coach reviewed.
+
+Filmed coverage remains two drills. The sole clip illustrates one-foot contact, with its limitation visible and alternating-foot steps authoritative. The slalom shows weave, turn and return; written spacing/pace remain authoritative. Additional footage is accepted only after actual movement and distribution rights are checked. A review of 20 candidate sources found no qualifying additions for the next foundational drills; no unrelated clip is substituted. Both existing clips were re-encoded at 960×540, silent H.264 CRF27 faststart, totaling 1,994,802 bytes (35.1% smaller). License, provenance, hashes and limits are recorded under assets/drill-demos.
 
 ## Simplification review, November 6, 2026
 
