@@ -95,6 +95,8 @@ export type History = {
 export type Benchmark = { id: string; date: string; count: number };
 export type TodaySession = { date: string; minutes: 10 | 15 | 20 | 30 };
 export type AppData = {
+  /** Optional onboarding reflections stored only on this device. */
+  onboardingAnswers?: import("./onboardingFlow").OnboardingAnswers;
   backgroundPractice?: boolean;
   version: 1;
   customDrills?: Drill[];
