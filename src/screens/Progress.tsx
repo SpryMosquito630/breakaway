@@ -23,16 +23,8 @@ export function Progress({ navigation }: { navigation: any }) {
       <View style={{ gap: 8, paddingVertical: 8 }}>
         {rating.overall === null ? (
           <>
-            <Text style={s.h2}>
-              {rating.coverage
-                ? `${rating.coverage} of 6 tests recorded`
-                : "Start your skill profile"}
-            </Text>
-            <Text style={s.small}>
-              {rating.coverage
-                ? "Complete six tests for an overall score."
-                : "0 of 6 tests recorded"}
-            </Text>
+            <Text style={s.h2}>Skill profile</Text>
+            <Text style={s.small}>{rating.coverage}/6 tests recorded</Text>
           </>
         ) : (
           <>
@@ -55,7 +47,6 @@ export function Progress({ navigation }: { navigation: any }) {
       <View style={s.group}>
         <SettingRow
           label="Skill tests"
-          value="Results and assessments"
           onPress={() => navigation.navigate("SkillProfile")}
         />
         <SettingRow
@@ -63,7 +54,7 @@ export function Progress({ navigation }: { navigation: any }) {
           value={
             data.benchmarks.length
               ? `${data.benchmarks.length} saved results`
-              : "30-second ball control test"
+              : "30 seconds"
           }
           onPress={() => navigation.navigate("TouchProgress")}
         />

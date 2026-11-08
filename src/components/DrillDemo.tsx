@@ -1,17 +1,19 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { AppState, Linking, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import { createVideoPlayer, VideoView } from "expo-video";
-import { Pause, Play, RotateCcw } from "lucide-react-native";
 import { drillDemos, type DrillDemoAsset } from "../data/drill-demos";
 import { Button, Chip, Disclosure, Link, useTheme } from "./ui";
 
-// Mounted only while the user has explicitly opened the demo. Keep player events
+// Mounted in pre-practice guidance, always paused initially. Keep player events
 // local: video playback never publishes updates to the practice clock/app state.
 const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) {
   const { C, s } = useTheme();
   const focused = useIsFocused();
   const [playing, setPlaying] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [ended, setEnded] = useState(false);
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
@@ -23,7 +25,17 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   }, [demo.source]);
   useEffect(() => {
     player.pause();
-    const play = player.addListener("playingChange", (e) => setPlaying(e.isPlaying));
+    const play = player.addListener("playingChange", (e) => {
+      setPlaying(e.isPlaying);
+      if (e.isPlaying) {
+        setEnded(false);
+        setStarted(true);
+      }
+    });
+    const end = player.addListener("playToEnd", () => {
+      setPlaying(false);
+      setEnded(true);
+    });
     const status = player.addListener("statusChange", (e) => {
       setReady(e.status === "readyToPlay");
       setError(
@@ -38,6 +50,7 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
     });
     return () => {
       play.remove();
+      end.remove();
       status.remove();
       background.remove();
       player.pause();
@@ -50,10 +63,11 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   useEffect(() => {
     player.playbackRate = slow ? 0.5 : 1;
   }, [slow, player]);
-  const start = (replay = false) => {
+  const start = () => {
     try {
-      if (replay || (player.duration > 0 && player.currentTime >= player.duration - 0.1))
+      if (ended || (player.duration > 0 && player.currentTime >= player.duration - 0.1))
         player.currentTime = 0;
+      setEnded(false);
       player.play();
     } catch {
       setError("Could not start the demo. Close it and try again.");
@@ -61,18 +75,29 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   };
   return (
     <View style={{ gap: 12 }}>
-      <VideoView
-        player={player}
-        nativeControls={false}
-        contentFit="contain"
-        style={{
-          width: "100%",
-          aspectRatio: 16 / 9,
-          backgroundColor: "#101812",
-          borderRadius: 12,
-        }}
-        accessibilityLabel={demo.description}
-      />
+      <View style={{ width: "100%", aspectRatio: 16 / 9 }}>
+        <VideoView
+          player={player}
+          nativeControls={false}
+          contentFit="contain"
+          style={{
+            width: "100%",
+            aspectRatio: 16 / 9,
+            backgroundColor: "#101812",
+            borderRadius: 12,
+          }}
+          accessibilityLabel={demo.description}
+        />
+        {!started || error ? (
+          <Image
+            source={demo.poster}
+            contentFit="contain"
+            pointerEvents="none"
+            accessible={false}
+            style={{ position: "absolute", inset: 0, borderRadius: 12 }}
+          />
+        ) : null}
+      </View>
       {error ? (
         <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
           {error}
@@ -80,68 +105,71 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
       ) : !ready ? (
         <Text style={s.small}>Loading bundled demo…</Text>
       ) : null}
-      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-        <View style={{ flex: 1, minWidth: 120 }}>
+      <View
+        style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", alignItems: "center" }}
+      >
+        <View style={{ flex: 1, minWidth: 140 }}>
           <Button
-            label={playing ? "Pause demo" : "Play demo"}
-            icon={playing ? Pause : Play}
+            kind="secondary"
+            label={playing ? "Pause demo" : ended ? "Replay demo" : "Play demo"}
             disabled={!ready || !focused || Boolean(error)}
             onPress={() => (playing ? player.pause() : start())}
           />
         </View>
-        <View style={{ flex: 1, minWidth: 100 }}>
-          <Button
-            kind="secondary"
-            label="Replay"
-            icon={RotateCcw}
-            disabled={!ready || !focused || Boolean(error)}
-            onPress={() => start(true)}
-          />
-        </View>
+        <Chip label="Slow · 0.5×" selected={slow} onPress={() => setSlow(!slow)} />
       </View>
-      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-        <Chip label="1× speed" selected={!slow} onPress={() => setSlow(false)} />
-        <Chip label="0.5× speed" selected={slow} onPress={() => setSlow(true)} />
-      </View>
-      <Text style={s.body}>{demo.cue}</Text>
-      <Text style={s.small}>{demo.description}</Text>
-      <Disclosure label="Video credit and license">
-        <Text style={s.small}>
-          {demo.credit} · Pexels License. Trimmed/resized for offline playback. No
-          coaching endorsement.
-        </Text>
-        <Link
-          label="View source footage"
-          onPress={() => {
-            void Linking.openURL(demo.page).catch(() =>
-              setError("Could not open the source link."),
-            );
-          }}
-        />
-        <Link
-          label="Pexels License"
-          onPress={() => {
-            void Linking.openURL("https://www.pexels.com/license/").catch(() =>
-              setError("Could not open the license link."),
-            );
-          }}
-        />
-      </Disclosure>
+      <Text style={s.small}>{demo.limit}</Text>
     </View>
   );
 });
 
-export const DrillDemo = memo(function DrillDemo({ id }: { id: string }) {
-  const { s } = useTheme();
+export const DrillDemo = memo(function DrillDemo({
+  id,
+  expanded = false,
+}: {
+  id: string;
+  expanded?: boolean;
+}) {
   const demo = drillDemos[id];
   if (!demo) return null;
   return (
     <View style={{ gap: 4 }}>
-      <Text style={s.h3}>{demo.title}</Text>
-      <Disclosure label="Watch movement demo">
+      {expanded ? (
         <DemoPlayer key={id} demo={demo} />
-      </Disclosure>
-      <Text style={s.small}>Bundled video · plays offline · starts paused</Text>
+      ) : (
+        <Disclosure label="Watch movement demo">
+          <DemoPlayer key={id} demo={demo} />
+        </Disclosure>
+      )}
     </View>
   );
 });
+
+export function DrillDemoCredit({ id }: { id: string }) {
+  const { C, s } = useTheme();
+  const [error, setError] = useState("");
+  const demo = drillDemos[id];
+  if (!demo) return null;
+  const openLink = (url: string) => {
+    setError("");
+    void Linking.openURL(url).catch(() => setError("Could not open the link."));
+  };
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={s.small}>
+        {demo.credit} · Pexels License. Trimmed/resized for offline playback. No coaching
+        endorsement.
+      </Text>
+      <Link label="View source footage" onPress={() => openLink(demo.page)} />
+      <Link
+        label="Pexels License"
+        onPress={() => openLink("https://www.pexels.com/license/")}
+      />
+      {error ? (
+        <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
+          {error}
+        </Text>
+      ) : null}
+    </View>
+  );
+}

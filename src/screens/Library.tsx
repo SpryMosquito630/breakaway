@@ -1,12 +1,13 @@
 import { drillTarget } from "../domain/targets";
 import { profileForToday, trainingPlanToday } from "../domain/training";
-import { DrillMovement as Diagram } from "../components/DrillMovement";
-import { DrillDemo } from "../components/DrillDemo";
+import { DrillInstructions } from "../components/DrillInstructions";
 import { haptic } from "../utils/haptics";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { AppAlert as Alert } from "../utils/alerts";
 import {
+  Bookmark,
+  BookmarkCheck,
   ChevronDown,
   MoreHorizontal,
   Play,
@@ -28,8 +29,8 @@ import {
   Chip,
   DrillRow,
   SearchField,
-  Steps,
-  Note,
+  IconButton,
+  Link,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import { adaptDrill } from "../domain/planning";
@@ -63,7 +64,6 @@ export function Library({ navigation }: { navigation: any }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Text style={[s.small, { flex: 1 }]}>
           {list.length} {list.length === 1 ? "drill" : "drills"}
-          {scope === "My setup" ? " for your setup" : ""}
         </Text>
         <Pressable
           accessibilityRole="button"
@@ -257,44 +257,50 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
     <Page
       footer={
         <Button
-          label={`Practice · ${time(getDrillDuration(5, 1))}`}
+          label={`Start drill · ${time(getDrillDuration(5, 1))}`}
           icon={Play}
           onPress={start}
         />
       }
     >
-      <Title title={d.name} body={d.cue} />
-      <Button
-        kind="secondary"
-        label={data.favorites?.includes(d.id) ? "Remove from saved drills" : "Save drill"}
-        onPress={() =>
-          update((st) => ({
-            ...st,
-            favorites: st.favorites?.includes(d.id)
-              ? st.favorites.filter((id) => id !== d.id)
-              : [...(st.favorites ?? []), d.id],
-          }))
-        }
-      />
-      {d.id.startsWith("custom-") ? (
-        <Button
-          kind="secondary"
-          label="Edit your drill"
-          onPress={() => navigation.navigate("CustomDrillEditor", { id: d.id })}
+      <View style={[s.row, { gap: 12 }]}>
+        <View style={{ flex: 1, gap: 6 }}>
+          <Title title={d.name} />
+          <Text style={s.small}>
+            {d.gear.length ? `Ball + ${d.gear.join(" + ")}` : "Ball only"} · {d.space}
+          </Text>
+        </View>
+        <IconButton
+          icon={data.favorites?.includes(d.id) ? BookmarkCheck : Bookmark}
+          label={
+            data.favorites?.includes(d.id) ? "Remove from saved drills" : "Save drill"
+          }
+          onPress={() =>
+            update((st) => ({
+              ...st,
+              favorites: st.favorites?.includes(d.id)
+                ? st.favorites.filter((id) => id !== d.id)
+                : [...(st.favorites ?? []), d.id],
+            }))
+          }
         />
-      ) : null}
-      <View style={s.row}>
-        <Text style={s.small}>{d.skill}</Text>
-        <Text style={s.small}>
-          {d.gear.length ? `Ball + ${d.gear.join(" + ")}` : "Ball only"}
-        </Text>
       </View>
+      <DrillInstructions
+        key={d.id}
+        drill={d}
+        note={[
+          drillTarget(variant?.target, getDrillDuration(5, 1)),
+          base.variants?.length
+            ? "Two completed Easy sessions move your plan up a level."
+            : "",
+          "Start with an easy warm-up.",
+        ]
+          .filter(Boolean)
+          .join("\n\n")}
+      />
       {base.variants?.length ? (
         <View style={{ gap: 8 }}>
-          <Text style={s.h2}>Choose your challenge</Text>
-          <Text style={s.small}>
-            Two completed Easy sessions move your plan up a level.
-          </Text>
+          <Text style={s.h3}>Challenge</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {base.variants?.map((v) => (
               <Chip
@@ -305,24 +311,19 @@ export function Detail({ navigation, route }: { navigation: any; route: any }) {
               />
             ))}
           </View>
-          <Text style={s.body}>
-            {drillTarget(variant?.target, getDrillDuration(5, 1))}
-          </Text>
         </View>
       ) : null}
-      <DrillDemo key={d.id} id={d.id} />
-      <Diagram drill={d} />
-      <View style={{ gap: 16 }}>
-        <Text style={s.h2}>How to do it</Text>
-        <Steps drill={d} />
-      </View>
-      <Note>{d.tip}</Note>
       {!fits ? (
         <Text style={[s.small, { color: C.danger }]}>
           Requires a different setup from your plan.
         </Text>
       ) : null}
-      <Text style={s.small}>{d.space} · Start with an easy warm-up.</Text>
+      {d.id.startsWith("custom-") ? (
+        <Link
+          label="Edit drill"
+          onPress={() => navigation.navigate("CustomDrillEditor", { id: d.id })}
+        />
+      ) : null}
     </Page>
   );
 }

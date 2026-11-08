@@ -3,13 +3,18 @@ import Svg, { Circle, Defs, Line, Marker, Path, Rect } from "react-native-svg";
 import { type Drill } from "../domain/model";
 import { drillMovements } from "../data/drill-movements";
 import { useTheme } from "./ui";
-export function DrillMovement({ drill }: { drill: Drill }) {
+export function DrillMovement({
+  drill,
+  compact = false,
+}: {
+  drill: Drill;
+  compact?: boolean;
+}) {
   const { C, s } = useTheme();
   const movement = drillMovements[drill.id];
   if (!movement) return null;
   return (
     <View style={{ gap: 8 }}>
-      <Text style={s.small}>Movement diagram · top view</Text>
       <View
         accessible
         accessibilityLabel={`${drill.name}: ${movement.caption}`}
@@ -104,10 +109,9 @@ export function DrillMovement({ drill }: { drill: Drill }) {
           />
         </Svg>
       </View>
-      <Text style={s.body}>{movement.caption}</Text>
+      {!compact ? <Text style={s.body}>{movement.caption}</Text> : null}
       <Text style={s.small}>
-        Solid arrow: ball path{movement.footPath ? " · Dashed arrow: foot movement" : ""}.
-        Follow the steps for foot placement; diagram is not to scale.
+        Top view · Solid: ball{movement.footPath ? " · Dashed: foot" : ""} · Not to scale
       </Text>
     </View>
   );
