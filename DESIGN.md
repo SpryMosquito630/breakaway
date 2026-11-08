@@ -88,3 +88,9 @@ The default app exposes training, drills, progress and reminders. Today’s dril
 ## Drill guidance distillation — November 8, 2026
 
 Detail and pre-timer setup prioritize title, compact requirements, a movement visual, one cue and one Instructions & notes disclosure. Licensed full-frame posters replace black paused video regions; Play is secondary to the pinned Start action. Footage limitations remain concise and visible. Detail uses a quiet bookmark action and compact challenge chips; setup places optional screen-lock settings after guidance. Running targets, timers, saved data, skill profile and navigation remain unchanged. Audit: `work/distill-ui-audit.md`.
+
+## Recorded onboarding reference, November 8, 2026
+
+The user requested the full visible Footly onboarding sequence. Breakaway now uses 39 screens with dark forest/lime quiz and photo beats, purple plan/profile beats, bold Archivo headings, pinned pill CTAs, numbered question rows, an interactive position pitch, a horizontal training-style photo carousel, optional explicit metric pickers, editable local week notes, colored goals, and an onboarding-only snapshot/style carousel. Full source map and data audit: `breakaway-onboarding-spec.md`.
+
+Every fresh or replay draft starts unanswered. Required training inputs stay explicit; optional reflections offer Skip. No questionnaire answer creates a skill score, body assessment, calorie prescription, fabricated loading sequence or 12-week forecast. Account/referral/Health controls are omitted because the shipping app does not implement them. Skill profile remains the sole persistent skill-rating destination. Existing replay history, age restrictions, custom-plan semantics and recovery fences remain intact. Optional local notes are allowlisted, sanitized and excluded from connected payloads; reminders use the existing scheduler only after final save.

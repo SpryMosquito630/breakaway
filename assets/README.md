@@ -13,3 +13,7 @@ See `drill-demos/LICENSE.md` and `drill-demos/provenance.json` for source URLs, 
 ## Replay example
 
 The bundled 4.5 MB sample video was removed from the shipping app. Developer builds may point `EXPO_PUBLIC_REPLAY_SAMPLE_URL` at an appropriately licensed HTTPS video. Authored sample tracking data and notes must only be used with the matching source footage. No personal recording may inherit sample annotations.
+
+## Onboarding player styles
+
+`player-styles/` contains four verified reusable Wikimedia photographs for the Kevin De Bruyne, Pedri, Sergio Busquets and Declan Rice playing-style inspirations. Exact authors, original file pages, CC licenses, transformations and hashes are in `player-styles/LICENSE.md` and `manifest.json`. Attribution and source/license links are available in the carousel’s Photo credits disclosure. These players do not endorse or have an affiliation with Breakaway.
