@@ -29,9 +29,8 @@ import {
   Utensils,
   CircleDot,
   Bell,
-  UserRound,
 } from "lucide-react-native";
-import Svg, { Circle, Line, Rect, Path } from "react-native-svg";
+import Svg, { Circle, Line, Rect } from "react-native-svg";
 import { useApp } from "../state/AppState";
 import { days, goals, type Position, time, getDrillDuration } from "../domain/model";
 import { profileFromDraft } from "../domain/onboarding";
@@ -52,6 +51,10 @@ import { planForDate } from "../domain/planning";
 import { useReminders } from "../notifications/RemindersProvider";
 import { skillProfile } from "../domain/skillProfile";
 import { haptic } from "../utils/haptics";
+import {
+  OnboardingPlayerCard,
+  PlayerCardFinish,
+} from "../components/OnboardingPlayerCard";
 
 const colors = {
   background: "#080F0B",
@@ -278,149 +281,6 @@ function Wheel({
           </Pressable>
         ))}
       </ScrollView>
-    </View>
-  );
-}
-
-const cardColors = [
-  { fill: "#173320", line: "#91AD62" },
-  { fill: "#354714", line: "#B6FF3B" },
-  { fill: "#29343E", line: "#A6B5BE" },
-  { fill: "#382147", line: "#C393E0" },
-  { fill: "#18354F", line: "#7FB9F4" },
-];
-function CardShape({ fill, line }: { fill: string; line: string }) {
-  return (
-    <Svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 340 450"
-      preserveAspectRatio="none"
-      style={StyleSheet.absoluteFill}
-      pointerEvents="none"
-    >
-      <Path
-        d="M 18 29 L 76 29 Q 126 29 170 8 Q 214 29 264 29 L 322 29 L 322 337 Q 322 389 170 440 Q 18 389 18 337 Z"
-        fill={fill}
-        stroke={line}
-        strokeWidth={2}
-      />
-      <Path
-        d="M 28 39 L 79 39 Q 130 39 170 20 Q 210 39 261 39 L 312 39 L 312 334 Q 312 380 170 428 Q 28 380 28 334 Z"
-        fill="none"
-        stroke={line}
-        strokeWidth={0.7}
-      />
-    </Svg>
-  );
-}
-function SnapshotCard({
-  name,
-  position,
-  look,
-  ratings,
-}: {
-  name?: string;
-  position: string;
-  look?: string;
-  ratings: ReturnType<typeof skillProfile>;
-}) {
-  const theme = cardColors[Math.max(0, snapshotStyles.indexOf(look ?? ""))];
-  return (
-    <View
-      style={{
-        alignSelf: "center",
-        width: "100%",
-        maxWidth: 310,
-        minHeight: 400,
-        paddingHorizontal: 34,
-        paddingTop: 48,
-        paddingBottom: 66,
-        alignItems: "center",
-        gap: 12,
-      }}
-    >
-      <CardShape fill={theme.fill} line={theme.line} />
-      <Text style={styles.snapshotBrand}>BREAKAWAY</Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          alignSelf: "stretch",
-          gap: 18,
-        }}
-      >
-        <View style={{ gap: 2, alignItems: "center", minWidth: 64 }}>
-          <Text
-            accessibilityLabel={
-              ratings.overall === null
-                ? "Overall test rating not yet assessed"
-                : `Overall test rating ${ratings.overall}`
-            }
-            style={{
-              fontFamily: "Archivo_700Bold",
-              fontSize: 38,
-              lineHeight: 44,
-              color: colors.white,
-            }}
-          >
-            {ratings.overall ?? "—"}
-          </Text>
-          <Copy style={{ fontSize: 10, lineHeight: 15, color: colors.muted }}>
-            TEST OVR
-          </Copy>
-          <Text
-            style={{
-              fontFamily: "Archivo_600SemiBold",
-              fontSize: 22,
-              lineHeight: 28,
-              color: colors.lime,
-            }}
-          >
-            {position}
-          </Text>
-        </View>
-        <View style={{ flex: 1, alignItems: "center", paddingVertical: 12 }}>
-          <UserRound size={88} color="#BAC5B4" strokeWidth={1.5} />
-        </View>
-      </View>
-      <Text style={[styles.cardTitle, { textAlign: "center", marginTop: 4 }]}>
-        {name ?? "Your game"}
-      </Text>
-      <View
-        style={{
-          height: 1,
-          backgroundColor: theme.line,
-          opacity: 0.5,
-          alignSelf: "stretch",
-          marginTop: 6,
-        }}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          alignSelf: "stretch",
-          justifyContent: "space-between",
-          paddingTop: 8,
-        }}
-      >
-        {ratings.skills.map((skill) => (
-          <View
-            key={skill.id}
-            accessibilityLabel={`${skill.name}, ${skill.rating === null ? "not assessed" : `test rating ${skill.rating}`}`}
-            style={{ alignItems: "center", gap: 5 }}
-          >
-            <Copy style={{ fontSize: 10, lineHeight: 14, color: colors.muted }}>
-              {skill.short}
-            </Copy>
-            <Copy
-              style={{ fontFamily: "Archivo_600SemiBold", fontSize: 17, lineHeight: 22 }}
-            >
-              {skill.rating ?? "—"}
-            </Copy>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -1610,19 +1470,27 @@ export function Onboarding({
         break;
       case "snapshot":
         content = (
-          <View style={{ gap: 22 }}>
-            <Heading center>Your game. Your plan.</Heading>
+          <View style={{ gap: 16 }}>
+            <Text
+              accessibilityRole="header"
+              style={[
+                styles.heading,
+                { fontSize: 24, lineHeight: 30, textAlign: "center" },
+              ]}
+            >
+              Your Breakaway card
+            </Text>
             <Copy muted style={{ textAlign: "center" }}>
-              Your onboarding snapshot.
+              Choose your look.
             </Copy>
-            <SnapshotCard
+            <OnboardingPlayerCard
               name={name}
               position={answers.positionDetail ?? draft.position ?? "—"}
               look={answers.snapshotStyle}
               ratings={ratings}
             />
             <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
-              Your saved test ratings. Unassessed skills stay blank.
+              Saved test ratings. Unassessed skills show a dash.
             </Copy>
             <Text style={styles.smallLabel}>CHOOSE YOUR LOOK · OPTIONAL</Text>
             <ScrollView
@@ -1630,7 +1498,7 @@ export function Onboarding({
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 12, paddingBottom: 4 }}
             >
-              {snapshotStyles.map((label, i) => (
+              {snapshotStyles.map((label) => (
                 <Pressable
                   key={label}
                   accessibilityRole="radio"
@@ -1645,44 +1513,36 @@ export function Onboarding({
                     answer({ snapshotStyle: label });
                   }}
                   style={{
-                    minHeight: 130,
-                    width: 96,
-                    backgroundColor: "transparent",
-                    padding: 10,
+                    minHeight: 127,
+                    width: 86,
+                    borderWidth: 1,
+                    borderColor:
+                      answers.snapshotStyle === label ? colors.lime : "#FFFFFF18",
+                    borderRadius: 12,
+                    backgroundColor: "#FFFFFF04",
+                    padding: 7,
                     alignItems: "center",
                     justifyContent: "space-between",
                   }}
                 >
-                  <CardShape
-                    fill={cardColors[i].fill}
-                    line={
-                      answers.snapshotStyle === label ? colors.lime : cardColors[i].line
-                    }
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "BarlowCondensed_800ExtraBold",
-                      fontSize: 12,
-                      color: colors.white,
-                    }}
-                  >
-                    BREAKAWAY
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: "Archivo_700Bold",
-                      fontSize: 26,
-                      color: colors.white,
-                    }}
-                  >
-                    {answers.positionDetail ?? "—"}
-                  </Text>
-                  <Copy style={{ fontSize: 10, lineHeight: 14 }}>{label}</Copy>
-                  {answers.snapshotStyle === label ? (
-                    <Check size={18} color={colors.lime} />
-                  ) : (
-                    <View style={{ height: 18 }} />
-                  )}
+                  <View style={{ width: 70, height: 91 }}>
+                    <PlayerCardFinish look={label} />
+                    {answers.snapshotStyle === label && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: -4,
+                          backgroundColor: colors.lime,
+                          borderRadius: 12,
+                          padding: 2,
+                        }}
+                      >
+                        <Check size={14} color={colors.background} />
+                      </View>
+                    )}
+                  </View>
+                  <Copy style={{ fontSize: 11, lineHeight: 16 }}>{label}</Copy>
                 </Pressable>
               ))}
             </ScrollView>
@@ -2180,27 +2040,6 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 16,
     alignItems: "flex-start",
-  },
-  snapshot: {
-    borderWidth: 1,
-    borderColor: "#77933B",
-    borderRadius: 20,
-    padding: 24,
-    backgroundColor: colors.panel,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  snapshotBrand: {
-    fontFamily: "BarlowCondensed_800ExtraBold",
-    fontSize: 20,
-    color: colors.muted,
-  },
-  snapshotPosition: {
-    fontFamily: "Archivo_700Bold",
-    fontSize: 64,
-    lineHeight: 76,
-    color: colors.lime,
-    marginVertical: 18,
   },
   footer: { paddingHorizontal: 24, paddingTop: 12, gap: 0, backgroundColor: "#080F0BF2" },
   primary: {
