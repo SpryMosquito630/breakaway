@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { AppState, Linking, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import { createVideoPlayer, VideoView } from "expo-video";
 import { drillDemos, type DrillDemoAsset } from "../data/drill-demos";
@@ -11,6 +12,7 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   const { C, s } = useTheme();
   const focused = useIsFocused();
   const [playing, setPlaying] = useState(false);
+  const [started, setStarted] = useState(false);
   const [ended, setEnded] = useState(false);
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +27,10 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
     player.pause();
     const play = player.addListener("playingChange", (e) => {
       setPlaying(e.isPlaying);
-      if (e.isPlaying) setEnded(false);
+      if (e.isPlaying) {
+        setEnded(false);
+        setStarted(true);
+      }
     });
     const end = player.addListener("playToEnd", () => {
       setPlaying(false);
@@ -70,18 +75,29 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   };
   return (
     <View style={{ gap: 12 }}>
-      <VideoView
-        player={player}
-        nativeControls={false}
-        contentFit="contain"
-        style={{
-          width: "100%",
-          aspectRatio: 16 / 9,
-          backgroundColor: "#101812",
-          borderRadius: 12,
-        }}
-        accessibilityLabel={demo.description}
-      />
+      <View style={{ width: "100%", aspectRatio: 16 / 9 }}>
+        <VideoView
+          player={player}
+          nativeControls={false}
+          contentFit="contain"
+          style={{
+            width: "100%",
+            aspectRatio: 16 / 9,
+            backgroundColor: "#101812",
+            borderRadius: 12,
+          }}
+          accessibilityLabel={demo.description}
+        />
+        {!started || error ? (
+          <Image
+            source={demo.poster}
+            contentFit="contain"
+            pointerEvents="none"
+            accessible={false}
+            style={{ position: "absolute", inset: 0, borderRadius: 12 }}
+          />
+        ) : null}
+      </View>
       {error ? (
         <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
           {error}
@@ -94,6 +110,7 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
       >
         <View style={{ flex: 1, minWidth: 140 }}>
           <Button
+            kind="secondary"
             label={playing ? "Pause demo" : ended ? "Replay demo" : "Play demo"}
             disabled={!ready || !focused || Boolean(error)}
             onPress={() => (playing ? player.pause() : start())}
@@ -101,7 +118,7 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
         </View>
         <Chip label="Slow · 0.5×" selected={slow} onPress={() => setSlow(!slow)} />
       </View>
-      <Text style={s.small}>{demo.description}</Text>
+      <Text style={s.small}>{demo.limit}</Text>
     </View>
   );
 });
@@ -113,13 +130,10 @@ export const DrillDemo = memo(function DrillDemo({
   id: string;
   expanded?: boolean;
 }) {
-  const { s } = useTheme();
   const demo = drillDemos[id];
   if (!demo) return null;
   return (
     <View style={{ gap: 4 }}>
-      <Text style={s.h3}>{demo.title}</Text>
-      <Text style={s.small}>Filmed example · offline · starts paused</Text>
       {expanded ? (
         <DemoPlayer key={id} demo={demo} />
       ) : (
@@ -141,7 +155,7 @@ export function DrillDemoCredit({ id }: { id: string }) {
     void Linking.openURL(url).catch(() => setError("Could not open the link."));
   };
   return (
-    <Disclosure label="Video credit and license">
+    <View style={{ gap: 8 }}>
       <Text style={s.small}>
         {demo.credit} · Pexels License. Trimmed/resized for offline playback. No coaching
         endorsement.
@@ -156,6 +170,6 @@ export function DrillDemoCredit({ id }: { id: string }) {
           {error}
         </Text>
       ) : null}
-    </Disclosure>
+    </View>
   );
 }

@@ -73,7 +73,7 @@ Today offers 10, 15, 20 or 30 minutes for the current local calendar day. The op
 
 Drill details and pre-timer setup share one instruction flow. Sole rolls and marker slalom lead with visible, paused filmed examples. Playback uses one Play/Pause/Replay control and a Slow 0.5× toggle. Clips play offline, pause on blur/background, release on unmount, and never remain mounted once timed practice starts, including paused timed blocks.
 
-The other 26 base drills lead with labeled top-view movement guides; the two keeper drills and custom drills without a guide use written instructions. All 30 starter drills have a specific authored observation cue and common mistake, separate from any measured result. Custom drills never inherit starter feedback. Selected-stage steps and tips expand on demand; source credits are disclosed below the coaching prompts. This content is illustrative and not coach reviewed.
+The other 26 base drills lead with labeled top-view movement guides; the two keeper drills and custom drills without a guide use written instructions. All 30 starter drills have a specific authored observation cue and common mistake, separate from any measured result. Custom drills never inherit starter feedback. One observation cue stays visible; selected-stage steps, mistakes, tips, full target guidance and source credits share one Instructions & notes disclosure. This content is illustrative and not coach reviewed.
 
 Filmed coverage remains two drills. The sole clip illustrates one-foot contact, with its limitation visible and alternating-foot steps authoritative. The slalom shows weave, turn and return; written spacing/pace remain authoritative. Additional footage is accepted only after actual movement and distribution rights are checked. A review of 20 candidate sources found no qualifying additions for the next foundational drills; no unrelated clip is substituted. Both existing clips were re-encoded at 960×540, silent H.264 CRF27 faststart, totaling 1,994,802 bytes (35.1% smaller). License, provenance, hashes and limits are recorded under assets/drill-demos.
 
@@ -84,3 +84,7 @@ The user's critique identified clutter and too many competing actions. The taste
 ## Focused shipping scope
 
 The default app exposes training, drills, progress and reminders. Today’s drills are visible. Laptop-dependent replay and all other experimental products are hidden behind an explicit developer build flag, including their screen dependencies. Privacy and recovery protections are functional boundaries, not merely hidden buttons. Age onboarding is neutral and unanswered; local age ranges never become cloud profile data. No subscription benefits or public leaderboards are advertised. See docs/implementation-status.md.
+
+## Drill guidance distillation — November 8, 2026
+
+Detail and pre-timer setup prioritize title, compact requirements, a movement visual, one cue and one Instructions & notes disclosure. Licensed full-frame posters replace black paused video regions; Play is secondary to the pinned Start action. Footage limitations remain concise and visible. Detail uses a quiet bookmark action and compact challenge chips; setup places optional screen-lock settings after guidance. Running targets, timers, saved data, skill profile and navigation remain unchanged. Audit: `work/distill-ui-audit.md`.

@@ -18,7 +18,16 @@
       "sha256": "8db8646c1bcd52f800f9f8a00673b949f53ada707ceeb94f650f6aa73906411d",
       "previousSha256": "4541dc23f5ddb7f3a0ba1525bbd66403002737f33eef53587d8a63bbb3413969",
       "sizeBytes": 1421198,
-      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540."
+      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540.",
+      "poster": {
+        "file": "marker-slalom-poster.jpg",
+        "source": "marker-slalom.mp4",
+        "frameSeconds": 1,
+        "transform": "ffmpeg -ss 1 -frames:v 1 -q:v 3; unaltered full frame",
+        "sha256": "cd0739502a5b8e5cd2e052d4f92f6ae0233fe891cb59623aadc5819447be3e12",
+        "sizeBytes": 60967,
+        "review": "2026-11-08: inspected full frame; ball and foot contact visible."
+      }
     },
     {
       "file": "sole-contact.mp4",
@@ -38,7 +47,16 @@
       "sha256": "96017fe42a12161e75e586ec382313502e12ac280b913988fe562327f5d2c1a3",
       "previousSha256": "3fb933ab3d6ffabf9cc5c21a52bf8b7cca4d0e90af162cf0a7b97d7ca9a35974",
       "sizeBytes": 573604,
-      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540."
+      "encodingReview": "2026-11-08: full chronological 2fps contact sheets inspected after CRF27 encode; ball and feet remain readable at 960x540.",
+      "poster": {
+        "file": "sole-contact-poster.jpg",
+        "source": "sole-contact.mp4",
+        "frameSeconds": 1,
+        "transform": "ffmpeg -ss 1 -frames:v 1 -q:v 3; unaltered full frame",
+        "sha256": "a93df47040294611aa7f13dc228c02be1540a44a2e0953f367d680f9ee002dcc",
+        "sizeBytes": 51012,
+        "review": "2026-11-08: inspected full frame; ball and foot contact visible."
+      }
     }
   ],
   "excluded": [

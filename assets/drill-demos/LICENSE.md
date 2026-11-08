@@ -32,3 +32,7 @@ Total is 1,994,802 bytes, a reduction of 1,077,031 bytes (35.1%). Updated asset 
 The Pexels License was checked again at https://www.pexels.com/license/ on 2026-11-08. It permits free use and modification, including in apps, with optional attribution; its restrictions still prohibit implied endorsement and redistribution on stock or wallpaper platforms.
 
 Additional research found no qualified footage for alternating inside touches, alternating toe taps, pull-back turns, or V pulls. Three newly downloaded official Pexels sources (9502515, 6077703, 10349012) were rejected after full chronological 2 fps visual inspection. No additional clip or drill mapping was added. Research evidence, source URLs, original download URLs, source hashes, and exclusions are in `work/demo-footage-research/review.json`. This result is a limited search, not a claim that no licensed footage exists.
+
+## Paused posters — 2026-11-08
+
+`sole-contact-poster.jpg` and `marker-slalom-poster.jpg` are unaltered full frames extracted at 1.0 seconds from their corresponding licensed bundled MP4s using ffmpeg (`-frames:v 1 -q:v 3`). They use the same source license and credit above. Both were visually inspected for visible ball and foot contact. Hashes and sizes are in `provenance.json`. Posters appear before first playback and behind visible playback errors; no new footage or movement is implied.

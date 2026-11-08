@@ -8,7 +8,7 @@ import { DrillMovement } from "./DrillMovement";
 import { Disclosure, Steps, useTheme } from "./ui";
 
 /** Pre-practice learning only. Never mount a player under a running timer. */
-export function DrillInstructions({ drill }: { drill: Drill }) {
+export function DrillInstructions({ drill, note }: { drill: Drill; note?: string }) {
   const { s } = useTheme();
   const instruction = drillInstructions[drill.id];
   const filmed = Boolean(drillDemos[drill.id]);
@@ -17,29 +17,26 @@ export function DrillInstructions({ drill }: { drill: Drill }) {
       {filmed ? (
         <DrillDemo key={drill.id} id={drill.id} expanded />
       ) : (
-        <DrillMovement drill={drill} />
+        <DrillMovement drill={drill} compact />
       )}
-      {!filmed && !drillMovements[drill.id] ? (
-        <Text style={s.h3}>Written guide</Text>
-      ) : null}
-      <View style={{ gap: 8 }}>
-        <Text style={s.body}>
-          <Text style={s.h3}>Focus: </Text>
-          {instruction?.watch ?? drill.cue}
-        </Text>
+      <Text style={s.body}>{instruction?.watch ?? drill.cue}</Text>
+      <Disclosure label="Instructions & notes">
+        <Steps drill={drill} />
         {instruction ? (
           <Text style={s.body}>
             <Text style={s.h3}>Common mistake: </Text>
             {instruction.mistake}
           </Text>
         ) : null}
-      </View>
-      <Disclosure label="Step-by-step instructions">
-        <Steps drill={drill} />
         <Text style={s.small}>{drill.tip}</Text>
-        {filmed ? <DrillMovement drill={drill} /> : null}
+        {note ? <Text style={s.small}>{note}</Text> : null}
+        {filmed ? (
+          <DrillMovement drill={drill} />
+        ) : drillMovements[drill.id] ? (
+          <Text style={s.small}>{drillMovements[drill.id].caption}</Text>
+        ) : null}
+        {filmed ? <DrillDemoCredit id={drill.id} /> : null}
       </Disclosure>
-      {filmed ? <DrillDemoCredit id={drill.id} /> : null}
     </View>
   );
 }
