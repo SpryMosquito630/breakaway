@@ -30,6 +30,13 @@ import {
   canonicalMeasurement,
   displayMeasurement,
   measurementValues,
+  measurementRowHeight,
+  imperialFeet,
+  inchesForFeet,
+  imperialHeightFromCm,
+  chooseImperialHeightPart,
+  formatImperialHeight,
+  type ImperialHeightDraft,
 } from "../domain/measurementWheel";
 import { WelcomeBackground } from "../components/WelcomeBackground";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -276,6 +283,8 @@ export function Onboarding({
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState<FlowDraft>({});
   const [imperial, setImperial] = useState(false);
+  const [heightPartsDraft, setHeightPartsDraft] = useState<ImperialHeightDraft>({});
+  const heightPartsRef = useRef<ImperialHeightDraft>({});
   const [activeMeasurementWheel, setActiveMeasurementWheel] = useState<string | null>(
     null,
   );
@@ -464,6 +473,29 @@ export function Onboarding({
     );
   };
   const answer = (next: Partial<OnboardingAnswers>) => patch({ answers: next });
+  const heightParts =
+    answers.heightCm === undefined
+      ? heightPartsDraft
+      : imperialHeightFromCm(answers.heightCm);
+  const chooseHeightPart = (part: keyof ImperialHeightDraft, value: number) => {
+    const previous = heightPartsRef.current;
+    const next = chooseImperialHeightPart(previous, part, value);
+    heightPartsRef.current = next.parts;
+    setHeightPartsDraft(next.parts);
+    answer({ heightCm: next.centimeters });
+  };
+  const chooseMetricHeight = (value: number) => {
+    const centimeters = canonicalMeasurement("height", value, false);
+    const parts = imperialHeightFromCm(centimeters);
+    heightPartsRef.current = parts;
+    setHeightPartsDraft(parts);
+    answer({ heightCm: centimeters });
+  };
+  const wheelInteraction = (name: string, active: boolean) =>
+    setActiveMeasurementWheel((current) =>
+      active ? name : current === name ? null : current,
+    );
+
   const advance = () => {
     if (currentIndex.current !== index || transitionBusy.current) return;
     pendingAdvance.cancel();
@@ -1009,64 +1041,131 @@ export function Onboarding({
         break;
       case "measurements":
         content = (
-          <View style={{ gap: 22 }}>
-            <Heading center>Height & weight</Heading>
-            <Copy muted style={{ textAlign: "center" }}>
+          <View>
+            <Text accessibilityRole="header" style={styles.measurementTitle}>
+              Height & weight
+            </Text>
+            <Copy
+              muted
+              style={{ textAlign: "center", fontSize: 13, lineHeight: 18, marginTop: 8 }}
+            >
               Optional · Saved only on this device.
             </Copy>
-            <View style={styles.segment}>
-              {[false, true].map((v) => (
+            <View style={[styles.segment, { marginTop: 14 }]}>
+              {[false, true].map((mode) => (
                 <Pressable
-                  key={String(v)}
+                  key={String(mode)}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: imperial === v }}
-                  aria-pressed={imperial === v}
+                  accessibilityState={{ selected: imperial === mode }}
+                  aria-pressed={imperial === mode}
                   onPress={() => {
                     haptic("selection");
-                    setImperial(v);
+                    setImperial(mode);
                   }}
                   style={[
                     styles.segmentItem,
-                    imperial === v && { backgroundColor: "#344031" },
+                    imperial === mode && { backgroundColor: "#293128" },
                   ]}
                 >
-                  <Copy style={{ fontSize: 13 }}>{v ? "Imperial" : "Metric"}</Copy>
+                  <Copy
+                    style={{
+                      fontSize: 12,
+                      lineHeight: 18,
+                      fontFamily: "Archivo_500Medium",
+                    }}
+                  >
+                    {mode ? "Imperial" : "Metric"}
+                  </Copy>
                 </Pressable>
               ))}
             </View>
-            <View style={{ flexDirection: "row", gap: 22 }}>
-              {(["height", "weight"] as const).map((kind) => (
-                <MeasurementWheel
-                  key={`${kind}-${imperial ? "imperial" : "metric"}`}
-                  kind={kind}
-                  label={kind.toUpperCase()}
-                  unit={
-                    kind === "height" ? (imperial ? "in" : "cm") : imperial ? "lb" : "kg"
-                  }
-                  values={measurementValues(kind, imperial)}
-                  value={displayMeasurement(
-                    kind,
-                    kind === "height" ? answers.heightCm : answers.weightKg,
-                    imperial,
+            <View style={{ flexDirection: "row", gap: 22, marginTop: 10 }}>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={styles.measurementLabel}>HEIGHT</Text>
+                <Text style={styles.measurementReadout}>
+                  {imperial
+                    ? formatImperialHeight(heightParts)
+                    : (displayMeasurement("height", answers.heightCm, false) ?? "–")}
+                </Text>
+                <Text style={styles.measurementUnit}>{imperial ? "ft/in" : "cm"}</Text>
+                <View
+                  style={{ flexDirection: "row", gap: 5, width: "100%", marginTop: 12 }}
+                >
+                  {imperial ? (
+                    <>
+                      <MeasurementWheel
+                        key="height-feet"
+                        kind="height"
+                        label="Feet"
+                        unit="ft"
+                        values={imperialFeet}
+                        value={heightParts.feet}
+                        showReadout={false}
+                        formatValue={(value) => `${value}'`}
+                        onChange={(value) => chooseHeightPart("feet", value)}
+                        onInteractionChange={(active) => wheelInteraction("feet", active)}
+                      />
+                      <MeasurementWheel
+                        key={`height-inches-${inchesForFeet(heightParts.feet)[0]}-${inchesForFeet(heightParts.feet).at(-1)}`}
+                        kind="height"
+                        label="Inches"
+                        unit="in"
+                        values={inchesForFeet(heightParts.feet)}
+                        value={heightParts.inches}
+                        showReadout={false}
+                        formatValue={(value) => `${value}"`}
+                        onChange={(value) => chooseHeightPart("inches", value)}
+                        onInteractionChange={(active) =>
+                          wheelInteraction("inches", active)
+                        }
+                      />
+                    </>
+                  ) : (
+                    <MeasurementWheel
+                      key="height-metric"
+                      kind="height"
+                      label="Height"
+                      unit="cm"
+                      values={measurementValues("height", false)}
+                      value={displayMeasurement("height", answers.heightCm, false)}
+                      showReadout={false}
+                      onChange={chooseMetricHeight}
+                      onInteractionChange={(active) => wheelInteraction("height", active)}
+                    />
                   )}
-                  onChange={(value) =>
-                    answer(
-                      kind === "height"
-                        ? { heightCm: canonicalMeasurement(kind, value, imperial) }
-                        : { weightKg: canonicalMeasurement(kind, value, imperial) },
-                    )
-                  }
-                  onInteractionChange={(active) =>
-                    setActiveMeasurementWheel((current) =>
-                      active ? kind : current === kind ? null : current,
-                    )
-                  }
-                />
-              ))}
+                </View>
+              </View>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={styles.measurementLabel}>WEIGHT</Text>
+                <Text style={styles.measurementReadout}>
+                  {displayMeasurement("weight", answers.weightKg, imperial) ?? "–"}
+                </Text>
+                <Text style={styles.measurementUnit}>{imperial ? "lbs" : "kg"}</Text>
+                <View
+                  style={{
+                    width: "100%",
+                    height: measurementRowHeight * 3,
+                    marginTop: 12,
+                  }}
+                >
+                  <MeasurementWheel
+                    key={`weight-${imperial ? "imperial" : "metric"}`}
+                    kind="weight"
+                    label="Weight"
+                    unit={imperial ? "lbs" : "kg"}
+                    values={measurementValues("weight", imperial)}
+                    value={displayMeasurement("weight", answers.weightKg, imperial)}
+                    showReadout={false}
+                    onChange={(value) =>
+                      answer({
+                        weightKg: canonicalMeasurement("weight", value, imperial),
+                      })
+                    }
+                    onInteractionChange={(active) => wheelInteraction("weight", active)}
+                  />
+                </View>
+              </View>
             </View>
-            <Copy muted style={styles.footnote}>
-              Tap or scroll to choose, or skip.
-            </Copy>
           </View>
         );
         break;
@@ -1797,7 +1896,7 @@ export function Onboarding({
         contentContainerStyle={[
           styles.content,
           { flexGrow: 1 },
-          step === "welcome" && { paddingTop: 0 },
+          (step === "welcome" || step === "measurements") && { paddingTop: 0 },
           step === "playstyle" && { paddingTop: 0 },
           automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
         ]}
@@ -1852,7 +1951,9 @@ export function Onboarding({
               <Text style={[styles.primaryText, !ready && { color: colors.muted }]}>
                 {buttonLabel}
               </Text>
-              <ArrowRight size={20} color={ready ? colors.background : colors.muted} />
+              {step !== "measurements" ? (
+                <ArrowRight size={20} color={ready ? colors.background : colors.muted} />
+              ) : null}
             </Pressable>
           ) : null}
           {canSkip ? (
@@ -2032,6 +2133,35 @@ export function ReplayOnboarding({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
+  measurementTitle: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: -0.4,
+    color: colors.white,
+    textAlign: "center",
+  },
+  measurementLabel: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 1,
+    color: "#8D978A",
+  },
+  measurementReadout: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 36,
+    lineHeight: 42,
+    color: colors.white,
+    marginTop: 2,
+  },
+  measurementUnit: {
+    fontFamily: "Archivo_500Medium",
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.lime,
+    marginTop: 1,
+  },
   root: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: 24,
@@ -2273,12 +2403,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignSelf: "center",
     padding: 4,
-    borderRadius: 10,
-    backgroundColor: colors.panel,
+    borderRadius: 8,
+    backgroundColor: "#111912",
   },
   segmentItem: {
-    minWidth: 108,
-    minHeight: 44,
+    minWidth: 98,
+    minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 7,

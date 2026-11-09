@@ -108,3 +108,85 @@ test("snapping clamps bounce offsets and converted boundary readouts always matc
         );
   }
 });
+
+test("feet and inches remain partial until both are explicitly chosen", async () => {
+  const { chooseImperialHeightPart, imperialHeightFromCm, formatImperialHeight } =
+    await import("../src/domain/measurementWheel");
+  assert.deepEqual(imperialHeightFromCm(undefined), {});
+  assert.equal(formatImperialHeight({}), "–");
+  const feet = chooseImperialHeightPart({}, "feet", 5);
+  assert.deepEqual(feet.parts, { feet: 5 });
+  assert.equal(feet.centimeters, undefined);
+  assert.equal(formatImperialHeight(feet.parts), "5' –\"");
+  const complete = chooseImperialHeightPart(feet.parts, "inches", 9);
+  assert.equal(complete.centimeters, 175.3);
+  assert.equal(formatImperialHeight(complete.parts), "5' 9\"");
+  const inchesFirst = chooseImperialHeightPart({}, "inches", 11);
+  assert.equal(inchesFirst.centimeters, undefined);
+  assert.equal(chooseImperialHeightPart(inchesFirst.parts, "feet", 5).centimeters, 180.3);
+});
+
+test("imperial height bounds restrict inches and clear an invalid partner without inventing a replacement", async () => {
+  const { imperialFeet, inchesForFeet, imperialHeightCm, chooseImperialHeightPart } =
+    await import("../src/domain/measurementWheel");
+  assert.deepEqual(inchesForFeet(2), [8, 9, 10, 11]);
+  assert.deepEqual(
+    inchesForFeet(7),
+    Array.from({ length: 11 }, (_, i) => i),
+  );
+  for (const feet of imperialFeet)
+    for (const inches of inchesForFeet(feet)) {
+      const centimeters = imperialHeightCm({ feet, inches })!;
+      assert.ok(centimeters >= 80 && centimeters <= 240);
+    }
+  assert.equal(imperialHeightCm({ feet: 2, inches: 7 }), undefined);
+  assert.equal(imperialHeightCm({ feet: 7, inches: 11 }), undefined);
+  const changed = chooseImperialHeightPart({ feet: 5, inches: 11 }, "feet", 7);
+  assert.deepEqual(changed.parts, { feet: 7 });
+  assert.equal(changed.centimeters, undefined);
+  assert.equal(chooseImperialHeightPart(changed.parts, "inches", 10).centimeters, 238.8);
+});
+
+test("unit flips derive feet/inches without changing canonical precision or selecting a missing partner", async () => {
+  const { imperialHeightFromCm, imperialHeightCm } =
+    await import("../src/domain/measurementWheel");
+  const canonical = 175;
+  for (let i = 0; i < 10; i += 1) {
+    const parts = imperialHeightFromCm(canonical);
+    assert.deepEqual(parts, { feet: 5, inches: 9 });
+    assert.equal(canonical, 175);
+    assert.equal(displayMeasurement("height", canonical, false), 175);
+    assert.equal(
+      imperialHeightCm(parts),
+      175.3,
+      "This conversion is only committed after a new explicit choice",
+    );
+  }
+  assert.deepEqual(imperialHeightFromCm(undefined), {});
+});
+
+test("compact row geometry is shared by snapping and cancelled gestures cannot commit late movement", () => {
+  const selected: number[] = [];
+  const wheel = createWheelSelection(
+    [2, 3, 4, 5, 6, 7],
+    (value) => selected.push(value),
+    32,
+  );
+  const initial = wheel.position();
+  wheel.begin();
+  wheel.cancel();
+  wheel.move(initial + 64);
+  wheel.finish(initial + 64);
+  assert.deepEqual(selected, []);
+  wheel.begin();
+  wheel.move(96);
+  assert.deepEqual(selected, [5]);
+  wheel.cancel();
+  wheel.move(160);
+  wheel.finish(160);
+  assert.deepEqual(selected, [5]);
+  const alternate = createWheelSelection([1, 2, 3], () => {}, 44);
+  assert.equal(alternate.position(2), 44);
+  alternate.begin();
+  assert.equal(alternate.finish(67), 88);
+});

@@ -1,5 +1,5 @@
 export type MeasurementKind = "height" | "weight";
-export const measurementRowHeight = 52;
+export const measurementRowHeight = 32;
 const poundsPerKg = 2.2046226218;
 const ranges = {
   height: {
@@ -48,13 +48,18 @@ export function canonicalMeasurement(
     ) / 10
   );
 }
-export function wheelIndexAtOffset(offset: number, count: number): number {
-  return Math.max(0, Math.min(count - 1, Math.round(offset / measurementRowHeight)));
+export function wheelIndexAtOffset(
+  offset: number,
+  count: number,
+  rowHeight = measurementRowHeight,
+): number {
+  return Math.max(0, Math.min(count - 1, Math.round(offset / rowHeight)));
 }
 /** Scroll positioning is separate from explicit user selection, including unit changes. */
 export function createWheelSelection(
   values: readonly number[],
   commit: (value: number) => void,
+  rowHeight = measurementRowHeight,
 ) {
   let interacting = false;
   let last: number | undefined;
@@ -65,7 +70,7 @@ export function createWheelSelection(
       last = value;
       commit(value);
     }
-    return bounded * measurementRowHeight;
+    return bounded * rowHeight;
   };
   return {
     get active() {
@@ -82,18 +87,21 @@ export function createWheelSelection(
                 Math.abs(candidate - value) < Math.abs(values[best] - value) ? i : best,
               0,
             );
-      return index * measurementRowHeight;
+      return index * rowHeight;
     },
     begin() {
       interacting = true;
     },
+    cancel() {
+      interacting = false;
+    },
     move(offset: number) {
-      if (interacting) choose(wheelIndexAtOffset(offset, values.length));
+      if (interacting) choose(wheelIndexAtOffset(offset, values.length, rowHeight));
     },
     finish(offset: number) {
       const snapped = interacting
-        ? choose(wheelIndexAtOffset(offset, values.length))
-        : wheelIndexAtOffset(offset, values.length) * measurementRowHeight;
+        ? choose(wheelIndexAtOffset(offset, values.length, rowHeight))
+        : wheelIndexAtOffset(offset, values.length, rowHeight) * rowHeight;
       interacting = false;
       return snapped;
     },
@@ -102,4 +110,46 @@ export function createWheelSelection(
       return choose(values.indexOf(value), true);
     },
   };
+}
+
+export type ImperialHeightDraft = { feet?: number; inches?: number };
+export const imperialFeet = [2, 3, 4, 5, 6, 7] as const;
+const allInches = Array.from({ length: 12 }, (_, i) => i);
+const lowInches = [8, 9, 10, 11];
+const highInches = Array.from({ length: 11 }, (_, i) => i);
+export function inchesForFeet(feet?: number): readonly number[] {
+  return feet === 2 ? lowInches : feet === 7 ? highInches : allInches;
+}
+export function imperialHeightFromCm(cm?: number): ImperialHeightDraft {
+  if (cm === undefined) return {};
+  const total = displayMeasurement("height", cm, true)!;
+  return { feet: Math.floor(total / 12), inches: total % 12 };
+}
+export function imperialHeightCm(parts: ImperialHeightDraft): number | undefined {
+  if (
+    parts.feet === undefined ||
+    parts.inches === undefined ||
+    !(imperialFeet as readonly number[]).includes(parts.feet) ||
+    !inchesForFeet(parts.feet).includes(parts.inches)
+  )
+    return undefined;
+  return canonicalMeasurement("height", parts.feet * 12 + parts.inches, true);
+}
+export function chooseImperialHeightPart(
+  previous: ImperialHeightDraft,
+  part: keyof ImperialHeightDraft,
+  value: number,
+): { parts: ImperialHeightDraft; centimeters?: number } {
+  const parts = { ...previous, [part]: value };
+  if (
+    parts.feet !== undefined &&
+    parts.inches !== undefined &&
+    !inchesForFeet(parts.feet).includes(parts.inches)
+  )
+    delete parts.inches;
+  return { parts, centimeters: imperialHeightCm(parts) };
+}
+export function formatImperialHeight(parts: ImperialHeightDraft): string {
+  if (parts.feet === undefined && parts.inches === undefined) return "–";
+  return `${parts.feet ?? "–"}' ${parts.inches ?? "–"}"`;
 }

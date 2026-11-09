@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   createWheelSelection,
   measurementRowHeight,
   type MeasurementKind,
 } from "../domain/measurementWheel";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { haptic } from "../utils/haptics";
 
 export function MeasurementWheel({
@@ -15,6 +16,9 @@ export function MeasurementWheel({
   value,
   onChange,
   onInteractionChange,
+  showReadout = true,
+  formatValue = (number: number) => String(number),
+  rowHeight = measurementRowHeight,
 }: {
   kind: MeasurementKind;
   label: string;
@@ -23,17 +27,25 @@ export function MeasurementWheel({
   value?: number;
   onChange: (value: number) => void;
   onInteractionChange: (active: boolean) => void;
+  showReadout?: boolean;
+  formatValue?: (number: number) => string;
+  rowHeight?: number;
 }) {
+  const fadeId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const change = useRef(onChange);
   change.current = onChange;
   const interaction = useRef(onInteractionChange);
   interaction.current = onInteractionChange;
   const [selection] = useState(() =>
-    createWheelSelection(values, (selected) => {
-      haptic("selection");
-      change.current(selected);
-    }),
+    createWheelSelection(
+      values,
+      (selected) => {
+        haptic("selection");
+        change.current(selected);
+      },
+      rowHeight,
+    ),
   );
   const [initialOffset] = useState(() => selection.position(value));
   const offset = useRef(initialOffset);
@@ -70,27 +82,34 @@ export function MeasurementWheel({
   useEffect(
     () => () => {
       clearIdle();
+      selection.cancel();
       interaction.current(false);
     },
     [],
   );
   return (
     <View style={{ flex: 1, alignItems: "center", gap: 10 }}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.readout}>{value === undefined ? "–" : value}</Text>
-      <Text style={styles.unit}>{unit}</Text>
-      <View style={{ height: measurementRowHeight * 3, width: "100%" }}>
+      {showReadout ? (
+        <>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.readout}>
+            {value === undefined ? "–" : formatValue(value)}
+          </Text>
+          <Text style={styles.unit}>{unit}</Text>
+        </>
+      ) : null}
+      <View style={{ height: rowHeight * 3, width: "100%" }}>
         <View
           pointerEvents="none"
-          style={[styles.center, value !== undefined && { backgroundColor: "#263A17" }]}
+          style={[styles.center, { top: rowHeight, height: rowHeight }]}
         />
         <ScrollView
           ref={scroll}
           nestedScrollEnabled
-          style={{ height: measurementRowHeight * 3, width: "100%" }}
-          contentContainerStyle={{ paddingVertical: measurementRowHeight }}
+          style={{ height: rowHeight * 3, width: "100%" }}
+          contentContainerStyle={{ paddingVertical: rowHeight }}
           showsVerticalScrollIndicator={false}
-          snapToInterval={measurementRowHeight}
+          snapToInterval={rowHeight}
           snapToAlignment="start"
           decelerationRate="fast"
           bounces={false}
@@ -108,6 +127,8 @@ export function MeasurementWheel({
           }}
           onTouchCancel={() => {
             dragging.current = false;
+            clearIdle();
+            selection.cancel();
             finish();
           }}
           onScrollBeginDrag={() => {
@@ -146,12 +167,31 @@ export function MeasurementWheel({
                 scroll.current?.scrollTo({ y, animated: false });
                 interaction.current(false);
               }}
-              style={styles.row}
+              hitSlop={4}
+              style={[styles.row, { height: rowHeight }]}
             >
-              <Text style={[styles.value, value === n && { color: "#F7FAF2" }]}>{n}</Text>
+              <Text style={[styles.value, value === n && { color: "#F7FAF2" }]}>
+                {formatValue(n)}
+              </Text>
             </Pressable>
           ))}
         </ScrollView>
+        <Svg
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+          width="100%"
+          height={rowHeight * 3}
+        >
+          <Defs>
+            <LinearGradient id={fadeId} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor="#080F0B" stopOpacity={0.9} />
+              <Stop offset="0.34" stopColor="#080F0B" stopOpacity={0} />
+              <Stop offset="0.66" stopColor="#080F0B" stopOpacity={0} />
+              <Stop offset="1" stopColor="#080F0B" stopOpacity={0.9} />
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" fill={`url(#${fadeId})`} />
+        </Svg>
       </View>
     </View>
   );
@@ -178,12 +218,9 @@ const styles = StyleSheet.create({
   },
   center: {
     position: "absolute",
-    top: measurementRowHeight,
-    height: measurementRowHeight,
     width: "100%",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#35432F",
+    borderRadius: 18,
+    backgroundColor: "#1B241D",
   },
   row: {
     height: measurementRowHeight,
@@ -193,8 +230,8 @@ const styles = StyleSheet.create({
   },
   value: {
     fontFamily: "Archivo_400Regular",
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 26,
     color: "#ADB7A8",
   },
 });

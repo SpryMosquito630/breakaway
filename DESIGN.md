@@ -132,6 +132,12 @@ The playstyle frame follows measurements from the clean 444×960 recording at ap
 
 ## Measurement wheel interaction repair — November 8, 2026
 
-Height/weight now select the centered row while the player drags or flings, then snap at 52-point boundaries. Taps commit and center the tapped row. The containing page pauses vertical scrolling during wheel interaction, and native momentum-end plus a web/idle fallback settle the row. Gesture state is initialized once per mounted wheel and survives controlled readout updates.
+Height/weight now select the centered row while the player drags or flings, then snap at 32-point boundaries. Taps commit and center the tapped row. The containing page pauses vertical scrolling during wheel interaction, and native momentum-end plus a web/idle fallback settle the row. Gesture state is initialized once per mounted wheel and survives controlled readout updates.
 
 Metric/imperial changes remount the wheel at the nearest supported integer row for the existing canonical cm/kg value. Unit presentation and initial viewport positioning do not write answers; unanswered readouts remain dashes. Converted fractional cm/kg values display as matching rounded rows; an explicit new selection commits the selected unit value. Existing optional Skip, local-only metadata, bounds, age/history protections and other onboarding behavior remain unchanged.
+
+## Reference measurement presentation — November 8, 2026
+
+The measurement screen now follows the supplied clean reference stills: compact 28/34 heading, an 8-point subtitle gap, a 204×44 unit segment, two grouped readouts and 32-point wheel rows with three visible rows. Faded edges and a flat dark center pill replace the outlined green selection. Imperial height has independent feet and inches wheels with a combined `5' 9"`-style readout; weight uses lbs. The extra instruction line and measurement CTA arrow are removed. Branding, privacy subtitle, optional Skip and other onboarding screens remain.
+
+Fresh feet/inches are independent unanswered draft parts; choosing only one cannot create a height. Feet 2 restrict inches to 8–11, feet 7 to 0–10. A feet change that invalidates the chosen inch clears the inch and pending canonical height until the player explicitly chooses a valid partner. Existing canonical metric height may derive both display parts on a unit flip without writing or losing precision. Wheel row geometry is shared by snapping/selection, and cancelled gestures cannot commit late movement.
