@@ -165,9 +165,13 @@ test("scene animation completion is single-owner and cannot complete an interrup
   assert.equal(stops, 1, "Settled animations do not retain cancellation handles");
 });
 
-test("only intro to the first question uses the reference dissolve; Back and later questions keep their slide", async () => {
+test("intro entry and first-question handoff dissolve; Back and later questions keep their slide", async () => {
   const { sceneTransitionForSteps } = await import("../src/domain/questionAdvance");
   const { flowSteps } = await import("../src/domain/onboardingFlow");
+  assert.deepEqual(sceneTransitionForSteps("welcome", "intro"), {
+    kind: "crossfade",
+    duration: 240,
+  });
   assert.deepEqual(sceneTransitionForSteps("intro", "frequency"), {
     kind: "crossfade",
     duration: 240,
@@ -181,7 +185,7 @@ test("only intro to the first question uses the reference dissolve; Back and lat
     duration: 260,
   });
   for (let index = 0; index < flowSteps.length - 1; index += 1) {
-    if (flowSteps[index] === "intro") continue;
+    if (flowSteps[index] === "welcome" || flowSteps[index] === "intro") continue;
     assert.deepEqual(sceneTransitionForSteps(flowSteps[index], flowSteps[index + 1]), {
       kind: "slide",
       duration: 260,

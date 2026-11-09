@@ -488,6 +488,7 @@ export function Onboarding({
   const [sceneMotion] = useState(() => createSceneTransition());
   const [slide] = useState(() => new Animated.Value(1));
   const [introReveal] = useState(() => new Animated.Value(1));
+  const [introDetails] = useState(() => new Animated.Value(1));
   const [outgoing, setOutgoing] = useState<{
     index: number;
     node: React.ReactNode;
@@ -512,6 +513,7 @@ export function Onboarding({
     // Freeze a partially revealed intro for its outgoing dissolve, rather than
     // snapping the retained scene to its final layout before it fades away.
     introReveal.stopAnimation();
+    introDetails.stopAnimation();
     const interrupted = transitionBusy.current;
     settleScene();
     if (next === currentIndex.current) return;
@@ -533,6 +535,7 @@ export function Onboarding({
     }
     if (flowSteps[next] === "intro") {
       introReveal.setValue(reduceMotion.current ? 1 : 0);
+      introDetails.setValue(reduceMotion.current ? 1 : 0);
     }
     currentIndex.current = next;
     setIndex(next);
@@ -541,21 +544,30 @@ export function Onboarding({
     if (flowSteps[index] !== "intro") return;
     if (reducedMotionEnabled || !focused || !foreground.current) {
       introReveal.setValue(1);
+      introDetails.setValue(1);
       return;
     }
     // The reference first establishes the headline, then lifts the group as
     // the supporting copy and checklist appear. This is an intro-only beat;
     // the footer remains available throughout, without a timed navigation lock.
-    const animation = Animated.timing(introReveal, {
-      toValue: 1,
-      delay: 180,
-      duration: 1100,
-      easing: Easing.bezier(0.4, 0, 0.2, 1),
-      useNativeDriver: Platform.OS !== "web",
-    });
+    const animation = Animated.parallel([
+      Animated.timing(introReveal, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+        useNativeDriver: Platform.OS !== "web",
+      }),
+      Animated.timing(introDetails, {
+        toValue: 1,
+        delay: 160,
+        duration: 600,
+        easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+        useNativeDriver: Platform.OS !== "web",
+      }),
+    ]);
     animation.start();
     return () => animation.stop();
-  }, [index, focused, reducedMotionEnabled, introReveal]);
+  }, [index, focused, reducedMotionEnabled, introReveal, introDetails]);
   useLayoutEffect(() => {
     if (!outgoing) return;
     sceneMotion.start(
@@ -563,7 +575,10 @@ export function Onboarding({
         const animation = Animated.timing(slide, {
           toValue: 1,
           duration: outgoing.motion.duration,
-          easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+          easing:
+            outgoing.motion.kind === "crossfade"
+              ? Easing.bezier(0.4, 0, 0.2, 1)
+              : Easing.bezier(0.22, 0.61, 0.36, 1),
           useNativeDriver: Platform.OS !== "web",
         });
         animation.start(({ finished }) => {
@@ -588,6 +603,8 @@ export function Onboarding({
     if (!focused) {
       introReveal.stopAnimation();
       introReveal.setValue(1);
+      introDetails.stopAnimation();
+      introDetails.setValue(1);
       setFeedback(null);
       pendingAdvance.cancel();
       settleScene();
@@ -613,6 +630,8 @@ export function Onboarding({
         if (enabled) {
           introReveal.stopAnimation();
           introReveal.setValue(1);
+          introDetails.stopAnimation();
+          introDetails.setValue(1);
           settleScene();
         }
       },
@@ -622,6 +641,8 @@ export function Onboarding({
       if (!foreground.current) {
         introReveal.stopAnimation();
         introReveal.setValue(1);
+        introDetails.stopAnimation();
+        introDetails.setValue(1);
         setFeedback(null);
         pendingAdvance.cancel();
         settleScene();
@@ -630,6 +651,7 @@ export function Onboarding({
     return () => {
       mounted.current = false;
       introReveal.stopAnimation();
+      introDetails.stopAnimation();
       pendingAdvance.cancel();
       settleScene();
       motion.remove();
@@ -892,10 +914,7 @@ export function Onboarding({
             <Animated.View
               style={{
                 gap: 22,
-                opacity: introReveal.interpolate({
-                  inputRange: [0, 0.2, 0.85, 1],
-                  outputRange: [0, 0, 1, 1],
-                }),
+                opacity: introDetails,
               }}
             >
               <Copy muted>A few answers. One clear place to begin.</Copy>
@@ -2668,7 +2687,10 @@ export function Onboarding({
         ? footerMeasure.height
         : Math.max(inset.bottom, 16) + 12 + 56 + (canSkip ? 46 : 0)
       : 0;
-  const crossfadingIntro = outgoing?.motion.kind === "crossfade";
+  const crossfadingScene = outgoing?.motion.kind === "crossfade";
+  const enteringIntro =
+    crossfadingScene && step === "intro" && flowSteps[outgoing.index] === "welcome";
+  const leavingIntro = crossfadingScene && step === "frequency";
   return (
     <KeyboardAvoidingView
       style={[
@@ -2684,37 +2706,48 @@ export function Onboarding({
       {!photoScreen && step !== "notifications" && step !== "comparison" ? (
         <OnboardingAtmosphere purple={purpleScreen} />
       ) : null}
-      {photoScreen || crossfadingIntro ? (
+      {step === "welcome" || enteringIntro ? (
         <Animated.View
+          key="welcome-background"
           pointerEvents="none"
           style={[
             StyleSheet.absoluteFill,
             {
-              opacity: crossfadingIntro
+              opacity: enteringIntro
                 ? slide.interpolate({ inputRange: [0, 1], outputRange: [1, 0] })
                 : 1,
             },
           ]}
         >
-          {step === "welcome" ? (
-            <WelcomeBackground focused={focused} />
-          ) : (
-            <Image
-              source={photo}
-              contentFit="cover"
-              contentPosition={{ left: "50%", top: "50%" }}
-              style={[
-                StyleSheet.absoluteFill,
-                { opacity: step === "positionConfirm" ? 0.9 : 0.55 },
-              ]}
-            />
-          )}
-          <View
+          <WelcomeBackground focused={focused} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#080F0B55" }]} />
+        </Animated.View>
+      ) : null}
+      {(photoScreen && step !== "welcome") || leavingIntro ? (
+        <Animated.View
+          key="editorial-background"
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              opacity: leavingIntro
+                ? slide.interpolate({ inputRange: [0, 1], outputRange: [1, 0] })
+                : enteringIntro
+                  ? slide
+                  : 1,
+            },
+          ]}
+        >
+          <Image
+            source={photo}
+            contentFit="cover"
+            contentPosition={{ left: "50%", top: "50%" }}
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: step === "welcome" ? "#080F0B55" : "#080F0B44" },
+              { opacity: step === "positionConfirm" ? 0.9 : 0.55 },
             ]}
           />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#080F0B44" }]} />
         </Animated.View>
       ) : null}
       <View
@@ -2837,7 +2870,7 @@ export function Onboarding({
             style={[
               StyleSheet.absoluteFill,
               {
-                opacity: crossfadingIntro
+                opacity: crossfadingScene
                   ? slide.interpolate({
                       inputRange: [0, 1],
                       outputRange: item.old ? [1, 0] : [0, 1],
@@ -2846,7 +2879,7 @@ export function Onboarding({
                 transform: [
                   {
                     translateX:
-                      outgoing && !crossfadingIntro
+                      outgoing && !crossfadingScene
                         ? slide.interpolate({
                             inputRange: [0, 1],
                             outputRange: item.old
