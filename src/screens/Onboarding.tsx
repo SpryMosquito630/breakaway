@@ -1725,7 +1725,7 @@ export function Onboarding({
           styles.footer,
           { paddingBottom: Math.max(inset.bottom, 16) },
           purpleScreen && { backgroundColor: "#190D26" },
-          step === "welcome" && { backgroundColor: "transparent" },
+          (step === "welcome" || step === "intro") && { backgroundColor: "transparent" },
         ]}
       >
         <Pressable
