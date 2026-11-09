@@ -236,7 +236,7 @@ function Shell() {
       edges={[]}
       style={[s.page, !data.onboarded && { backgroundColor: "#080F0B" }]}
     >
-      <StatusBar style={isDark ? "light" : "dark"} />
+      <StatusBar style={!data.onboarded || isDark ? "light" : "dark"} />
       {error ? (
         <View accessibilityRole="alert" style={{ padding: 12, backgroundColor: C.soft }}>
           <Text style={s.body}>{error}</Text>
@@ -268,6 +268,7 @@ function Shell() {
               headerShadowVisible: false,
               headerBackButtonDisplayMode: "minimal",
               contentStyle: { backgroundColor: C.bg },
+              statusBarStyle: isDark ? "light" : "dark",
               animation: reduce ? "fade" : "default",
             }}
           >
@@ -346,7 +347,7 @@ function Shell() {
             <Stack.Screen
               name="ReplayOnboarding"
               component={ReplayOnboarding}
-              options={{ headerShown: false }}
+              options={{ headerShown: false, statusBarStyle: "light" }}
             />
 
             <Stack.Screen
