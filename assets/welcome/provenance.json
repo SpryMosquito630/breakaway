@@ -19,11 +19,11 @@
     "verification": "Item page explicitly offers commercial/personal free download under Free License. License modal read directly via browser: commercial and non-commercial use, modification and distribution permitted. User Terms (revised October 2, 2025) reviewed. Incorporated as edited app background, not stock redistribution or implied endorsement."
   },
   "transform": {
-    "trimStartSeconds": 8.55,
-    "trimDurationSeconds": 5,
+    "trimStartSeconds": 3.55,
+    "trimDurationSeconds": 10,
     "sourceDimensions": [1920, 1080],
     "cropDimensions": [498, 1080],
-    "cropX": "580+130*clip((t-3.1)/0.5,0,1)",
+    "cropX": "950-370*clip((t-2)/3,0,1)+130*clip((t-8.1)/0.5,0,1)",
     "cropY": 0,
     "outputDimensions": [540, 1170],
     "frameRate": "24000/1001",
@@ -31,23 +31,24 @@
     "audio": "removed",
     "mp4": "faststart",
     "speed": "original",
-    "poster": "first encoded frame, JPEG q:v 3"
+    "poster": "first encoded frame, JPEG q:v 3",
+    "encodedDurationSeconds": 9.968292
   },
   "assets": {
     "shot-on-goal.mp4": {
-      "bytes": 637656,
-      "sha256": "d58bd9bb82d2ae4b31fd2830a73139cb0e8d5f9c7841195fb123f729dfcb94f2"
+      "bytes": 1274607,
+      "sha256": "6dfd0bc95186469fb1f3a24fce62304db8982626c1de6e65beb5e6446c52e74e"
     },
     "shot-on-goal-poster.jpg": {
-      "bytes": 47299,
-      "sha256": "8e16a527bd81616813110abffa4212156e15962ccaf27d312a91392e96634960"
+      "bytes": 43733,
+      "sha256": "14a3e6f44adbc2b21e5c63199ee5bff0acd26a6e8cbb7ae22b930a9db8b432d4"
     }
   },
   "visualReview": {
-    "method": "Chronological source contact sheet at 1fps; encoded portrait sequence reviewed at 4fps. No transcription or generated motion.",
-    "sequence": "Player advances into a real kick at approximately 2.9 seconds; ball travels toward the visible indoor urban astroturf court goal. Crop holds the shooting foot through contact and shifts right after contact for ball travel. Defender is partially cropped. Intentional hard cut back to run-up at loop boundary.",
+    "method": "Same licensed local source verified against recorded SHA-256. Early source sequence screened at 2fps; full extended encoded portrait sequence reviewed chronologically at 4fps. No transcription or generated motion.",
+    "sequence": "Extended to roughly ten seconds of the same real action at original speed: one-on-one touches, change of direction, run-up, kick at approximately 7.9 seconds, then ball travel toward the visible indoor urban astroturf court goal. Crop starts on the ball and dribbler, pans left into the run-up, holds the shooting foot at contact, and shifts right after contact for ball travel. Defender is partially cropped. Intentional hard cut back to one-on-one at loop boundary.",
     "viewport": [390, 844],
-    "evidence": "work/welcome-footage-review/final-portrait-sequence.jpg",
+    "evidence": "work/welcome-footage-review/extended-final-portrait-sequence.jpg",
     "alternative": {
       "id": 43483,
       "page": "https://mixkit.co/free-stock-video/one-on-one-in-a-soccer-game-43483/",
