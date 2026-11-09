@@ -1630,7 +1630,7 @@ export function Onboarding({
           />
         </View>
       ) : null}
-      <View style={[styles.header, { paddingTop: replay ? inset.top + 8 : 8 }]}>
+      <View style={[styles.header, { paddingTop: inset.top + 8 }]}>
         {purpleScreen ? (
           <Pressable
             accessibilityRole="button"
@@ -1721,6 +1721,7 @@ export function Onboarding({
           styles.footer,
           { paddingBottom: Math.max(inset.bottom, 16) },
           purpleScreen && { backgroundColor: "#190D26" },
+          step === "welcome" && { backgroundColor: "transparent" },
         ]}
       >
         <Pressable
