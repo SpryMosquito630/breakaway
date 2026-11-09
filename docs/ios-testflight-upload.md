@@ -17,13 +17,21 @@ The `production` profile in `eas.json` creates a store-signed build with experim
 - `expo-doctor` passed all 20 checks, and the resolved EAS production configuration uses the intended project, bundle identifier, store distribution, and disabled developer features.
 - Xcode 26.6 is installed at `/Applications/Xcode.app`. The global active developer directory points to Command Line Tools; use the override below for local Xcode commands.
 
-## Finish configuration
+## Signing and submission configuration
 
 1. The bundle identifier is already registered in verified Apple team `23C48WC9WF`. Do not use another app's identifier.
 2. The repository is already associated with the EAS project above; do not initialize another project.
 3. The matching App Store Connect record is created, and `submit.production.ios.ascAppId` is set to `6832437565`. Do not create another record.
-4. Run `npx eas-cli@27.5.0 credentials --platform ios` and select `production`. The saved Keychain password authenticated successfully, but a fresh two-factor verification is required. The account owner must enter the code directly in their own terminal. Never send passwords, codes, cookies, or private keys in chat or commit them. Configure a distribution certificate and App Store provisioning profile for Breakaway. A development certificate alone cannot sign this upload.
-5. Configure submission authentication using the team's App Store Connect API key through EAS credentials. Keep private key material outside source control.
+4. Apple authentication is complete: the account owner entered two-factor verification directly in their own terminal, and EAS restored that local session with the correct team. EAS uses the existing team distribution certificate and an active Breakaway App Store provisioning profile (`V36DN8663B`), expiring July 2, 2027. No existing certificates were revoked.
+5. The existing team's App Store Connect API key is assigned to Breakaway for EAS Submit. Private key material remains in the EAS credentials service, outside source control. Never send passwords, codes, cookies, or private keys in chat or commit them.
+
+## Current build
+
+- EAS build: [`b50b9698-27d1-4f63-ba44-ccf0b565c570`](https://expo.dev/accounts/sprymosquito630/projects/breakaway/builds/b50b9698-27d1-4f63-ba44-ccf0b565c570).
+- Version/build: `1.0.0 (1)`, iOS production, source commit `2ae1afdbcc3985197f2616b3b8ee384abc7538c7`.
+- Build 1 failed at CocoaPods resolution: `react-native-purchases@11.0.1` requires `PurchasesHybridCommon (= 20.4.0)`, which is not published to the CocoaPods CDN (HTTP 404). No IPA was produced or submitted.
+- The SDK is now pinned to `react-native-purchases@10.16.0`, following [RevenueCat's Expo guidance](https://github.com/RevenueCat/react-native-purchases/releases/tag/11.0.0). Its required `PurchasesHybridCommon@19.17.0` and transitive `RevenueCat@5.99.0` podspecs are both published (HTTP 200). A new native build is required.
+- The binary does not set `ITSAppUsesNonExemptEncryption`; answer App Store Connect's export-compliance questions before testing.
 
 ## Build and upload
 
