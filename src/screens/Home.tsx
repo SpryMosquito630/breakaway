@@ -81,7 +81,9 @@ export function Today({ navigation }: { navigation: any }) {
         style={{
           flexDirection: "row",
           minHeight: 180,
-          borderRadius: 18,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: C.line,
           overflow: "hidden",
           backgroundColor: C.deep,
         }}
@@ -113,7 +115,7 @@ export function Today({ navigation }: { navigation: any }) {
             </Text>
             <Text
               style={{
-                fontFamily: "Archivo_600SemiBold",
+                fontFamily: "Archivo_700Bold",
                 fontSize: 27,
                 lineHeight: 33,
                 letterSpacing: -0.8,
@@ -147,7 +149,7 @@ export function Today({ navigation }: { navigation: any }) {
               alignSelf: "stretch",
               justifyContent: "space-between",
               backgroundColor: C.lime,
-              borderRadius: 10,
+              borderRadius: 26,
               paddingHorizontal: 16,
               paddingVertical: 12,
               flexDirection: "row",
@@ -257,11 +259,11 @@ export function Today({ navigation }: { navigation: any }) {
               key={d}
               style={{
                 flex: 1,
-                height: 40,
+                height: 48,
                 justifyContent: "center",
                 alignItems: "center",
                 gap: 7,
-                borderRadius: 9,
+                borderRadius: 12,
                 backgroundColor:
                   d === today
                     ? C.green

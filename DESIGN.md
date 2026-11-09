@@ -145,3 +145,14 @@ Fresh feet/inches are independent unanswered draft parts; choosing only one cann
 ## First-question entry — November 8, 2026
 
 The intro’s “I’m ready” opens Question #1 with a 240 ms opacity crossfade instead of the general horizontal scene slide. The static intro photo, outgoing body and CTA fade out while the first question appears as one group. Header/back/progress stay stationary. No blur dependency, row stagger, spring or retained video is introduced. Back, the first answer-to-Q2 handoff and later scene transitions retain existing behavior. Reduced Motion and interruption use the same immediate-settle/token cancellation path.
+
+## Core app continuity with onboarding — November 8, 2026
+
+Train, Drills and details, Progress and history, Settings and preferences, and Practice and recap now share onboarding’s forest background #080F0B, panel #151E16, lime #B6FF3B and olive selection fill through centralized semantic tokens. Archivo Bold titles and headers, pill actions and chips, quiet outlined panels and a tonal timer surface preserve the existing compact hierarchy. Back controls use the primary ink role. Existing drill media, instructions, disclosures and empty progress states remain intact; no new widgets, claims or capabilities were added. Weekly day cells are 48 points high, appearance choices expose checked state on native and web, and History uses the singular session label when appropriate.
+
+Fresh installs default to Dark without saving a preference. Explicit stored Light, Dark and System choices restore unchanged. Light adapts the same identity with pale green-neutral surfaces, forest actions and dark ink; inverse action roles remain readable in both themes. Theme tests enforce 3:1 control-boundary and 4.5:1 text/action contrast. Practice clocks, accounting, alerts, reminders, assessments and local history retain their existing behavior. Browser review covers the core navigation, drill search/details/save, warm-up/setup/run/pause and empty test profile; device verification is recorded separately.
+
+
+## Onboarding materials and action photography — November 8, 2026
+
+The 39-step reference pass refines numbered rows, local selected halos, editorial layouts, purple setup surfaces, reminder previews, feedback cards and metallic player-card detail. Shared navigation, no-preselection, measurement privacy and real rating behavior remain intact. Nineteen visible player images now use credited action photography with whole footballs inside the portrait crops; the shortened bottom fade preserves the ball. Haaland remains compatible with old saved answers but is outside visible rosters. See `docs/onboarding-visual-parity.md` for scope and verification limits.

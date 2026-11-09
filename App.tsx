@@ -149,7 +149,7 @@ function Main({ navigation }: { navigation: any }) {
         headerShadowVisible: false,
         headerTitleAlign: "left",
         headerTitleStyle: {
-          fontFamily: "Archivo_600SemiBold",
+          fontFamily: "Archivo_700Bold",
           fontSize: 24,
           color: C.ink,
         },
@@ -263,8 +263,8 @@ function Shell() {
           <Stack.Navigator
             screenOptions={{
               headerStyle: { backgroundColor: C.bg },
-              headerTintColor: C.green,
-              headerTitleStyle: { fontFamily: "Archivo_600SemiBold" },
+              headerTintColor: C.ink,
+              headerTitleStyle: { fontFamily: "Archivo_700Bold" },
               headerShadowVisible: false,
               headerBackButtonDisplayMode: "minimal",
               contentStyle: { backgroundColor: C.bg },

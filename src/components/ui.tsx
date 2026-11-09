@@ -111,7 +111,7 @@ export function Button({
       }}
       style={({ pressed }) => ({
         minHeight: size === "large" ? 68 : 52,
-        borderRadius: 10,
+        borderRadius: 28,
         borderWidth: kind === "secondary" ? 1 : 0,
         borderColor: C.lineStrong,
         paddingHorizontal: 18,
@@ -262,14 +262,14 @@ export function Chip({
         borderColor: selected ? C.green : C.lineStrong,
         paddingHorizontal: 16,
         paddingVertical: 13,
-        borderRadius: 10,
+        borderRadius: 28,
         backgroundColor: selected ? C.green : pressed ? C.line : C.white,
         justifyContent: "center",
       })}
     >
       <Text
         style={{
-          fontFamily: "Archivo_500Medium",
+          fontFamily: "Archivo_600SemiBold",
           fontSize: 14,
           lineHeight: 22,
           color: selected ? C.onPrimary : C.muted,
@@ -311,7 +311,7 @@ export function Choice({
         gap: 16,
         padding: 16,
         minHeight: 68,
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1.5,
         borderColor: selected ? C.green : C.lineStrong,
         backgroundColor: selected ? C.pitchSoft : pressed ? C.soft : C.white,
@@ -397,7 +397,7 @@ export function SearchField({
         borderColor: C.lineStrong,
         borderRadius: 12,
         paddingHorizontal: 14,
-        minHeight: 50,
+        minHeight: 52,
       }}
     >
       <Search size={19} color={C.muted} />
@@ -411,7 +411,7 @@ export function SearchField({
           flex: 1,
           fontFamily: "Archivo_400Regular",
           fontSize: 15,
-          minHeight: 50,
+          minHeight: 52,
           color: C.ink,
         }}
       />
@@ -473,7 +473,9 @@ export function DrillRow({
             width: 42,
             height: 42,
             borderRadius: 12,
-            backgroundColor: C.pitchSoft,
+            backgroundColor: C.white,
+            borderWidth: 1,
+            borderColor: C.line,
             alignItems: "center",
             justifyContent: "center",
           }}

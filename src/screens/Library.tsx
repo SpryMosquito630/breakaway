@@ -116,7 +116,7 @@ export function Library({ navigation }: { navigation: any }) {
         </Pressable>
       </View>
       {filtersOpen ? (
-        <View style={{ gap: 12 }}>
+        <View style={s.card}>
           <Text style={s.h3}>Filter drills</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {["All skills", ...goals].map((f) => (
@@ -138,7 +138,7 @@ export function Library({ navigation }: { navigation: any }) {
         </View>
       ) : null}
       {manageOpen ? (
-        <View style={{ gap: 8 }}>
+        <View style={s.card}>
           <Text style={s.h3}>Manage library</Text>
           <Button
             kind="secondary"

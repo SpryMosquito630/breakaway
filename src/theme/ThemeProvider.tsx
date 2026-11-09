@@ -9,19 +9,18 @@ import {
 import type { ReactNode } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getPalette, ThemeMode } from "./palette";
+import { getPalette, restoreThemeMode, ThemeMode } from "./palette";
 import { createStyles } from "./styles";
 const KEY = "breakaway-appearance-v1";
 function useThemeState() {
   const system = useColorScheme();
-  const [mode, setValue] = useState<ThemeMode>("system");
+  const [mode, setValue] = useState<ThemeMode>("dark");
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let mounted = true;
     AsyncStorage.getItem(KEY)
       .then((value) => {
-        if (mounted && (value === "light" || value === "dark" || value === "system"))
-          setValue(value);
+        if (mounted) setValue(restoreThemeMode(value));
       })
       .catch(() => {
         if (mounted) setError("Appearance could not be loaded.");
