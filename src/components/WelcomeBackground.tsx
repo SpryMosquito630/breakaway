@@ -4,10 +4,10 @@ import { Image } from "expo-image";
 import { createVideoPlayer, VideoView, type VideoPlayer } from "expo-video";
 import { ownWelcomeVideo } from "./welcomeVideoPlayback";
 
-// Already bundled licensed footage: RDNE Stock project / Pexels 7187061.
-// Rights, hashes and crop review: assets/drill-demos/provenance.json and LICENSE.md.
-const source = require("../../assets/drill-demos/marker-slalom.mp4");
-const poster = require("../../assets/drill-demos/marker-slalom-poster.jpg");
+// Welcome-only licensed shot sequence: Ruben Velasco / Mixkit 2918.
+// Rights, hashes and portrait crop review: assets/welcome/provenance.json and LICENSE.md.
+const source = require("../../assets/welcome/shot-on-goal.mp4");
+const poster = require("../../assets/welcome/shot-on-goal-poster.jpg");
 type Playback = ReturnType<typeof ownWelcomeVideo>;
 
 function WelcomeLoop() {

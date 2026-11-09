@@ -82,6 +82,7 @@
     "licenseChecked": "https://www.pexels.com/license/"
   },
   "welcomeBackgroundUse": {
+    "status": "Historical use; replaced by assets/welcome/shot-on-goal.mp4. Drill use remains unchanged.",
     "file": "marker-slalom.mp4",
     "poster": "marker-slalom-poster.jpg",
     "reviewDate": "2026-11-08",

@@ -37,6 +37,6 @@ Additional research found no qualified footage for alternating inside touches, a
 
 `sole-contact-poster.jpg` and `marker-slalom-poster.jpg` are unaltered full frames extracted at 1.0 seconds from their corresponding licensed bundled MP4s using ffmpeg (`-frames:v 1 -q:v 3`). They use the same source license and credit above. Both were visually inspected for visible ball and foot contact. Hashes and sizes are in `provenance.json`. Posters appear before first playback and behind visible playback errors; no new footage or movement is implied.
 
-## Welcome background reuse — 2026-11-08
+## Previous welcome background reuse — 2026-11-08
 
-The same bundled `marker-slalom.mp4` and matching poster also supply the decorative welcome background. The existing RDNE Stock project / Pexels 7187061 source, license and file hashes above apply; no additional MP4 is bundled. Eight chronological center-cover portrait crops were inspected at 1 fps for phone framing. Boots/ball remain recognizable, followed by the player dribbling on the field. The welcome view displays a cover crop with a dark overlay. It is decorative footage, not a new movement assessment or an endorsement. The clip is muted and loops only on the active, focused welcome screen; Reduce Motion, loading and errors use the matching static poster.
+The bundled `marker-slalom.mp4` and matching poster previously supplied the decorative welcome background under the same RDNE Stock project / Pexels 7187061 license above. That welcome use has been replaced by the shot sequence documented in `assets/welcome/`; this clip remains the unchanged marker-slalom drill example.

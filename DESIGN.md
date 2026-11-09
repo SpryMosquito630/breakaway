@@ -24,7 +24,7 @@ Archivo400/500/600 carries the interface. Screen titles27/34, section18/24, row1
 
 ## Visuals and content
 
-The bundled editorial photo `assets/training-editorial.webp` is tightly cropped in the session panel and larger on the welcome screen. See `assets/README.md` for tracked provenance. Category icons identify library rows. Movement diagrams are specific to the drill and appear only in guidance/detail contexts, never as repeated decorative thumbnails. Actual drill instructions remain intact; operational reading is progressively disclosed.
+The bundled editorial photo `assets/training-editorial.webp` is tightly cropped in the session panel and used on onboarding editorial breaks. Welcome uses the footage documented below. See `assets/README.md` for tracked provenance. Category icons identify library rows. Movement diagrams are specific to the drill and appear only in guidance/detail contexts, never as repeated decorative thumbnails. Actual drill instructions remain intact; operational reading is progressively disclosed.
 
 No fake scores, zero-dashboard, slogans, repeated disclaimers, decorative metrics or invented progress. The app remains phone-first, local-only and Expo SDK58 compatible. Appearance follows the system by default, with Light and Dark overrides. Reference tokens live in `src/theme/tokens.json`; semantic palette roles resolve them for both themes. Control boundaries use line-strong, and inverse text uses dedicated on-fill roles.
 
@@ -101,4 +101,6 @@ The onboarding-only snapshot now follows the recorded collectible card's compact
 
 ## Welcome field video — November 8, 2026
 
-Welcome alone uses the existing licensed, silent marker-slalom MP4 as a looping cover background beneath the headline and transparent Get started footer. It adds no video download or duplicate MP4. A matching bundled poster covers loading/error and remains static until the system Reduce Motion preference resolves false. Inactive/background, blurred replay, leaving welcome and unmount pause/release the owned player. It never claims the app audio session, prevents device idle, publishes Now Playing controls, or updates the practice clock. All later onboarding surfaces retain their existing imagery/layout.
+Welcome alone uses a licensed, silent five-second indoor urban astroturf shot sequence by Ruben Velasco (Mixkit 2918), beneath the headline and transparent Get started footer. The player advances, strikes around 2.9 seconds and the ball travels toward goal. The 540×1170 portrait crop keeps the shooting foot visible at contact and follows the ball afterward; the loop resets with an intentional cut. Added bundled media totals 684,955 bytes. Source rights, transformations and hashes are recorded under assets/welcome; chronological 4fps crop evidence is in work/welcome-footage-review/final-portrait-sequence.jpg. The existing marker-slalom drill example remains intact.
+
+A matching bundled poster covers loading/error and remains static until the system Reduce Motion preference resolves false. Inactive/background, blurred replay, leaving welcome and unmount pause/release the owned player. It never claims the app audio session, prevents device idle, publishes Now Playing controls, or updates the practice clock. All later onboarding surfaces retain their existing imagery/layout.
