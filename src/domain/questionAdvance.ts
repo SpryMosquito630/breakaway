@@ -66,3 +66,13 @@ export function createSceneTransition() {
     },
   };
 }
+
+/** The reference opens Q1 with an overlapping dissolve; later questions slide. */
+export function sceneTransitionForSteps(
+  from: import("./onboardingFlow").FlowStep,
+  to: import("./onboardingFlow").FlowStep,
+): { kind: "crossfade" | "slide"; duration: number } {
+  return from === "intro" && to === "frequency"
+    ? { kind: "crossfade", duration: 240 }
+    : { kind: "slide", duration: 260 };
+}

@@ -76,7 +76,11 @@ import {
 } from "../domain/onboardingFlow";
 import { playerStylesForPosition } from "../domain/playerStyles";
 import { playerStyleImages } from "../data/playerStyleImages";
-import { createQuestionAdvance, createSceneTransition } from "../domain/questionAdvance";
+import {
+  createQuestionAdvance,
+  createSceneTransition,
+  sceneTransitionForSteps,
+} from "../domain/questionAdvance";
 import { planForDate } from "../domain/planning";
 import { useReminders } from "../notifications/RemindersProvider";
 import { skillProfile } from "../domain/skillProfile";
@@ -300,6 +304,7 @@ export function Onboarding({
     index: number;
     node: React.ReactNode;
     direction: 1 | -1;
+    motion: ReturnType<typeof sceneTransitionForSteps>;
   } | null>(null);
   const scene = useRef<React.ReactNode>(null);
   const transitionBusy = useRef(false);
@@ -332,6 +337,7 @@ export function Onboarding({
         index: currentIndex.current,
         node: scene.current,
         direction: next > currentIndex.current ? 1 : -1,
+        motion: sceneTransitionForSteps(flowSteps[currentIndex.current], flowSteps[next]),
       });
     }
     currentIndex.current = next;
@@ -343,7 +349,7 @@ export function Onboarding({
       (complete) => {
         const animation = Animated.timing(slide, {
           toValue: 1,
-          duration: 260,
+          duration: outgoing.motion.duration,
           easing: Easing.bezier(0.22, 0.61, 0.36, 1),
           useNativeDriver: Platform.OS !== "web",
         });
@@ -1982,14 +1988,25 @@ export function Onboarding({
         ? footerMeasure.height
         : Math.max(inset.bottom, 16) + 12 + 56 + (canSkip ? 46 : 0)
       : 0;
+  const crossfadingIntro = outgoing?.motion.kind === "crossfade";
   return (
     <KeyboardAvoidingView
       style={[styles.root, purpleScreen && { backgroundColor: "#190D26" }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <StatusBar style="light" />
-      {photoScreen ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {photoScreen || crossfadingIntro ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              opacity: crossfadingIntro
+                ? slide.interpolate({ inputRange: [0, 1], outputRange: [1, 0] })
+                : 1,
+            },
+          ]}
+        >
           {step === "welcome" ? (
             <WelcomeBackground focused={focused} />
           ) : (
@@ -2006,7 +2023,7 @@ export function Onboarding({
               { backgroundColor: step === "welcome" ? "#080F0B55" : "#080F0B66" },
             ]}
           />
-        </View>
+        </Animated.View>
       ) : null}
       <View
         style={[
@@ -2095,16 +2112,23 @@ export function Onboarding({
             style={[
               StyleSheet.absoluteFill,
               {
+                opacity: crossfadingIntro
+                  ? slide.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: item.old ? [1, 0] : [0, 1],
+                    })
+                  : 1,
                 transform: [
                   {
-                    translateX: outgoing
-                      ? slide.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: item.old
-                            ? [0, -outgoing.direction * width]
-                            : [outgoing.direction * width, 0],
-                        })
-                      : 0,
+                    translateX:
+                      outgoing && !crossfadingIntro
+                        ? slide.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: item.old
+                              ? [0, -outgoing.direction * width]
+                              : [outgoing.direction * width, 0],
+                          })
+                        : 0,
                   },
                 ],
               },
