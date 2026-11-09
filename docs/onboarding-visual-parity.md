@@ -30,3 +30,9 @@ The plan comparison uses shared 228-point stages so its short red and tall green
 The onboarding card now rises and makes one 1,400 ms turn around its vertical axis: readable front, foil reverse, then readable front. Changing the finish does not replay it. Reduced Motion shows the final front; focus, background and unmount cancel safely. Ratings remain saved test values or dashes.
 
 The combined repair passes typecheck, formatting and all 193 tests. Browser review walks all 39 steps, checks the affected photo/green/purple footers, both comparisons at narrow phone widths, explicit measurement selection, card reverse/front rendering and a finish change without a repeated spin. Replay is cancelled without replacing the profile. Native iPhone 17 review confirms unanswered measurements, explicit tap and drag selection, aligned snapping and numeral-only fades without a runtime error. These checks do not establish measured frame rates or full large-text parity.
+
+### Native follow-up QA
+
+CUA inspection on the iPhone 17 simulator (iOS 27) walked an unsaved synthetic replay through the card step. Measurement entry showed unanswered dashes; tapping the centered height selected 160 cm, and dragging the weight wheel changed 107 to 108 kg and snapped to the matching centered row. Numeral fades retained the atmospheric background, with no first-touch jump or native-driver error observed.
+
+Re-entering the card step visibly showed an edge view, foil-only back and readable front. The settled front restored its accessibility text. Selecting Forest changed the material while retaining the readable front. Cancelling replay returned to Settings with the original Ball control / Position not set profile, Dark appearance and reminders off. The synthetic measurements, midfield position and practice day were not saved. Screenshots were inspected directly in the CUA tool output; standalone native image files were not saved.
