@@ -47,7 +47,10 @@ test("removing secondary actions keeps private notes optional while quiz choices
   ] as const) {
     assert.equal(isFlowStepReady({}, step), false, step);
     assert.equal(
-      isFlowStepReady({ answers: { [step]: answerOptions[step][0] } }, step),
+      isFlowStepReady(
+        { position: "Midfielder", answers: { [step]: answerOptions[step][0] } },
+        step,
+      ),
       true,
       step,
     );

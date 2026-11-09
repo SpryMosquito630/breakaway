@@ -48,7 +48,7 @@ import { days, goals, type Position, time, getDrillDuration } from "../domain/mo
 import { profileFromDraft } from "../domain/onboarding";
 import {
   answerOptions,
-  playerStyles,
+  patchFlowDraft,
   aspirations,
   allergyOptions,
   snapshotStyles,
@@ -61,6 +61,8 @@ import {
   type FlowDraft,
   type OnboardingAnswers,
 } from "../domain/onboardingFlow";
+import { playerStylesForPosition } from "../domain/playerStyles";
+import { playerStyleImages } from "../data/playerStyleImages";
 import { createQuestionAdvance, createSceneTransition } from "../domain/questionAdvance";
 import { planForDate } from "../domain/planning";
 import { useReminders } from "../notifications/RemindersProvider";
@@ -310,6 +312,8 @@ export function Onboarding({
   const [remindersRequested, setRemindersRequested] = useState(false);
   const inset = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const playerCardWidth = Math.min(width - 40, 400);
+  const playerPhotoHeight = Math.min(310, Math.max(280, width * 0.8));
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState<FlowDraft>({});
   const [imperial, setImperial] = useState(false);
@@ -444,6 +448,13 @@ export function Onboarding({
   const step = flowSteps[index];
   const automatic = autoAdvanceSteps.includes(step);
   const answers = draft.answers ?? {};
+  const availablePlayerStyles = playerStylesForPosition(
+    draft.position,
+    answers.positionDetail,
+  );
+  const availablePhotoCredits = playerPhotoCredits.filter((credit) =>
+    availablePlayerStyles.some((player) => `${player.id}.jpg` === credit.file),
+  );
   const profile = profileFromDraft(draft);
   const field = fieldForStep.has(step) ? (step as keyof typeof answerOptions) : undefined;
   const selected = field ? answers[field] : undefined;
@@ -468,16 +479,8 @@ export function Onboarding({
     )
       return;
     const apply = () => {
-      setDraft((d) => ({
-        ...d,
-        ...next,
-        ...(next.answers ? { answers: { ...d.answers, ...next.answers } } : {}),
-      }));
-      const message = feedbackAfterAnswer(step, {
-        ...draft,
-        ...next,
-        ...(next.answers ? { answers: { ...draft.answers, ...next.answers } } : {}),
-      });
+      setDraft((d) => patchFlowDraft(d, next));
+      const message = feedbackAfterAnswer(step, patchFlowDraft(draft, next));
       if (message) setFeedback(message);
     };
     if (!automatic) {
@@ -843,15 +846,24 @@ export function Onboarding({
               Pick what feels like your game.
             </Copy>
             <ScrollView
+              key={availablePlayerStyles.map((player) => player.id).join("-")}
               horizontal
-              pagingEnabled
+              pagingEnabled={Platform.OS !== "web"}
               showsHorizontalScrollIndicator={false}
-              style={{ marginHorizontal: -24, marginTop: 24 }}
-              contentContainerStyle={{ paddingHorizontal: 24, gap: 14 }}
-              snapToInterval={Math.min(width - 62, 340) + 14}
+              style={{
+                marginHorizontal: -24,
+                marginTop: 24,
+                ...(Platform.OS === "web" ? { scrollSnapType: "x mandatory" } : {}),
+              }}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                gap: 14,
+                alignItems: "stretch",
+              }}
+              snapToInterval={playerCardWidth + 14}
               decelerationRate="fast"
             >
-              {playerStyles.map((player, i) => (
+              {availablePlayerStyles.map((player) => (
                 <Pressable
                   key={player.name}
                   accessibilityRole="radio"
@@ -866,23 +878,22 @@ export function Onboarding({
                   }}
                   style={[
                     styles.styleCard,
-                    { width: Math.min(width - 62, 340) },
+                    {
+                      width: playerCardWidth,
+                      ...(Platform.OS === "web" ? { scrollSnapAlign: "center" } : {}),
+                    },
                     answers.playstyle === player.name && { borderColor: colors.lime },
                   ]}
                 >
                   <Image
-                    source={
-                      [
-                        require("../../assets/player-styles/kevin-de-bruyne.jpg"),
-                        require("../../assets/player-styles/pedri.jpg"),
-                        require("../../assets/player-styles/sergio-busquets.jpg"),
-                        require("../../assets/player-styles/declan-rice.jpg"),
-                      ][i]
-                    }
+                    source={playerStyleImages[player.id]}
                     contentFit="cover"
-                    contentPosition={{ left: "50%", top: i === 1 ? "0%" : "25%" }}
+                    contentPosition={{
+                      left: "50%",
+                      top: player.id === "pedri" ? "0%" : "15%",
+                    }}
                     accessibilityLabel={`${player.name}, playstyle inspiration`}
-                    style={{ width: "100%", height: 250, opacity: 0.85 }}
+                    style={{ width: "100%", height: playerPhotoHeight, opacity: 0.85 }}
                   />
                   <View style={{ padding: 20, gap: 10 }}>
                     <Tag>{player.position}</Tag>
@@ -941,10 +952,10 @@ export function Onboarding({
                   Playing-style inspiration. No affiliation or endorsement. Photos resized
                   and displayed with cover cropping.
                 </Copy>
-                {playerPhotoCredits.map((credit) => (
+                {availablePhotoCredits.map((credit) => (
                   <View key={credit.file} style={{ gap: 2, paddingTop: 8 }}>
                     <Copy muted style={{ fontSize: 12, lineHeight: 18 }}>
-                      {credit.author}
+                      {`${availablePlayerStyles.find((player) => `${player.id}.jpg` === credit.file)?.name} · ${credit.author}`}
                     </Copy>
                     <View style={{ flexDirection: "row", gap: 16 }}>
                       <Pressable

@@ -1,5 +1,7 @@
 import { type AppData, type Drill, completeOnboarding, matchPlan } from "./model";
 import { type OnboardingDraft, profileFromDraft } from "./onboarding";
+import { playerStyles, playerStylesForPosition, pitchPositions } from "./playerStyles";
+export { playerStyles } from "./playerStyles";
 
 /** Optional on-device reflections, never a source of measured skill ratings. */
 export type OnboardingAnswers = {
@@ -28,36 +30,6 @@ export type OnboardingAnswers = {
   week?: Partial<Record<string, { activity: string; time?: string }>>;
 };
 export type FlowDraft = OnboardingDraft & { answers?: OnboardingAnswers };
-export const playerStyles = [
-  {
-    name: "Kevin De Bruyne",
-    position: "CM · AM",
-    role: "ELITE CREATOR",
-    description: "Passing, assists, crossing, tempo control.",
-    tags: ["Passing", "Crossing", "Tempo"],
-  },
-  {
-    name: "Pedri",
-    position: "CM",
-    role: "PRESS-RESISTANT MAESTRO",
-    description: "First touch, awareness, tight-space passing.",
-    tags: ["First touch", "Vision", "Passing"],
-  },
-  {
-    name: "Sergio Busquets",
-    position: "DM",
-    role: "DEEP CONTROLLER",
-    description: "Positioning, tempo, interceptions.",
-    tags: ["Positioning", "Tempo", "Passing"],
-  },
-  {
-    name: "Declan Rice",
-    position: "DM · CM",
-    role: "BALL-WINNING ANCHOR",
-    description: "Interceptions, stamina, progressive carries.",
-    tags: ["Tackling", "Stamina", "Carrying"],
-  },
-] as const;
 export const answerOptions = {
   frequency: [
     "Daily",
@@ -219,21 +191,7 @@ export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | und
     }
   if (
     typeof value.positionDetail === "string" &&
-    [
-      "GK",
-      "LB",
-      "CB",
-      "RB",
-      "DM",
-      "LM",
-      "CM",
-      "RM",
-      "AM",
-      "LW",
-      "ST",
-      "RW",
-      "Exploring",
-    ].includes(value.positionDetail)
+    (pitchPositions as readonly string[]).includes(value.positionDetail)
   )
     result.positionDetail = value.positionDetail;
   for (const [key, min, max] of [
@@ -275,12 +233,46 @@ export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | und
   }
   return Object.keys(result).length ? (result as OnboardingAnswers) : undefined;
 }
+/** Position and detail changes invalidate only an incompatible temporary inspiration. */
+export function patchFlowDraft(draft: FlowDraft, patch: Partial<FlowDraft>): FlowDraft {
+  const next = {
+    ...draft,
+    ...patch,
+    ...(patch.answers ? { answers: { ...draft.answers, ...patch.answers } } : {}),
+  };
+  if (
+    next.position !== draft.position &&
+    patch.answers?.positionDetail === undefined &&
+    next.answers
+  ) {
+    const { positionDetail: _discarded, ...answers } = next.answers;
+    next.answers = answers;
+  }
+  if (
+    next.position !== draft.position ||
+    next.answers?.positionDetail !== draft.answers?.positionDetail
+  ) {
+    const compatible = playerStylesForPosition(
+      next.position,
+      next.answers?.positionDetail,
+    ).some((player) => player.name === next.answers?.playstyle);
+    if (!compatible && next.answers?.playstyle) {
+      const { playstyle: _discarded, ...answers } = next.answers;
+      next.answers = answers;
+    }
+  }
+  return next;
+}
 export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
   switch (step) {
     case "identity":
       return ["under13", "13to17", "adult"].includes(d.ageBand ?? "");
     case "position":
       return !!d.position;
+    case "playstyle":
+      return playerStylesForPosition(d.position, d.answers?.positionDetail).some(
+        (player) => player.name === d.answers?.playstyle,
+      );
     case "focus":
       return !!d.goal;
     case "experience":
