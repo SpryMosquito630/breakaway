@@ -487,6 +487,7 @@ export function Onboarding({
   const [pendingAdvance] = useState(() => createQuestionAdvance());
   const [sceneMotion] = useState(() => createSceneTransition());
   const [slide] = useState(() => new Animated.Value(1));
+  const [introReveal] = useState(() => new Animated.Value(1));
   const [outgoing, setOutgoing] = useState<{
     index: number;
     node: React.ReactNode;
@@ -508,6 +509,9 @@ export function Onboarding({
   };
   const goTo = (next: number) => {
     pendingAdvance.cancel();
+    // Freeze a partially revealed intro for its outgoing dissolve, rather than
+    // snapping the retained scene to its final layout before it fades away.
+    introReveal.stopAnimation();
     const interrupted = transitionBusy.current;
     settleScene();
     if (next === currentIndex.current) return;
@@ -527,9 +531,31 @@ export function Onboarding({
         motion: sceneTransitionForSteps(flowSteps[currentIndex.current], flowSteps[next]),
       });
     }
+    if (flowSteps[next] === "intro") {
+      introReveal.setValue(reduceMotion.current ? 1 : 0);
+    }
     currentIndex.current = next;
     setIndex(next);
   };
+  useLayoutEffect(() => {
+    if (flowSteps[index] !== "intro") return;
+    if (reducedMotionEnabled || !focused || !foreground.current) {
+      introReveal.setValue(1);
+      return;
+    }
+    // The reference first establishes the headline, then lifts the group as
+    // the supporting copy and checklist appear. This is an intro-only beat;
+    // the footer remains available throughout, without a timed navigation lock.
+    const animation = Animated.timing(introReveal, {
+      toValue: 1,
+      delay: 180,
+      duration: 1100,
+      easing: Easing.bezier(0.4, 0, 0.2, 1),
+      useNativeDriver: Platform.OS !== "web",
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [index, focused, reducedMotionEnabled, introReveal]);
   useLayoutEffect(() => {
     if (!outgoing) return;
     sceneMotion.start(
@@ -560,6 +586,8 @@ export function Onboarding({
   useLayoutEffect(() => {
     focus.current = focused;
     if (!focused) {
+      introReveal.stopAnimation();
+      introReveal.setValue(1);
       setFeedback(null);
       pendingAdvance.cancel();
       settleScene();
@@ -582,12 +610,18 @@ export function Onboarding({
         preferenceChanged = true;
         reduceMotion.current = enabled;
         setReducedMotionEnabled(enabled);
-        if (enabled) settleScene();
+        if (enabled) {
+          introReveal.stopAnimation();
+          introReveal.setValue(1);
+          settleScene();
+        }
       },
     );
     const state = AppState.addEventListener("change", (value) => {
       foreground.current = value === "active";
       if (!foreground.current) {
+        introReveal.stopAnimation();
+        introReveal.setValue(1);
         setFeedback(null);
         pendingAdvance.cancel();
         settleScene();
@@ -595,6 +629,7 @@ export function Onboarding({
     });
     return () => {
       mounted.current = false;
+      introReveal.stopAnimation();
       pendingAdvance.cancel();
       settleScene();
       motion.remove();
@@ -835,37 +870,60 @@ export function Onboarding({
         break;
       case "intro":
         content = (
-          <View style={{ gap: 22, paddingTop: 36 }}>
+          <Animated.View
+            style={{
+              gap: 22,
+              paddingTop: 36,
+              transform: [
+                {
+                  translateY: introReveal.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [80, 0],
+                  }),
+                },
+              ],
+            }}
+          >
             <Tag>Before we start</Tag>
             <Heading>
               Serious about{"\n"}your game?{"\n"}Start with a plan.
             </Heading>
             <View style={styles.accentRule} />
-            <Copy muted>A few answers. One clear place to begin.</Copy>
-            <View style={styles.panel}>
-              {[
-                [Target, "Choose your first focus"],
-                [CalendarDays, "Find a week you can keep"],
-                [Footprints, "See your starting session"],
-              ].map(([Icon, label]) => {
-                const ItemIcon = Icon as typeof Target;
-                return (
-                  <View
-                    key={String(label)}
-                    style={{
-                      flexDirection: "row",
-                      gap: 14,
-                      alignItems: "center",
-                      paddingVertical: 10,
-                    }}
-                  >
-                    <ItemIcon size={21} color={colors.lime} />
-                    <Copy>{String(label)}</Copy>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
+            <Animated.View
+              style={{
+                gap: 22,
+                opacity: introReveal.interpolate({
+                  inputRange: [0, 0.2, 0.85, 1],
+                  outputRange: [0, 0, 1, 1],
+                }),
+              }}
+            >
+              <Copy muted>A few answers. One clear place to begin.</Copy>
+              <View style={styles.panel}>
+                {[
+                  [Target, "Choose your first focus"],
+                  [CalendarDays, "Find a week you can keep"],
+                  [Footprints, "See your starting session"],
+                ].map(([Icon, label]) => {
+                  const ItemIcon = Icon as typeof Target;
+                  return (
+                    <View
+                      key={String(label)}
+                      style={{
+                        flexDirection: "row",
+                        gap: 14,
+                        alignItems: "center",
+                        paddingVertical: 10,
+                      }}
+                    >
+                      <ItemIcon size={21} color={colors.lime} />
+                      <Copy>{String(label)}</Copy>
+                    </View>
+                  );
+                })}
+              </View>
+            </Animated.View>
+          </Animated.View>
         );
         break;
       case "clubName":
