@@ -914,7 +914,7 @@ export function Onboarding({
                   </View>
                 </Pressable>
               ))}
-            </ScrollView>{" "}
+            </ScrollView>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Player photo credits"
