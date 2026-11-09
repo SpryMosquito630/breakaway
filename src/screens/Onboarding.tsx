@@ -25,6 +25,12 @@ import {
   feedbackAfterContinue,
   type OnboardingFeedback,
 } from "../domain/onboardingFeedback";
+import { MeasurementWheel } from "../components/MeasurementWheel";
+import {
+  canonicalMeasurement,
+  displayMeasurement,
+  measurementValues,
+} from "../domain/measurementWheel";
 import { WelcomeBackground } from "../components/WelcomeBackground";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -251,57 +257,6 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
     </View>
   );
 }
-function Wheel({
-  label,
-  unit,
-  values,
-  value,
-  onChange,
-}: {
-  label: string;
-  unit: string;
-  values: number[];
-  value?: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <View style={{ flex: 1, alignItems: "center", gap: 10 }}>
-      <Text style={styles.smallLabel}>{label}</Text>
-      <Text style={styles.bigNumber}>{value === undefined ? "–" : value}</Text>
-      <Copy style={{ color: colors.lime, fontSize: 12 }}>{unit}</Copy>
-      <ScrollView
-        nestedScrollEnabled
-        style={{ height: 156, width: "100%" }}
-        contentContainerStyle={{ paddingVertical: 52 }}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={52}
-        accessibilityLabel={`${label}, choose a value`}
-      >
-        {values.map((n) => (
-          <Pressable
-            key={n}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: value === n, selected: value === n }}
-            aria-checked={value === n}
-            accessibilityLabel={`${n} ${unit}`}
-            onPress={() => {
-              haptic("selection");
-              onChange(n);
-            }}
-            style={[styles.wheelRow, value === n && { backgroundColor: colors.selected }]}
-          >
-            <Copy
-              style={{ fontSize: 22, color: value === n ? colors.white : colors.muted }}
-            >
-              {n}
-            </Copy>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  );
-}
-
 export function Onboarding({
   onComplete,
   replay = false,
@@ -321,6 +276,9 @@ export function Onboarding({
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState<FlowDraft>({});
   const [imperial, setImperial] = useState(false);
+  const [activeMeasurementWheel, setActiveMeasurementWheel] = useState<string | null>(
+    null,
+  );
   const [showPhotoCredits, setShowPhotoCredits] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<OnboardingFeedback | null>(null);
@@ -1077,45 +1035,37 @@ export function Onboarding({
               ))}
             </View>
             <View style={{ flexDirection: "row", gap: 22 }}>
-              <Wheel
-                label="HEIGHT"
-                unit={imperial ? "in" : "cm"}
-                values={Array.from(
-                  { length: imperial ? 63 : 161 },
-                  (_, i) => i + (imperial ? 32 : 80),
-                )}
-                value={
-                  answers.heightCm === undefined
-                    ? undefined
-                    : imperial
-                      ? Math.round(answers.heightCm / 2.54)
-                      : answers.heightCm
-                }
-                onChange={(v) =>
-                  answer({ heightCm: imperial ? Math.round(v * 2.54) : v })
-                }
-              />
-              <Wheel
-                label="WEIGHT"
-                unit={imperial ? "lb" : "kg"}
-                values={Array.from(
-                  { length: imperial ? 408 : 186 },
-                  (_, i) => i + (imperial ? 33 : 15),
-                )}
-                value={
-                  answers.weightKg === undefined
-                    ? undefined
-                    : imperial
-                      ? Math.round(answers.weightKg * 2.20462)
-                      : answers.weightKg
-                }
-                onChange={(v) =>
-                  answer({ weightKg: imperial ? Math.round((v / 2.20462) * 10) / 10 : v })
-                }
-              />
+              {(["height", "weight"] as const).map((kind) => (
+                <MeasurementWheel
+                  key={`${kind}-${imperial ? "imperial" : "metric"}`}
+                  kind={kind}
+                  label={kind.toUpperCase()}
+                  unit={
+                    kind === "height" ? (imperial ? "in" : "cm") : imperial ? "lb" : "kg"
+                  }
+                  values={measurementValues(kind, imperial)}
+                  value={displayMeasurement(
+                    kind,
+                    kind === "height" ? answers.heightCm : answers.weightKg,
+                    imperial,
+                  )}
+                  onChange={(value) =>
+                    answer(
+                      kind === "height"
+                        ? { heightCm: canonicalMeasurement(kind, value, imperial) }
+                        : { weightKg: canonicalMeasurement(kind, value, imperial) },
+                    )
+                  }
+                  onInteractionChange={(active) =>
+                    setActiveMeasurementWheel((current) =>
+                      active ? kind : current === kind ? null : current,
+                    )
+                  }
+                />
+              ))}
             </View>
             <Copy muted style={styles.footnote}>
-              Tap to choose, or skip.
+              Tap or scroll to choose, or skip.
             </Copy>
           </View>
         );
@@ -1841,6 +1791,7 @@ export function Onboarding({
       ) : null}
       <ScrollView
         key={step}
+        scrollEnabled={step !== "measurements" || activeMeasurementWheel === null}
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
