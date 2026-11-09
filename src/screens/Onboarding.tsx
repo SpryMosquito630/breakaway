@@ -42,7 +42,7 @@ import {
   CircleDot,
   Bell,
 } from "lucide-react-native";
-import Svg, { Circle, Line, Rect } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Line, Rect, Stop } from "react-native-svg";
 import { useApp } from "../state/AppState";
 import { days, goals, type Position, time, getDrillDuration } from "../domain/model";
 import { profileFromDraft } from "../domain/onboarding";
@@ -311,9 +311,13 @@ export function Onboarding({
   const reminders = useReminders();
   const [remindersRequested, setRemindersRequested] = useState(false);
   const inset = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const playerCardWidth = Math.min(width - 40, 400);
-  const playerPhotoHeight = Math.min(310, Math.max(280, width * 0.8));
+  const { width, height } = useWindowDimensions();
+  // Measured from the 444×960 reference: 310×669 card, photo about 390px tall.
+  const playerCardWidth = Math.min(width * 0.7, 360);
+  const playerCardHeight = Math.max(500, height * 0.697);
+  const playerPhotoHeight = playerCardHeight * 0.58;
+  const playerCardInset = (width - playerCardWidth) / 2;
+  const playerCardGap = width * 0.074;
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState<FlowDraft>({});
   const [imperial, setImperial] = useState(false);
@@ -841,8 +845,22 @@ export function Onboarding({
       case "playstyle":
         content = (
           <>
-            <Heading center>Which playstyle fits you best?</Heading>
-            <Copy muted style={{ textAlign: "center", marginTop: 10 }}>
+            <Text
+              accessibilityRole="header"
+              style={[
+                styles.playstyleHeading,
+                {
+                  fontSize: Math.min(21, (width * 24) / 444),
+                  lineHeight: Math.min(26, (width * 30) / 444),
+                },
+              ]}
+            >
+              Which playstyle fits you best?
+            </Text>
+            <Copy
+              muted
+              style={{ textAlign: "center", marginTop: 6, fontSize: 13, lineHeight: 18 }}
+            >
               Pick what feels like your game.
             </Copy>
             <ScrollView
@@ -852,15 +870,17 @@ export function Onboarding({
               showsHorizontalScrollIndicator={false}
               style={{
                 marginHorizontal: -24,
-                marginTop: 24,
+                marginTop: height * 0.044,
+                flexGrow: 0,
+                flexShrink: 0,
                 ...(Platform.OS === "web" ? { scrollSnapType: "x mandatory" } : {}),
               }}
               contentContainerStyle={{
-                paddingHorizontal: 20,
-                gap: 14,
+                paddingHorizontal: playerCardInset,
+                gap: playerCardGap,
                 alignItems: "stretch",
               }}
-              snapToInterval={playerCardWidth + 14}
+              snapToInterval={playerCardWidth + playerCardGap}
               decelerationRate="fast"
             >
               {availablePlayerStyles.map((player) => (
@@ -880,47 +900,84 @@ export function Onboarding({
                     styles.styleCard,
                     {
                       width: playerCardWidth,
+                      minHeight: playerCardHeight,
                       ...(Platform.OS === "web" ? { scrollSnapAlign: "center" } : {}),
                     },
                     answers.playstyle === player.name && { borderColor: colors.lime },
                   ]}
                 >
-                  <Image
-                    source={playerStyleImages[player.id]}
-                    contentFit="cover"
-                    contentPosition={{
-                      left: "50%",
-                      top: player.id === "pedri" ? "0%" : "15%",
-                    }}
-                    accessibilityLabel={`${player.name}, playstyle inspiration`}
-                    style={{ width: "100%", height: playerPhotoHeight, opacity: 0.85 }}
-                  />
-                  <View style={{ padding: 20, gap: 10 }}>
-                    <Tag>{player.position}</Tag>
-                    <Text style={styles.cardTitle}>{player.name}</Text>
+                  <View>
+                    <Image
+                      source={playerStyleImages[player.id]}
+                      contentFit="cover"
+                      contentPosition={{
+                        left: "50%",
+                        top: player.id === "pedri" ? "0%" : "15%",
+                      }}
+                      accessibilityLabel={`${player.name}, playstyle inspiration`}
+                      style={{ width: "100%", height: playerPhotoHeight }}
+                    />
+                    <Svg
+                      pointerEvents="none"
+                      width="100%"
+                      height={130}
+                      style={{ position: "absolute", bottom: 0 }}
+                    >
+                      <Defs>
+                        <LinearGradient
+                          id={`photo-fade-${player.id}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <Stop offset="0" stopColor="#111810" stopOpacity={0} />
+                          <Stop offset="1" stopColor="#111810" stopOpacity={1} />
+                        </LinearGradient>
+                      </Defs>
+                      <Rect
+                        width="100%"
+                        height="100%"
+                        fill={`url(#photo-fade-${player.id})`}
+                      />
+                    </Svg>
+                    <View style={styles.playstylePosition}>
+                      <Text style={styles.playstylePositionText}>{player.position}</Text>
+                    </View>
+                    {answers.playstyle === player.name ? (
+                      <View style={styles.playstyleCheck}>
+                        <Check size={16} color={colors.background} />
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={{ padding: 14, paddingTop: 12, gap: 6 }}>
+                    <Text style={styles.playstyleName}>{player.name}</Text>
                     <Text
                       style={{
                         fontFamily: "Archivo_600SemiBold",
-                        fontSize: 11,
-                        lineHeight: 16,
+                        fontSize: 10,
+                        lineHeight: 15,
                         color: colors.lime,
                         letterSpacing: 0.7,
                       }}
                     >
                       {player.role}
                     </Text>
-                    <Copy muted>{player.description}</Copy>
+                    <Copy muted style={{ fontSize: 13, lineHeight: 17 }}>
+                      {player.description}
+                    </Copy>
                     <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
                       {player.tags.map((t) => (
-                        <View key={t} style={styles.skillPill}>
-                          <Copy style={{ fontSize: 10, lineHeight: 14 }}>{t}</Copy>
+                        <View
+                          key={t}
+                          style={[
+                            styles.skillPill,
+                            { paddingHorizontal: 7, paddingVertical: 3 },
+                          ]}
+                        >
+                          <Copy style={{ fontSize: 9, lineHeight: 12 }}>{t}</Copy>
                         </View>
                       ))}
-                    </View>
-                    <View style={{ height: 22, alignItems: "flex-end" }}>
-                      {answers.playstyle === player.name ? (
-                        <Check size={22} color={colors.lime} />
-                      ) : null}
                     </View>
                   </View>
                 </Pressable>
@@ -1790,6 +1847,9 @@ export function Onboarding({
           styles.content,
           { flexGrow: 1 },
           step === "welcome" && { paddingTop: 0 },
+          step === "playstyle" && {
+            paddingTop: Math.max(inset.top + 12, height * 0.0875),
+          },
           automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
         ]}
         showsVerticalScrollIndicator={false}
@@ -1898,8 +1958,23 @@ export function Onboarding({
           />
         </View>
       ) : null}
-      <View style={[styles.header, { paddingTop: inset.top + 8 }]}>
-        {purpleScreen ? (
+      <View
+        style={[
+          styles.header,
+          { paddingTop: inset.top + 8 },
+          step === "playstyle" && {
+            position: "absolute",
+            top: inset.top + 4,
+            left: 0,
+            right: 0,
+            zIndex: 5,
+            paddingTop: 0,
+            paddingHorizontal: 12,
+            minHeight: 44,
+          },
+        ]}
+      >
+        {purpleScreen || step === "playstyle" ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back"
@@ -1930,7 +2005,7 @@ export function Onboarding({
           </Pressable>
         ) : null}
       </View>
-      {index > 0 && !purpleScreen ? (
+      {index > 0 && !purpleScreen && step !== "playstyle" ? (
         <View style={styles.progressRow}>
           <Pressable
             accessibilityRole="button"
@@ -2190,12 +2265,53 @@ const styles = StyleSheet.create({
     color: colors.lime,
     letterSpacing: -2,
   },
+  playstyleHeading: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 21,
+    lineHeight: 26,
+    letterSpacing: -0.4,
+    color: colors.white,
+    textAlign: "center",
+  },
+  playstyleName: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 18,
+    lineHeight: 23,
+    color: colors.white,
+  },
+  playstylePosition: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 16,
+    backgroundColor: "#111810B3",
+  },
+  playstylePositionText: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 0.5,
+    color: colors.white,
+  },
+  playstyleCheck: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.lime,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   styleCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.line,
-    backgroundColor: colors.panel,
+    backgroundColor: "#111810",
   },
   cardTitle: {
     fontFamily: "Archivo_700Bold",
