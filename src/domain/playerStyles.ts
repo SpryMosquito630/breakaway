@@ -166,7 +166,8 @@ export const playerStyles = [
 export type PlayerStyle = (typeof playerStyles)[number];
 export type PlayerStyleId = PlayerStyle["id"];
 
-const strikers = ["erling-haaland", "harry-kane", "kylian-mbappe"] as const;
+// Haaland stays in the catalog for saved-name compatibility, outside visible rosters.
+const strikers = ["harry-kane", "kylian-mbappe"] as const;
 const wingers = ["kylian-mbappe", "mohamed-salah", "bukayo-saka"] as const;
 const creators = ["kevin-de-bruyne", "pedri", "bukayo-saka"] as const;
 const midfielders = ["kevin-de-bruyne", "pedri", "declan-rice"] as const;
@@ -194,7 +195,7 @@ const detailGroups = {
 export type PitchPosition = keyof typeof detailGroups;
 export const pitchPositions = Object.keys(detailGroups) as PitchPosition[];
 const broadGroups: Record<Position, readonly PlayerStyleId[]> = {
-  Forward: ["erling-haaland", "kylian-mbappe", "mohamed-salah"],
+  Forward: ["harry-kane", "kylian-mbappe", "mohamed-salah"],
   Midfielder: midfielders,
   Defender: ["virgil-van-dijk", "andrew-robertson", "achraf-hakimi"],
   Goalkeeper: keepers,

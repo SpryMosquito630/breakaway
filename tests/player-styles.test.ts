@@ -25,7 +25,7 @@ const names = (
 
 test("every detailed pitch role has deliberately chosen inspirations", () => {
   const expected = {
-    ST: ["Erling Haaland", "Harry Kane", "Kylian Mbappé"],
+    ST: ["Harry Kane", "Kylian Mbappé"],
     LW: ["Kylian Mbappé", "Mohamed Salah", "Bukayo Saka"],
     RW: ["Kylian Mbappé", "Mohamed Salah", "Bukayo Saka"],
     LM: ["Kylian Mbappé", "Mohamed Salah", "Bukayo Saka"],
@@ -65,6 +65,7 @@ test("broad-only and legacy unknown pitch roles use representative fallbacks", (
   assert.deepEqual(names(undefined), names("Still exploring"));
   assert.deepEqual(names("Goalkeeper"), names("Goalkeeper", "GK"));
   assert.ok(names("Defender").includes("Andrew Robertson"));
+  assert.deepEqual(names("Forward"), ["Harry Kane", "Kylian Mbappé", "Mohamed Salah"]);
 });
 
 test("changing role atomically clears incompatible inspiration and retains compatible choices", () => {
@@ -171,4 +172,41 @@ test("every catalog photo has a stable bundled image and a linked license credit
     assert.match(credit.sourceUrl, /^https:\/\/commons.wikimedia.org\/wiki\/File:/);
     assert.match(credit.licenseUrl, /^https:\/\/creativecommons.org\//);
   }
+});
+
+test("legacy Haaland answers survive restore without becoming a visible or automatic selection", () => {
+  const answers = { positionDetail: "ST", playstyle: "Erling Haaland" } as const;
+  assert.ok(playerStyles.some((player) => player.name === answers.playstyle));
+  assert.deepEqual(sanitizeOnboardingAnswers(answers), answers);
+  const restored = restoreAppData(
+    JSON.stringify({ ...initialData(), onboardingAnswers: answers }),
+    drills,
+  );
+  assert.deepEqual(restored.onboardingAnswers, answers);
+  for (const detail of pitchPositions) {
+    assert.ok(!names(undefined, detail).includes(answers.playstyle), detail);
+    assert.equal(
+      isFlowStepReady({ answers: { ...answers, positionDetail: detail } }, "playstyle"),
+      false,
+      detail,
+    );
+  }
+  for (const position of positions) {
+    assert.ok(!names(position).includes(answers.playstyle), position);
+    assert.equal(
+      isFlowStepReady(
+        { position, answers: { playstyle: answers.playstyle } },
+        "playstyle",
+      ),
+      false,
+      position,
+    );
+  }
+  assert.equal(
+    isFlowStepReady(
+      { position: "Forward", answers: { positionDetail: "ST" } },
+      "playstyle",
+    ),
+    false,
+  );
 });
