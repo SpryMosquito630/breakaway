@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
+import { useIsFocused } from "@react-navigation/native";
+import { WelcomeBackground } from "../components/WelcomeBackground";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ArrowLeft,
@@ -288,7 +290,8 @@ function Wheel({
 export function Onboarding({
   onComplete,
   replay = false,
-}: { onComplete?: () => void; replay?: boolean } = {}) {
+  focused = true,
+}: { onComplete?: () => void; replay?: boolean; focused?: boolean } = {}) {
   const { data, update, catalog: drills } = useApp();
   const reminders = useReminders();
   const [remindersRequested, setRemindersRequested] = useState(false);
@@ -454,7 +457,7 @@ export function Onboarding({
           >
             <Tag>Your game. Your pace.</Tag>
             <Text style={styles.welcomeTitle}>Getting better{"\n"}starts here.</Text>
-            <Copy muted>Individual practice. A clear plan. Your progress.</Copy>
+            <Copy>Individual practice. A clear plan. Your progress.</Copy>
           </View>
         );
         break;
@@ -1613,15 +1616,16 @@ export function Onboarding({
       <StatusBar style="light" />
       {photoScreen ? (
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <Image
-            source={photo}
-            contentFit="cover"
-            contentPosition={{ left: "50%", top: "50%" }}
-            style={[
-              StyleSheet.absoluteFill,
-              { opacity: step === "welcome" ? 0.63 : 0.22 },
-            ]}
-          />
+          {step === "welcome" ? (
+            <WelcomeBackground focused={focused} />
+          ) : (
+            <Image
+              source={photo}
+              contentFit="cover"
+              contentPosition={{ left: "50%", top: "50%" }}
+              style={[StyleSheet.absoluteFill, { opacity: 0.22 }]}
+            />
+          )}
           <View
             style={[
               StyleSheet.absoluteFill,
@@ -1764,7 +1768,8 @@ export function Onboarding({
   );
 }
 export function ReplayOnboarding({ navigation }: { navigation: any }) {
-  return <Onboarding replay onComplete={() => navigation.goBack()} />;
+  const focused = useIsFocused();
+  return <Onboarding replay focused={focused} onComplete={() => navigation.goBack()} />;
 }
 
 const styles = StyleSheet.create({

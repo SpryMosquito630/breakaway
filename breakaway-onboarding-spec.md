@@ -10,7 +10,7 @@ The meaningful reveal is the player’s own intended routine alongside their cur
 
 | Screen | Copy / interface | Purpose |
 | --- | --- | --- |
-| 1 Welcome | “Getting better starts here.” Photo, Breakaway wordmark, Get started | Existing account-free app entry |
+| 1 Welcome | “Getting better starts here.” Muted looping field video, Breakaway wordmark, Get started; static poster with Reduce Motion | Existing account-free app entry |
 | 2 Before we start | “Serious about your game? Start with a plan.” Photo, three outcomes | Explain the useful result |
 | 3 Frequency | Recorded Q1, four numbered options | Optional self-reflection |
 | 4 Club | Recorded Q2, four numbered options | Optional playing context |
