@@ -188,6 +188,17 @@ export const autoAdvanceSteps: readonly FlowStep[] = [
   "foodSource",
 ];
 
+/** Only these secondary actions are visible in the supplied recording. */
+export const referenceSecondaryActions: Partial<Record<FlowStep, string>> = {
+  measurements: "Skip quiz",
+  bodyGoal: "Skip quiz",
+  planComparison: "Skip quiz",
+  brief: "Skip",
+  notifications: "Not right now",
+};
+export function secondaryActionForStep(step: FlowStep): string | null {
+  return referenceSecondaryActions[step] ?? null;
+}
 export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
   const value = raw as Record<string, unknown>;
@@ -284,8 +295,14 @@ export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
       return Array.isArray(d.gear);
     case "plan":
       return profileFromDraft(d) !== null;
-    default:
-      return true;
+    default: {
+      // Diet is an optional private note: Continue can leave it unanswered.
+      if (step === "diet") return true;
+      const options = answerOptions[step as keyof typeof answerOptions];
+      if (!options) return true;
+      const value = d.answers?.[step as keyof OnboardingAnswers];
+      return typeof value === "string" && (options as readonly string[]).includes(value);
+    }
   }
 }
 export function finishOnboardingDraft(

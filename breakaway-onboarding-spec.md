@@ -68,7 +68,7 @@ The existing application has no required account, referral validation or Apple H
 
 ## Data audit and behavior
 
-All drafts, including Replay onboarding, begin `{}`. No age, position, schedule, experience, equipment, metric, card style or reflection answer is selected automatically. Back retains only this draft’s explicit choices. Optional questions offer Skip; Continue on reflection radio questions requires a choice. Core training questions require explicit answers. Cancelling replay leaves saved data unchanged. New optional inputs are not sent to any server.
+All drafts, including Replay onboarding, begin `{}`. No age, position, schedule, experience, equipment, metric, card style or reflection answer is selected automatically. Back retains only this draft’s explicit choices. Only reference-verified screens offer Skip. Diet, measurements, allergy notes and other optional private notes can remain blank; single-choice quiz rows require an explicit choice. Core training questions require explicit answers. Cancelling replay leaves saved data unchanged. New optional inputs are not sent to any server.
 
 | Data | Persistence and actual use |
 | --- | --- |
@@ -95,4 +95,15 @@ Rendered review covers the entire flow through completion and reopening; blank r
 
 ## Tap-to-continue behavior
 
-Reference-style single-choice quiz screens (3, 4, 8, 9, 10, 11, 12, 14, 17, 19, 21 and 33) now advance after the user taps an answer. Their Continue action is removed; optional screens retain Skip. The visible checked state lasts 180 ms; Reduce Motion uses a zero-delay queued transition without animation. All other screens keep their existing explicit primary action. A selected answer is committed before its transition, and rapid taps cannot overwrite it or queue another transition. Back/Cancel, blur, background and unmount cancel pending callbacks without persisting the unfinished draft. Returning to a chosen question does not advance it until another explicit tap.
+Reference-style single-choice quiz screens (3, 4, 8, 9, 10, 11, 12, 14, 17, 19, 21 and 33) now advance after the user taps an answer. Their Continue action is removed; only reference-verified Skip screens retain a secondary Skip. The visible checked state lasts 180 ms; Reduce Motion uses a zero-delay queued transition without animation. All other screens keep their existing explicit primary action. A selected answer is committed before its transition, and rapid taps cannot overwrite it or queue another transition. Back/Cancel, blur, background and unmount cancel pending callbacks without persisting the unfinished draft. Returning to a chosen question does not advance it until another explicit tap.
+
+
+## Reference secondary actions and question transitions
+
+Secondary controls now appear only where the recording supports them: measurements and training/body goal show “Skip quiz” (reference frames detail/cue_0007 and inventory/cue_0019); plan comparison also shows “Skip quiz”; plan brief shows “Skip” (detail/cue_0010); reminders show “Not right now” (gaps/cue_0010). The reference’s welcome/auth Skip and Apple Health decline have no corresponding connected integration in Breakaway. The welcome stays account-free.
+
+The generic Skip row is removed from frequency, club, club name, level, commitment, ambition, tracking, blocker, main motivation, playstyle, consistency, goals, diet, allergies, food source and weekly notes. Optional private notes remain optional: diet Continue accepts blank; metrics retain Skip; allergy, goal and week notes already allow blank. Core setup validation remains explicit. Notification decline clears the temporary reminder request.
+
+A focused 65.7–66.5 second excerpt was inspected at 10 fps; its equipment-to-Q6 change shows a short horizontal scene handoff. Breakaway uses simultaneous full-width translation over 260 ms with cubic Bézier (0.22, 0.61, 0.36, 1): forward exits left and enters from right; Back reverses that spatial direction. This is a chosen close match, not a claim of precisely measured source duration. The body and footer move together; header, progress, background and welcome video remain outside the animation. Existing 180 ms answer feedback precedes it. Primary motion weighting is native consumer polish (Jakub), with fast, restrained timing (Emil).
+
+Outgoing and incoming scenes retain distinct stable keys, preserving reading position during exit. Both are inert and hidden from accessibility until the handoff ends. No live video is retained in a scene snapshot. Repeated inputs are ignored while moving; Back interrupts to the previous logical question. Backgrounding, focus loss and Reduce Motion settle the chosen destination at zero translation and invalidate stale native animation callbacks. Reduce Motion uses an immediate screen change with no spatial movement. Original recorded question labels, including Question #2.5, remain unchanged at the user’s request.

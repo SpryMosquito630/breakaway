@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
+  Animated,
+  Easing,
   AppState,
   BackHandler,
   KeyboardAvoidingView,
@@ -47,12 +49,13 @@ import {
   weekActivities,
   flowSteps,
   autoAdvanceSteps,
+  secondaryActionForStep,
   finishOnboardingDraft,
   isFlowStepReady,
   type FlowDraft,
   type OnboardingAnswers,
 } from "../domain/onboardingFlow";
-import { createQuestionAdvance } from "../domain/questionAdvance";
+import { createQuestionAdvance, createSceneTransition } from "../domain/questionAdvance";
 import { planForDate } from "../domain/planning";
 import { useReminders } from "../notifications/RemindersProvider";
 import { skillProfile } from "../domain/skillProfile";
@@ -307,23 +310,81 @@ export function Onboarding({
   const [showPhotoCredits, setShowPhotoCredits] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [pendingAdvance] = useState(() => createQuestionAdvance());
+  const [sceneMotion] = useState(() => createSceneTransition());
+  const [slide] = useState(() => new Animated.Value(1));
+  const [outgoing, setOutgoing] = useState<{
+    index: number;
+    node: React.ReactNode;
+    direction: 1 | -1;
+  } | null>(null);
+  const scene = useRef<React.ReactNode>(null);
+  const transitionBusy = useRef(false);
   const currentIndex = useRef(0);
   const mounted = useRef(true);
   const foreground = useRef(AppState.currentState === "active");
   const focus = useRef(focused);
   const reduceMotion = useRef(true);
+  const settleScene = () => {
+    sceneMotion.cancel();
+    transitionBusy.current = false;
+    slide.setValue(1);
+    if (mounted.current) setOutgoing(null);
+  };
   const goTo = (next: number) => {
     pendingAdvance.cancel();
+    const interrupted = transitionBusy.current;
+    settleScene();
+    if (next === currentIndex.current) return;
+    if (
+      !interrupted &&
+      !reduceMotion.current &&
+      focus.current &&
+      foreground.current &&
+      scene.current
+    ) {
+      transitionBusy.current = true;
+      slide.setValue(0);
+      setOutgoing({
+        index: currentIndex.current,
+        node: scene.current,
+        direction: next > currentIndex.current ? 1 : -1,
+      });
+    }
     currentIndex.current = next;
     setIndex(next);
   };
+  useLayoutEffect(() => {
+    if (!outgoing) return;
+    sceneMotion.start(
+      (complete) => {
+        const animation = Animated.timing(slide, {
+          toValue: 1,
+          duration: 260,
+          easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+          useNativeDriver: Platform.OS !== "web",
+        });
+        animation.start(({ finished }) => {
+          if (finished) complete();
+        });
+        return () => animation.stop();
+      },
+      () => {
+        transitionBusy.current = false;
+        slide.setValue(1);
+        setOutgoing(null);
+      },
+    );
+  }, [outgoing, sceneMotion, slide]);
   const goBack = () => {
     haptic("light");
     goTo(Math.max(0, currentIndex.current - 1));
   };
   useLayoutEffect(() => {
     focus.current = focused;
-    if (!focused) pendingAdvance.cancel();
+    if (!focused) {
+      pendingAdvance.cancel();
+      settleScene();
+    }
   }, [focused, pendingAdvance]);
   useEffect(() => {
     mounted.current = true;
@@ -338,15 +399,20 @@ export function Onboarding({
       (enabled) => {
         preferenceChanged = true;
         reduceMotion.current = enabled;
+        if (enabled) settleScene();
       },
     );
     const state = AppState.addEventListener("change", (value) => {
       foreground.current = value === "active";
-      if (!foreground.current) pendingAdvance.cancel();
+      if (!foreground.current) {
+        pendingAdvance.cancel();
+        settleScene();
+      }
     });
     return () => {
       mounted.current = false;
       pendingAdvance.cancel();
+      settleScene();
       motion.remove();
       state.remove();
     };
@@ -364,16 +430,11 @@ export function Onboarding({
   const answers = draft.answers ?? {};
   const profile = profileFromDraft(draft);
   const field = fieldForStep.has(step) ? (step as keyof typeof answerOptions) : undefined;
-  const optionalQuestion = !!field;
   const selected = field ? answers[field] : undefined;
   const invalidWeekTime = Object.values(answers.week ?? {}).some(
     (row) => row?.time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(row.time),
   );
-  const ready =
-    isFlowStepReady(draft, step) &&
-    (!optionalQuestion || !!selected) &&
-    (step !== "playstyle" || !!answers.playstyle) &&
-    (step !== "schedule" || !invalidWeekTime);
+  const ready = isFlowStepReady(draft, step) && (step !== "schedule" || !invalidWeekTime);
   const ratings = skillProfile(false, data.assessments ?? []);
   const teamCount = Object.values(answers.week ?? {}).filter(
     (row) => row?.activity === "Team training",
@@ -384,6 +445,7 @@ export function Onboarding({
   const patch = (next: Partial<FlowDraft>) => {
     if (
       currentIndex.current !== index ||
+      transitionBusy.current ||
       !mounted.current ||
       !focus.current ||
       !foreground.current
@@ -415,7 +477,7 @@ export function Onboarding({
   };
   const answer = (next: Partial<OnboardingAnswers>) => patch({ answers: next });
   const advance = () => {
-    if (currentIndex.current !== index) return;
+    if (currentIndex.current !== index || transitionBusy.current) return;
     pendingAdvance.cancel();
     if (step === "plan") {
       if (!profile) return;
@@ -1663,17 +1725,8 @@ export function Onboarding({
         );
         break;
     }
-  const canSkip =
-    optionalQuestion ||
-    [
-      "clubName",
-      "measurements",
-      "playstyle",
-      "aspirations",
-      "allergies",
-      "notifications",
-      "schedule",
-    ].includes(step);
+  const secondaryLabel = secondaryActionForStep(step);
+  const canSkip = secondaryLabel !== null;
   const buttonLabel =
     step === "welcome"
       ? "Get started"
@@ -1691,90 +1744,8 @@ export function Onboarding({
                   ? "Save my week"
                   : "Continue";
   const showTitle = !!title;
-  return (
-    <KeyboardAvoidingView
-      style={[styles.root, purpleScreen && { backgroundColor: "#190D26" }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <StatusBar style="light" />
-      {photoScreen ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          {step === "welcome" ? (
-            <WelcomeBackground focused={focused} />
-          ) : (
-            <Image
-              source={photo}
-              contentFit="cover"
-              contentPosition={{ left: "50%", top: "50%" }}
-              style={[StyleSheet.absoluteFill, { opacity: 0.22 }]}
-            />
-          )}
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: step === "welcome" ? "#080F0B55" : "#080F0B66" },
-            ]}
-          />
-        </View>
-      ) : null}
-      <View style={[styles.header, { paddingTop: inset.top + 8 }]}>
-        {purpleScreen ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            onPress={goBack}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={23} color={colors.white} />
-          </Pressable>
-        ) : (
-          <Text style={styles.brand}>
-            break<Text style={{ color: colors.lime }}>away</Text>
-          </Text>
-        )}
-        {replay && step !== "welcome" ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Cancel onboarding"
-            onPress={() => {
-              haptic("light");
-              pendingAdvance.cancel();
-              onComplete?.();
-            }}
-            style={styles.iconButton}
-          >
-            <X size={22} color={colors.white} />
-          </Pressable>
-        ) : null}
-      </View>
-      {index > 0 && !purpleScreen ? (
-        <View style={styles.progressRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            onPress={goBack}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={23} color={colors.white} />
-          </Pressable>
-          <View
-            accessibilityRole="progressbar"
-            accessibilityLabel="Onboarding progress"
-            aria-valuemin={0}
-            aria-valuemax={flowSteps.length - 1}
-            aria-valuenow={index}
-            accessibilityValue={{ min: 0, max: flowSteps.length - 1, now: index }}
-            style={styles.progressTrack}
-          >
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${(index / (flowSteps.length - 1)) * 100}%` },
-              ]}
-            />
-          </View>
-        </View>
-      ) : null}
+  const currentScene = (
+    <View style={{ flex: 1 }}>
       <ScrollView
         key={step}
         style={{ flex: 1 }}
@@ -1833,22 +1804,144 @@ export function Onboarding({
           {canSkip ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Skip ${step}`}
+              accessibilityLabel={secondaryLabel ?? undefined}
               onPress={() => {
-                if (step === "schedule" && invalidWeekTime) {
-                  answer({ week: undefined });
-                }
+                if (step === "notifications") setRemindersRequested(false);
                 advance();
               }}
               style={styles.skip}
             >
               <Copy muted style={{ fontSize: 13 }}>
-                Skip for now
+                {secondaryLabel}
               </Copy>
             </Pressable>
           ) : null}
         </View>
       ) : null}
+    </View>
+  );
+  scene.current = currentScene;
+  return (
+    <KeyboardAvoidingView
+      style={[styles.root, purpleScreen && { backgroundColor: "#190D26" }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <StatusBar style="light" />
+      {photoScreen ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {step === "welcome" ? (
+            <WelcomeBackground focused={focused} />
+          ) : (
+            <Image
+              source={photo}
+              contentFit="cover"
+              contentPosition={{ left: "50%", top: "50%" }}
+              style={[StyleSheet.absoluteFill, { opacity: 0.22 }]}
+            />
+          )}
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: step === "welcome" ? "#080F0B55" : "#080F0B66" },
+            ]}
+          />
+        </View>
+      ) : null}
+      <View style={[styles.header, { paddingTop: inset.top + 8 }]}>
+        {purpleScreen ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={goBack}
+            style={styles.iconButton}
+          >
+            <ArrowLeft size={23} color={colors.white} />
+          </Pressable>
+        ) : (
+          <Text style={styles.brand}>
+            break<Text style={{ color: colors.lime }}>away</Text>
+          </Text>
+        )}
+        {replay && step !== "welcome" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel onboarding"
+            onPress={() => {
+              haptic("light");
+              pendingAdvance.cancel();
+              settleScene();
+              onComplete?.();
+            }}
+            style={styles.iconButton}
+          >
+            <X size={22} color={colors.white} />
+          </Pressable>
+        ) : null}
+      </View>
+      {index > 0 && !purpleScreen ? (
+        <View style={styles.progressRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={goBack}
+            style={styles.iconButton}
+          >
+            <ArrowLeft size={23} color={colors.white} />
+          </Pressable>
+          <View
+            accessibilityRole="progressbar"
+            accessibilityLabel="Onboarding progress"
+            aria-valuemin={0}
+            aria-valuemax={flowSteps.length - 1}
+            aria-valuenow={index}
+            accessibilityValue={{ min: 0, max: flowSteps.length - 1, now: index }}
+            style={styles.progressTrack}
+          >
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${(index / (flowSteps.length - 1)) * 100}%` },
+              ]}
+            />
+          </View>
+        </View>
+      ) : null}
+      <View style={{ flex: 1, overflow: "hidden" }}>
+        {(outgoing
+          ? [
+              { index: outgoing.index, node: outgoing.node, old: true },
+              { index, node: currentScene, old: false },
+            ]
+          : [{ index, node: currentScene, old: false }]
+        ).map((item) => (
+          <Animated.View
+            key={item.index}
+            pointerEvents={outgoing ? "none" : "auto"}
+            accessibilityElementsHidden={!!outgoing}
+            importantForAccessibility={outgoing ? "no-hide-descendants" : "auto"}
+            aria-hidden={!!outgoing}
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                transform: [
+                  {
+                    translateX: outgoing
+                      ? slide.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: item.old
+                            ? [0, -outgoing.direction * width]
+                            : [outgoing.direction * width, 0],
+                        })
+                      : 0,
+                  },
+                ],
+              },
+            ]}
+          >
+            {item.node}
+          </Animated.View>
+        ))}
+      </View>
     </KeyboardAvoidingView>
   );
 }

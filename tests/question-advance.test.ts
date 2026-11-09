@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createQuestionAdvance } from "../src/domain/questionAdvance";
+import {
+  createQuestionAdvance,
+  createSceneTransition,
+} from "../src/domain/questionAdvance";
 import { autoAdvanceSteps, type FlowDraft } from "../src/domain/onboardingFlow";
 
 function queue() {
@@ -114,4 +117,50 @@ test("zero-delay reduced-motion transitions still commit the answer first and ne
     "plan",
   ])
     assert.equal(autoAdvanceSteps.includes(explicit as never), false, explicit);
+});
+
+test("scene animation completion is single-owner and cannot complete an interrupted or newer transition", () => {
+  const scene = createSceneTransition();
+  const completions: (() => void)[] = [];
+  let stops = 0;
+  let settled = 0;
+  const run = (complete: () => void) => {
+    completions.push(complete);
+    return () => {
+      stops += 1;
+      complete();
+    }; // Native stop may synchronously report completion.
+  };
+  assert.equal(
+    scene.start(run, () => {
+      settled += 1;
+    }),
+    true,
+  );
+  assert.equal(scene.active, true);
+  assert.equal(
+    scene.start(run, () => {
+      settled += 100;
+    }),
+    false,
+  );
+  scene.cancel();
+  assert.equal(scene.active, false);
+  assert.equal(stops, 1);
+  assert.equal(settled, 0);
+  assert.equal(
+    scene.start(run, () => {
+      settled += 1;
+    }),
+    true,
+  );
+  completions[0]();
+  assert.equal(scene.active, true, "Old completion must not clear the new scene");
+  assert.equal(settled, 0);
+  completions[1]();
+  completions[1]();
+  assert.equal(scene.active, false);
+  assert.equal(settled, 1);
+  scene.cancel();
+  assert.equal(stops, 1, "Settled animations do not retain cancellation handles");
 });

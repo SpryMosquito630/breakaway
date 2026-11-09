@@ -93,7 +93,7 @@ Detail and pre-timer setup prioritize title, compact requirements, a movement vi
 
 The user requested the full visible Footly onboarding sequence. Breakaway now uses 39 screens with dark forest/lime quiz and photo beats, purple plan/profile beats, bold Archivo headings, pinned pill CTAs, numbered question rows, an interactive position pitch, a horizontal training-style photo carousel, optional explicit metric pickers, editable local week notes, colored goals, and an onboarding-only snapshot/style carousel. Full source map and data audit: `breakaway-onboarding-spec.md`.
 
-Every fresh or replay draft starts unanswered. Required training inputs stay explicit; optional reflections offer Skip. No questionnaire answer creates a skill score, body assessment, calorie prescription, fabricated loading sequence or 12-week forecast. Account/referral/Health controls are omitted because the shipping app does not implement them. Skill profile remains the sole persistent skill-rating destination. Existing replay history, age restrictions, custom-plan semantics and recovery fences remain intact. Optional local notes are allowlisted, sanitized and excluded from connected payloads; reminders use the existing scheduler only after final save.
+Every fresh or replay draft starts unanswered. Required training inputs stay explicit; only reference-verified screens offer Skip, while optional private notes can remain blank. No questionnaire answer creates a skill score, body assessment, calorie prescription, fabricated loading sequence or 12-week forecast. Account/referral/Health controls are omitted because the shipping app does not implement them. Skill profile remains the sole persistent skill-rating destination. Existing replay history, age restrictions, custom-plan semantics and recovery fences remain intact. Optional local notes are allowlisted, sanitized and excluded from connected payloads; reminders use the existing scheduler only after final save.
 
 ## Onboarding card reference refinement
 
@@ -107,6 +107,13 @@ A matching bundled poster covers loading/error and remains static until the syst
 
 ## Quiz tap-to-continue — November 8, 2026
 
-The numbered single-choice quiz and position pitch now advance after an explicit tap: frequency, club, ambition, tracking, blocker, motivation, technical focus, position, experience, training goal, consistency and food source. Those screens omit Continue; previously optional questions retain Skip. Level, commitment, playstyle, diet, multiple-choice, text, pickers, schedule and summary screens retain their explicit actions. Selection feedback lasts 180 ms, or advances on the next event turn with Reduce Motion. No answer is selected automatically.
+The numbered single-choice quiz and position pitch now advance after an explicit tap: frequency, club, ambition, tracking, blocker, motivation, technical focus, position, experience, training goal, consistency and food source. Those screens omit Continue; only reference-verified screens retain Skip. Level, commitment, playstyle, diet, multiple-choice, text, pickers, schedule and summary screens retain their explicit actions. Selection feedback lasts 180 ms, or advances on the next event turn with Reduce Motion. No answer is selected automatically.
 
 Position plus pitch abbreviation, and experience plus year range, update atomically before advancing. One tokenized pending transition rejects repeated taps and stale callbacks; navigation, cancellation, blur, background and unmount invalidate it. Back retains only this draft’s chosen answers. This changes onboarding navigation only, with no practice auto-start or history/age behavior change.
+
+
+## Reference skips and horizontal scene handoff — November 8, 2026
+
+Generic Skip rows are removed. Measurements, training/body goal and plan comparison use “Skip quiz”; plan brief uses “Skip”; reminders use “Not right now”. Private dietary/allergy/measurement/week notes remain optional, and notification decline clears the temporary reminder request. No question-number changes were made.
+
+A 260 ms horizontal body/footer handoff follows the observed reference transition. Forward exits left/enters right, Back reverses; cubic Bézier (0.22, 0.61, 0.36, 1), transform only, native driver on iOS/Android. Header, progress, background and video remain stationary. Stable scene keys preserve outgoing scroll position; scenes are inert during motion. Interruptions cancel stale completions and settle at zero translation; Reduce Motion has no spatial transition. Full reference/data notes remain in `breakaway-onboarding-spec.md`.

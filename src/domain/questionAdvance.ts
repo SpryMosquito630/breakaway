@@ -33,3 +33,36 @@ export function createQuestionAdvance(
     },
   };
 }
+
+/** Interruptible scene ownership; stale native animation completions cannot clear a newer scene. */
+export function createSceneTransition() {
+  let generation = 0;
+  let active = false;
+  let stop: (() => void) | undefined;
+  return {
+    get active() {
+      return active;
+    },
+    start(run: (complete: () => void) => () => void, onComplete: () => void) {
+      if (active) return false;
+      active = true;
+      const ticket = ++generation;
+      const cancelRun = run(() => {
+        if (ticket !== generation || !active) return;
+        active = false;
+        stop = undefined;
+        generation += 1;
+        onComplete();
+      });
+      if (ticket === generation && active) stop = cancelRun;
+      return true;
+    },
+    cancel() {
+      generation += 1;
+      active = false;
+      const cancelRun = stop;
+      stop = undefined;
+      cancelRun?.();
+    },
+  };
+}
