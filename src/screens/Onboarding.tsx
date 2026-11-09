@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
+  AppState,
   BackHandler,
   KeyboardAvoidingView,
   Linking,
@@ -44,11 +46,13 @@ import {
   snapshotStyles,
   weekActivities,
   flowSteps,
+  autoAdvanceSteps,
   finishOnboardingDraft,
   isFlowStepReady,
   type FlowDraft,
   type OnboardingAnswers,
 } from "../domain/onboardingFlow";
+import { createQuestionAdvance } from "../domain/questionAdvance";
 import { planForDate } from "../domain/planning";
 import { useReminders } from "../notifications/RemindersProvider";
 import { skillProfile } from "../domain/skillProfile";
@@ -302,16 +306,61 @@ export function Onboarding({
   const [imperial, setImperial] = useState(false);
   const [showPhotoCredits, setShowPhotoCredits] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [pendingAdvance] = useState(() => createQuestionAdvance());
+  const currentIndex = useRef(0);
+  const mounted = useRef(true);
+  const foreground = useRef(AppState.currentState === "active");
+  const focus = useRef(focused);
+  const reduceMotion = useRef(true);
+  const goTo = (next: number) => {
+    pendingAdvance.cancel();
+    currentIndex.current = next;
+    setIndex(next);
+  };
+  const goBack = () => {
+    haptic("light");
+    goTo(Math.max(0, currentIndex.current - 1));
+  };
+  useLayoutEffect(() => {
+    focus.current = focused;
+    if (!focused) pendingAdvance.cancel();
+  }, [focused, pendingAdvance]);
+  useEffect(() => {
+    mounted.current = true;
+    let preferenceChanged = false;
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (mounted.current && !preferenceChanged) reduceMotion.current = enabled;
+      })
+      .catch(() => {});
+    const motion = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      (enabled) => {
+        preferenceChanged = true;
+        reduceMotion.current = enabled;
+      },
+    );
+    const state = AppState.addEventListener("change", (value) => {
+      foreground.current = value === "active";
+      if (!foreground.current) pendingAdvance.cancel();
+    });
+    return () => {
+      mounted.current = false;
+      pendingAdvance.cancel();
+      motion.remove();
+      state.remove();
+    };
+  }, [pendingAdvance]);
   useEffect(() => {
     if (Platform.OS !== "android" || index === 0) return;
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      haptic("selection");
-      setIndex((current) => Math.max(0, current - 1));
+      goBack();
       return true;
     });
     return () => subscription.remove();
   }, [index]);
   const step = flowSteps[index];
+  const automatic = autoAdvanceSteps.includes(step);
   const answers = draft.answers ?? {};
   const profile = profileFromDraft(draft);
   const field = fieldForStep.has(step) ? (step as keyof typeof answerOptions) : undefined;
@@ -332,10 +381,42 @@ export function Onboarding({
   const matchCount = Object.values(answers.week ?? {}).filter(
     (row) => row?.activity === "Match",
   ).length;
-  const patch = (next: Partial<FlowDraft>) => setDraft((d) => ({ ...d, ...next }));
-  const answer = (next: Partial<OnboardingAnswers>) =>
-    setDraft((d) => ({ ...d, answers: { ...d.answers, ...next } }));
+  const patch = (next: Partial<FlowDraft>) => {
+    if (
+      currentIndex.current !== index ||
+      !mounted.current ||
+      !focus.current ||
+      !foreground.current
+    )
+      return;
+    const apply = () =>
+      setDraft((d) => ({
+        ...d,
+        ...next,
+        ...(next.answers ? { answers: { ...d.answers, ...next.answers } } : {}),
+      }));
+    if (!automatic) {
+      apply();
+      return;
+    }
+    pendingAdvance.choose(
+      apply,
+      () => {
+        if (
+          mounted.current &&
+          focus.current &&
+          foreground.current &&
+          currentIndex.current === index
+        )
+          goTo(index + 1);
+      },
+      reduceMotion.current ? 0 : 180,
+    );
+  };
+  const answer = (next: Partial<OnboardingAnswers>) => patch({ answers: next });
   const advance = () => {
+    if (currentIndex.current !== index) return;
+    pendingAdvance.cancel();
     if (step === "plan") {
       if (!profile) return;
       haptic("success");
@@ -344,7 +425,7 @@ export function Onboarding({
       onComplete?.();
     } else {
       haptic("medium");
-      setIndex((i) => Math.min(i + 1, flowSteps.length - 1));
+      goTo(Math.min(index + 1, flowSteps.length - 1));
     }
   };
   const nextData = profile ? finishOnboardingDraft(data, draft, drills, replay) : null;
@@ -615,8 +696,7 @@ export function Onboarding({
                   }}
                   onPress={() => {
                     haptic("selection");
-                    patch({ position: p.position });
-                    answer({ positionDetail: p.short });
+                    patch({ position: p.position, answers: { positionDetail: p.short } });
                   }}
                   style={[
                     styles.position,
@@ -639,8 +719,10 @@ export function Onboarding({
               label="Still exploring"
               selected={draft.position === "Still exploring"}
               onPress={() => {
-                patch({ position: "Still exploring" });
-                answer({ positionDetail: "Exploring" });
+                patch({
+                  position: "Still exploring",
+                  answers: { positionDetail: "Exploring" },
+                });
               }}
             />
           </View>
@@ -821,8 +903,10 @@ export function Onboarding({
                 number={i + 1}
                 selected={answers.years === label}
                 onPress={() => {
-                  answer({ years: label });
-                  patch({ experience: i === 0 ? "New to training" : "Some experience" });
+                  patch({
+                    experience: i === 0 ? "New to training" : "Some experience",
+                    answers: { years: label },
+                  });
                 }}
               />
             ))}
@@ -1639,10 +1723,7 @@ export function Onboarding({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back"
-            onPress={() => {
-              haptic("light");
-              setIndex((i) => Math.max(i - 1, 0));
-            }}
+            onPress={goBack}
             style={styles.iconButton}
           >
             <ArrowLeft size={23} color={colors.white} />
@@ -1658,6 +1739,7 @@ export function Onboarding({
             accessibilityLabel="Cancel onboarding"
             onPress={() => {
               haptic("light");
+              pendingAdvance.cancel();
               onComplete?.();
             }}
             style={styles.iconButton}
@@ -1671,10 +1753,7 @@ export function Onboarding({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back"
-            onPress={() => {
-              haptic("light");
-              setIndex((i) => i - 1);
-            }}
+            onPress={goBack}
             style={styles.iconButton}
           >
             <ArrowLeft size={23} color={colors.white} />
@@ -1705,6 +1784,7 @@ export function Onboarding({
           styles.content,
           { flexGrow: 1 },
           step === "welcome" && { paddingTop: 0 },
+          automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -1720,50 +1800,56 @@ export function Onboarding({
         ) : null}
         {content}
       </ScrollView>
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: Math.max(inset.bottom, 16) },
-          purpleScreen && { backgroundColor: "#190D26" },
-          (step === "welcome" || step === "intro") && { backgroundColor: "transparent" },
-        ]}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={buttonLabel}
-          accessibilityState={{ disabled: !ready }}
-          aria-disabled={!ready}
-          disabled={!ready}
-          onPress={advance}
-          style={({ pressed }) => [
-            styles.primary,
-            !ready && styles.primaryDisabled,
-            pressed && { opacity: 0.8 },
+      {!automatic || canSkip ? (
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: Math.max(inset.bottom, 16) },
+            purpleScreen && { backgroundColor: "#190D26" },
+            (step === "welcome" || step === "intro") && {
+              backgroundColor: "transparent",
+            },
           ]}
         >
-          <Text style={[styles.primaryText, !ready && { color: colors.muted }]}>
-            {buttonLabel}
-          </Text>
-          <ArrowRight size={20} color={ready ? colors.background : colors.muted} />
-        </Pressable>
-        {canSkip ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Skip ${step}`}
-            onPress={() => {
-              if (step === "schedule" && invalidWeekTime) {
-                answer({ week: undefined });
-              }
-              advance();
-            }}
-            style={styles.skip}
-          >
-            <Copy muted style={{ fontSize: 13 }}>
-              Skip for now
-            </Copy>
-          </Pressable>
-        ) : null}
-      </View>
+          {!automatic ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={buttonLabel}
+              accessibilityState={{ disabled: !ready }}
+              aria-disabled={!ready}
+              disabled={!ready}
+              onPress={advance}
+              style={({ pressed }) => [
+                styles.primary,
+                !ready && styles.primaryDisabled,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Text style={[styles.primaryText, !ready && { color: colors.muted }]}>
+                {buttonLabel}
+              </Text>
+              <ArrowRight size={20} color={ready ? colors.background : colors.muted} />
+            </Pressable>
+          ) : null}
+          {canSkip ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Skip ${step}`}
+              onPress={() => {
+                if (step === "schedule" && invalidWeekTime) {
+                  answer({ week: undefined });
+                }
+                advance();
+              }}
+              style={styles.skip}
+            >
+              <Copy muted style={{ fontSize: 13 }}>
+                Skip for now
+              </Copy>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }

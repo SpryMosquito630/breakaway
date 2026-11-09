@@ -172,6 +172,22 @@ export const flowSteps = [
   "plan",
 ] as const;
 export type FlowStep = (typeof flowSteps)[number];
+/** Recorded numbered single-choice questions/pitch advance on an explicit choice. */
+export const autoAdvanceSteps: readonly FlowStep[] = [
+  "frequency",
+  "club",
+  "ambition",
+  "tracking",
+  "blocker",
+  "motivation",
+  "focus",
+  "position",
+  "experience",
+  "bodyGoal",
+  "consistency",
+  "foodSource",
+];
+
 export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
   const value = raw as Record<string, unknown>;
