@@ -106,7 +106,7 @@ export function OnboardingFeedbackToast({
         <View style={styles.icon}>
           <Icon size={19} strokeWidth={2} color="#B6FF3B" />
         </View>
-        <View style={{ flex: 1, gap: 4 }}>
+        <View style={styles.copy}>
           <Text style={styles.title}>{message.title}</Text>
           <Text style={styles.body}>{message.body}</Text>
         </View>
@@ -115,21 +115,22 @@ export function OnboardingFeedbackToast({
   );
 }
 const styles = StyleSheet.create({
-  position: { position: "absolute", left: 24, right: 24 },
+  position: { position: "absolute", left: "5.6%", right: "5.6%" },
   card: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
-    padding: 14,
-    borderRadius: 20,
+    gap: 10,
+    padding: 13,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#46592B",
-    backgroundColor: "#172016FA",
-    shadowColor: "#B6FF3B",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    borderColor: "#43512A",
+    backgroundColor: "#182017",
+    shadowColor: "#A4C74C",
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
   },
+  copy: { flex: 1, gap: 3 },
   icon: {
     height: 34,
     width: 34,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   body: {
     fontFamily: "Archivo_400Regular",
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 16,
     color: "#B6C0AD",
   },
 });

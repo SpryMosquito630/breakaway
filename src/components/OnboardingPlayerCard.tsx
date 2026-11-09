@@ -1,5 +1,5 @@
-import { useId } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useId, useMemo } from "react";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import Svg, {
   Circle,
   ClipPath,
@@ -17,7 +17,7 @@ import type { skillProfile } from "../domain/skillProfile";
 const finishes = [
   { base: "#071F1B", shade: "#123F32", metal: "#7DC9A4", light: "#D2FBE3" },
   { base: "#18210B", shade: "#3D5118", metal: "#B6E45C", light: "#ECFFA5" },
-  { base: "#101110", shade: "#32312A", metal: "#A49358", light: "#E9DCA6" },
+  { base: "#080909", shade: "#1D1D19", metal: "#B8A265", light: "#E3D69C" },
   { base: "#1C0B2D", shade: "#49265E", metal: "#BE93D0", light: "#F1D5FF" },
   { base: "#071A35", shade: "#173E70", metal: "#719AD5", light: "#C1DFFF" },
 ];
@@ -95,6 +95,35 @@ export function PlayerCardFinish({ look }: { look?: string }) {
             opacity={i % 3 === 0 ? 0.13 : 0.05}
           />
         ))}
+        {/* The recorded black/gold finish has a narrow folded edge and curved
+            engraving, rather than a broad luminous stripe across the portrait. */}
+        <Path
+          d="M20 170 L282 51 L73 187 L236 269 L45 185 Z"
+          fill="#020403"
+          opacity=".62"
+        />
+        <Path
+          d="M20 170 L282 51 L52 178 L208 260 L36 181 Z"
+          fill={url("metal")}
+          opacity=".7"
+        />
+        <Path
+          d="M33 173 L282 51 M50 182 L282 51 M57 192 L241 286"
+          fill="none"
+          stroke={theme.light}
+          strokeWidth=".65"
+          opacity=".76"
+        />
+        {Array.from({ length: 12 }, (_, i) => (
+          <Path
+            key={`curve${i}`}
+            d={`M282 53 Q${182 + i * 7} ${130 + i * 4} ${177 + i * 8} 251`}
+            fill="none"
+            stroke={theme.light}
+            strokeWidth={i % 4 === 0 ? ".8" : ".4"}
+            opacity={i % 4 === 0 ? ".17" : ".08"}
+          />
+        ))}
         <Rect x="16" y="237" width="270" height="143" fill={url("fade")} />
         <Path
           d="M25 252 Q150 246 275 252"
@@ -141,6 +170,10 @@ export function OnboardingPlayerCard({
   look?: string;
   ratings: ReturnType<typeof skillProfile>;
 }) {
+  const { width } = useWindowDimensions();
+  // Source frame: a ~230-point visible outline in a 444-point viewport.
+  const scale = Math.min(width * 0.54, 252) / 252;
+  const styles = useMemo(() => createStyles(scale), [scale]);
   return (
     <View style={styles.card}>
       <PlayerCardFinish look={look} />
@@ -156,10 +189,10 @@ export function OnboardingPlayerCard({
         >
           {ratings.overall ?? "—"}
         </Text>
-        <Text style={styles.ovrLabel}>TEST OVR</Text>
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.position}>
           {position}
         </Text>
+        <Text style={styles.ovrLabel}>OVR</Text>
       </View>
       <View
         pointerEvents="none"
@@ -195,75 +228,87 @@ export function OnboardingPlayerCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: { alignSelf: "center", width: 252, height: 328, maxWidth: "100%" },
-  brand: {
-    position: "absolute",
-    top: 29,
-    alignSelf: "center",
-    fontFamily: "BarlowCondensed_700Bold",
-    fontSize: 12,
-    letterSpacing: 1,
-    color: "#EEEADA",
-  },
-  rating: {
-    position: "absolute",
-    left: 25,
-    top: 49,
-    width: 62,
-    alignItems: "flex-start",
-  },
-  overall: {
-    fontFamily: "Archivo_700Bold",
-    fontSize: 43,
-    lineHeight: 47,
-    letterSpacing: -1.5,
-    color: "#FCFCF7",
-  },
-  ovrLabel: {
-    fontFamily: "Archivo_500Medium",
-    fontSize: 8,
-    lineHeight: 11,
-    color: "#E0DDCF",
-  },
-  position: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 18,
-    lineHeight: 26,
-    color: "#FCFCF7",
-    maxWidth: 62,
-  },
-  portrait: { position: "absolute", top: 101, left: 103, width: 94, height: 107 },
-  name: {
-    position: "absolute",
-    top: 222,
-    left: 27,
-    right: 27,
-    textAlign: "center",
-    fontFamily: "Archivo_700Bold",
-    fontSize: 19,
-    lineHeight: 25,
-    color: "#FCFCF7",
-  },
-  stats: {
-    position: "absolute",
-    top: 263,
-    left: 25,
-    right: 25,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  stat: { alignItems: "center", minWidth: 26 },
-  statLabel: {
-    fontFamily: "BarlowCondensed_600SemiBold",
-    fontSize: 11,
-    lineHeight: 14,
-    color: "#D2D0C5",
-  },
-  statValue: {
-    fontFamily: "BarlowCondensed_700Bold",
-    fontSize: 18,
-    lineHeight: 22,
-    color: "#FCFCF7",
-  },
-});
+const createStyles = (scale: number) =>
+  StyleSheet.create({
+    card: {
+      alignSelf: "center",
+      width: 252 * scale,
+      height: 328 * scale,
+      maxWidth: "100%",
+    },
+    brand: {
+      position: "absolute",
+      top: 29 * scale,
+      alignSelf: "center",
+      fontFamily: "BarlowCondensed_700Bold",
+      fontSize: Math.max(11, 12 * scale),
+      letterSpacing: 1 * scale,
+      color: "#EEEADA",
+    },
+    rating: {
+      position: "absolute",
+      left: 25 * scale,
+      top: 49 * scale,
+      width: 62 * scale,
+      alignItems: "flex-start",
+    },
+    overall: {
+      fontFamily: "Archivo_700Bold",
+      fontSize: 43 * scale,
+      lineHeight: 47 * scale,
+      letterSpacing: -1.5 * scale,
+      color: "#FCFCF7",
+    },
+    ovrLabel: {
+      fontFamily: "Archivo_500Medium",
+      fontSize: 11,
+      lineHeight: 14,
+      color: "#E0DDCF",
+    },
+    position: {
+      fontFamily: "Archivo_600SemiBold",
+      fontSize: 18 * scale,
+      lineHeight: 26 * scale,
+      color: "#FCFCF7",
+      maxWidth: 62 * scale,
+    },
+    portrait: {
+      position: "absolute",
+      top: 85 * scale,
+      left: 106 * scale,
+      width: 86 * scale,
+      height: 96 * scale,
+    },
+    name: {
+      position: "absolute",
+      top: 222 * scale,
+      left: 27 * scale,
+      right: 27 * scale,
+      textAlign: "center",
+      fontFamily: "Archivo_700Bold",
+      fontSize: 19 * scale,
+      lineHeight: 25 * scale,
+      color: "#FCFCF7",
+    },
+    stats: {
+      position: "absolute",
+      top: 263 * scale,
+      left: 25 * scale,
+      right: 25 * scale,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    stat: { alignItems: "center", minWidth: 26 * scale },
+    statLabel: {
+      fontFamily: "BarlowCondensed_600SemiBold",
+      fontSize: Math.max(11, 11 * scale),
+      lineHeight: Math.max(14, 14 * scale),
+      color: "#D2D0C5",
+    },
+    statValue: {
+      fontFamily: "BarlowCondensed_700Bold",
+      fontSize: 18 * scale,
+      lineHeight: 22 * scale,
+      color: "#FCFCF7",
+    },
+  });
