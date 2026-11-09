@@ -845,24 +845,6 @@ export function Onboarding({
       case "playstyle":
         content = (
           <>
-            <Text
-              accessibilityRole="header"
-              style={[
-                styles.playstyleHeading,
-                {
-                  fontSize: Math.min(21, (width * 24) / 444),
-                  lineHeight: Math.min(26, (width * 30) / 444),
-                },
-              ]}
-            >
-              Which playstyle fits you best?
-            </Text>
-            <Copy
-              muted
-              style={{ textAlign: "center", marginTop: 6, fontSize: 13, lineHeight: 18 }}
-            >
-              Pick what feels like your game.
-            </Copy>
             <ScrollView
               key={availablePlayerStyles.map((player) => player.id).join("-")}
               horizontal
@@ -870,7 +852,7 @@ export function Onboarding({
               showsHorizontalScrollIndicator={false}
               style={{
                 marginHorizontal: -24,
-                marginTop: height * 0.044,
+                marginTop: Math.max(24, height * 0.044 - 8),
                 flexGrow: 0,
                 flexShrink: 0,
                 ...(Platform.OS === "web" ? { scrollSnapType: "x mandatory" } : {}),
@@ -1839,6 +1821,24 @@ export function Onboarding({
   const showTitle = !!title;
   const currentScene = (
     <View style={{ flex: 1 }}>
+      {step === "playstyle" ? (
+        <View
+          style={{
+            paddingHorizontal: 24,
+            paddingTop: Math.max(16, height * 0.0875 - inset.top - 48),
+          }}
+        >
+          <Text accessibilityRole="header" style={styles.playstyleHeading}>
+            Which playstyle fits you best?
+          </Text>
+          <Copy
+            muted
+            style={{ textAlign: "center", marginTop: 8, fontSize: 14, lineHeight: 20 }}
+          >
+            Pick what feels like your game.
+          </Copy>
+        </View>
+      ) : null}
       <ScrollView
         key={step}
         style={{ flex: 1 }}
@@ -1847,9 +1847,7 @@ export function Onboarding({
           styles.content,
           { flexGrow: 1 },
           step === "welcome" && { paddingTop: 0 },
-          step === "playstyle" && {
-            paddingTop: Math.max(inset.top + 12, height * 0.0875),
-          },
+          step === "playstyle" && { paddingTop: 0 },
           automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
         ]}
         showsVerticalScrollIndicator={false}
@@ -1963,14 +1961,9 @@ export function Onboarding({
           styles.header,
           { paddingTop: inset.top + 8 },
           step === "playstyle" && {
-            position: "absolute",
-            top: inset.top + 4,
-            left: 0,
-            right: 0,
-            zIndex: 5,
-            paddingTop: 0,
+            paddingTop: inset.top,
             paddingHorizontal: 12,
-            minHeight: 44,
+            minHeight: inset.top + 48,
           },
         ]}
       >
@@ -2267,9 +2260,9 @@ const styles = StyleSheet.create({
   },
   playstyleHeading: {
     fontFamily: "Archivo_700Bold",
-    fontSize: 21,
-    lineHeight: 26,
-    letterSpacing: -0.4,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: 0,
     color: colors.white,
     textAlign: "center",
   },
