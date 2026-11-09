@@ -536,7 +536,6 @@ export function Onboarding({
               minHeight: 390,
             }}
           >
-            <Tag>Your game. Your pace.</Tag>
             <Text style={styles.welcomeTitle}>Getting better{"\n"}starts here.</Text>
             <Copy>Individual practice. A clear plan. Your progress.</Copy>
           </View>
@@ -1733,7 +1732,7 @@ export function Onboarding({
             break<Text style={{ color: colors.lime }}>away</Text>
           </Text>
         )}
-        {replay ? (
+        {replay && step !== "welcome" ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Cancel onboarding"
