@@ -107,3 +107,21 @@ The generic Skip row is removed from frequency, club, club name, level, commitme
 A focused 65.7–66.5 second excerpt was inspected at 10 fps; its equipment-to-Q6 change shows a short horizontal scene handoff. Breakaway uses simultaneous full-width translation over 260 ms with cubic Bézier (0.22, 0.61, 0.36, 1): forward exits left and enters from right; Back reverses that spatial direction. This is a chosen close match, not a claim of precisely measured source duration. The body and footer move together; header, progress, background and welcome video remain outside the animation. Existing 180 ms answer feedback precedes it. Primary motion weighting is native consumer polish (Jakub), with fast, restrained timing (Emil).
 
 Outgoing and incoming scenes retain distinct stable keys, preserving reading position during exit. Both are inert and hidden from accessibility until the handoff ends. No live video is retained in a scene snapshot. Repeated inputs are ignored while moving; Back interrupts to the previous logical question. Backgrounding, focus loss and Reduce Motion settle the chosen destination at zero translation and invalidate stale native animation callbacks. Reduce Motion uses an immediate screen change with no spatial movement. Original recorded question labels, including Question #2.5, remain unchanged at the user’s request.
+
+## Answer feedback overlays
+
+The recording shows floating feedback cards independent of the horizontally moving question. Club and starting-lineup cards are directly visible in `frames/frame_0003.jpg` and `inventory/frames/cue_0007.jpg`; the latter stays visible while Q3 slides to Q4. Focused footer review also reveals “A ball is enough to start” and “Consistent beats intense”. The recorded four-day week callout is “Four days, serious rhythm”. Additional working evidence is in `work/onboarding-popups-review/`; it is not shipped as an app asset.
+
+| Explicit trigger | Feedback heading | Breakaway adaptation |
+| --- | --- | --- |
+| Professional/pro-academy or grassroots/amateur club answer | Club football is real football | Individual practice alongside club sessions; no fixture-aware scheduling promise |
+| Make the starting lineup | Starting spots are earned midweek | A repeatable week; no claim to predict a coach’s decisions |
+| Stay consistent and enjoy the game | Consistent beats intense | Enjoyment and making room in the week; no automatic training-load promise |
+| Continue after final equipment choice is Ball only | A ball is enough to start | Actual ball-only, space-eligible matching |
+| Continue after choosing four distinct training days | Four days, serious rhythm | Acknowledges four chosen days; no unsupported speed/recovery split |
+
+Multi-select equipment and weekday cards are triggered on Continue, rather than temporarily crossing a selection threshold. No feedback appears before an explicit answer, and no unobserved answer variants are fabricated. The separately visible “Consistency is a schedule problem” variant is omitted because its exact hidden-question routing was not independently verified.
+
+The implementation uses a compact dark-green floating card, lime icon circle/border, white heading and muted body. It remains outside the question scene so automatic navigation is never delayed: the existing 180 ms answer feedback and 260 ms question slide run independently. A new matching response replaces the previous card. The card sits above the active measured footer, or above the bottom safe area when no footer exists. It has no dismissal button and never intercepts touches.
+
+Chosen motion is 220 ms fade/rise by 12 points, 2,400 ms hold and 160 ms fade/drop, using cubic Bézier (0.22, 0.61, 0.36, 1). These values approximate the observed brief entrance/persistence/exit, not a frame-exact measurement of source timing. Reduce Motion uses an instant stationary appearance/disappearance while preserving readable hold time. Back, Cancel, focus loss, background and unmount clear the card; timer/animation generations invalidate replaced or interrupted callbacks. Web uses one polite status live region; native uses one explicit accessibility announcement, without a duplicate live region.

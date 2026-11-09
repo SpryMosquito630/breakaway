@@ -117,3 +117,9 @@ Position plus pitch abbreviation, and experience plus year range, update atomica
 Generic Skip rows are removed. Measurements, training/body goal and plan comparison use “Skip quiz”; plan brief uses “Skip”; reminders use “Not right now”. Private dietary/allergy/measurement/week notes remain optional, and notification decline clears the temporary reminder request. No question-number changes were made.
 
 A 260 ms horizontal body/footer handoff follows the observed reference transition. Forward exits left/enters right, Back reverses; cubic Bézier (0.22, 0.61, 0.36, 1), transform only, native driver on iOS/Android. Header, progress, background and video remain stationary. Stable scene keys preserve outgoing scroll position; scenes are inert during motion. Interruptions cancel stale completions and settle at zero translation; Reduce Motion has no spatial transition. Full reference/data notes remain in `breakaway-onboarding-spec.md`.
+
+## Answer feedback cards — November 8, 2026
+
+Five evidenced contexts now show a nonblocking floating feedback card: club teams, starting-lineup ambition, consistency/enjoyment motivation, final Ball only equipment and a final four-day schedule. Known reference headings remain; unsupported selection, medical and training-load promises are rewritten around actual choices. No scores or saved data are created.
+
+The card is independent of the question scene and does not delay auto-advance. It anchors above the measured active footer or safe area, enters with 220 ms opacity/12-point upward translation, holds 2,400 ms and exits over 160 ms. Reduce Motion removes movement; interruption/replacement cancels timers and native animation completions. No X or touch interception is added. Source evidence, exact triggers and accessibility handling are recorded in `breakaway-onboarding-spec.md`.

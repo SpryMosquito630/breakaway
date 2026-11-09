@@ -19,6 +19,12 @@ import {
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useIsFocused } from "@react-navigation/native";
+import { OnboardingFeedbackToast } from "../components/OnboardingFeedbackToast";
+import {
+  feedbackAfterAnswer,
+  feedbackAfterContinue,
+  type OnboardingFeedback,
+} from "../domain/onboardingFeedback";
 import { WelcomeBackground } from "../components/WelcomeBackground";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -309,6 +315,9 @@ export function Onboarding({
   const [imperial, setImperial] = useState(false);
   const [showPhotoCredits, setShowPhotoCredits] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<OnboardingFeedback | null>(null);
+  const [reducedMotionEnabled, setReducedMotionEnabled] = useState(true);
+  const [footerMeasure, setFooterMeasure] = useState({ index: -1, height: 0 });
   const [pendingAdvance] = useState(() => createQuestionAdvance());
   const [sceneMotion] = useState(() => createSceneTransition());
   const [slide] = useState(() => new Animated.Value(1));
@@ -376,12 +385,14 @@ export function Onboarding({
     );
   }, [outgoing, sceneMotion, slide]);
   const goBack = () => {
+    setFeedback(null);
     haptic("light");
     goTo(Math.max(0, currentIndex.current - 1));
   };
   useLayoutEffect(() => {
     focus.current = focused;
     if (!focused) {
+      setFeedback(null);
       pendingAdvance.cancel();
       settleScene();
     }
@@ -391,7 +402,10 @@ export function Onboarding({
     let preferenceChanged = false;
     void AccessibilityInfo.isReduceMotionEnabled()
       .then((enabled) => {
-        if (mounted.current && !preferenceChanged) reduceMotion.current = enabled;
+        if (mounted.current && !preferenceChanged) {
+          reduceMotion.current = enabled;
+          setReducedMotionEnabled(enabled);
+        }
       })
       .catch(() => {});
     const motion = AccessibilityInfo.addEventListener(
@@ -399,12 +413,14 @@ export function Onboarding({
       (enabled) => {
         preferenceChanged = true;
         reduceMotion.current = enabled;
+        setReducedMotionEnabled(enabled);
         if (enabled) settleScene();
       },
     );
     const state = AppState.addEventListener("change", (value) => {
       foreground.current = value === "active";
       if (!foreground.current) {
+        setFeedback(null);
         pendingAdvance.cancel();
         settleScene();
       }
@@ -451,12 +467,19 @@ export function Onboarding({
       !foreground.current
     )
       return;
-    const apply = () =>
+    const apply = () => {
       setDraft((d) => ({
         ...d,
         ...next,
         ...(next.answers ? { answers: { ...d.answers, ...next.answers } } : {}),
       }));
+      const message = feedbackAfterAnswer(step, {
+        ...draft,
+        ...next,
+        ...(next.answers ? { answers: { ...draft.answers, ...next.answers } } : {}),
+      });
+      if (message) setFeedback(message);
+    };
     if (!automatic) {
       apply();
       return;
@@ -486,6 +509,8 @@ export function Onboarding({
       if (remindersRequested) void reminders.setEnabled(true);
       onComplete?.();
     } else {
+      const message = feedbackAfterContinue(step, draft);
+      if (message) setFeedback(message);
       haptic("medium");
       goTo(Math.min(index + 1, flowSteps.length - 1));
     }
@@ -1772,6 +1797,15 @@ export function Onboarding({
       </ScrollView>
       {!automatic || canSkip ? (
         <View
+          onLayout={({ nativeEvent }) => {
+            if (currentIndex.current !== index) return;
+            const height = nativeEvent.layout.height;
+            setFooterMeasure((previous) =>
+              previous.index === index && previous.height === height
+                ? previous
+                : { index, height },
+            );
+          }}
           style={[
             styles.footer,
             { paddingBottom: Math.max(inset.bottom, 16) },
@@ -1821,6 +1855,12 @@ export function Onboarding({
     </View>
   );
   scene.current = currentScene;
+  const footerHeight =
+    !automatic || canSkip
+      ? footerMeasure.index === index
+        ? footerMeasure.height
+        : Math.max(inset.bottom, 16) + 12 + 56 + (canSkip ? 46 : 0)
+      : 0;
   return (
     <KeyboardAvoidingView
       style={[styles.root, purpleScreen && { backgroundColor: "#190D26" }]}
@@ -1868,6 +1908,7 @@ export function Onboarding({
             accessibilityLabel="Cancel onboarding"
             onPress={() => {
               haptic("light");
+              setFeedback(null);
               pendingAdvance.cancel();
               settleScene();
               onComplete?.();
@@ -1942,6 +1983,16 @@ export function Onboarding({
           </Animated.View>
         ))}
       </View>
+      {feedback ? (
+        <OnboardingFeedbackToast
+          message={feedback}
+          reducedMotion={reducedMotionEnabled}
+          bottom={Math.max(footerHeight, Math.max(inset.bottom, 16)) + 12}
+          onHidden={() =>
+            setFeedback((current) => (current === feedback ? null : current))
+          }
+        />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
