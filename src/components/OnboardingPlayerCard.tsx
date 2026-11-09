@@ -1,5 +1,15 @@
-import { useId, useMemo } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Animated,
+  AppState,
+  Easing,
+  Platform,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Svg, {
   Circle,
   ClipPath,
@@ -164,67 +174,183 @@ export function OnboardingPlayerCard({
   position,
   look,
   ratings,
+  active = true,
 }: {
   name?: string;
   position: string;
   look?: string;
   ratings: ReturnType<typeof skillProfile>;
+  /** False for an outgoing step or an unfocused onboarding screen. */
+  active?: boolean;
 }) {
   const { width } = useWindowDimensions();
   // Source frame: a ~230-point visible outline in a 444-point viewport.
   const scale = Math.min(width * 0.54, 252) / 252;
   const styles = useMemo(() => createStyles(scale), [scale]);
+  const reveal = useRef(new Animated.Value(0)).current;
+  const played = useRef(false);
+  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+  const [foreground, setForeground] = useState(AppState.currentState === "active");
+
+  useEffect(() => {
+    let mounted = true;
+    // A preference event can arrive before the initial async read resolves.
+    let preferenceChanged = false;
+    const preference = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      (enabled) => {
+        preferenceChanged = true;
+        setReduceMotion(enabled);
+      },
+    );
+    AccessibilityInfo.isReduceMotionEnabled().then(
+      (enabled) => {
+        if (mounted && !preferenceChanged) setReduceMotion(enabled);
+      },
+      () => {
+        if (mounted && !preferenceChanged) setReduceMotion(true);
+      },
+    );
+    const appState = AppState.addEventListener("change", (state) =>
+      setForeground(state === "active"),
+    );
+    return () => {
+      mounted = false;
+      preference.remove();
+      appState.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion === null) return;
+    if (!active || !foreground || reduceMotion || played.current) {
+      reveal.stopAnimation();
+      reveal.setValue(1);
+      return;
+    }
+    played.current = true;
+    reveal.setValue(0);
+    // Reference 247.25–248.65s: rise, show the reverse, then finish one Y turn.
+    // No idle spin, delayed timer, or replay when the app returns to foreground.
+    const animation = Animated.timing(reveal, {
+      toValue: 1,
+      duration: 1400,
+      easing: Easing.linear,
+      useNativeDriver: Platform.OS !== "web",
+      isInteraction: false,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [active, foreground, reduceMotion, reveal]);
+
+  const rotation = (reverse: boolean) =>
+    reveal.interpolate({
+      inputRange: [0, 0.36, 0.52, 1],
+      outputRange: reverse
+        ? ["180deg", "360deg", "360deg", "540deg"]
+        : ["0deg", "180deg", "180deg", "360deg"],
+    });
+  const faceOpacity = (reverse: boolean) =>
+    reveal.interpolate({
+      inputRange: [0, 0.1799, 0.18, 0.7599, 0.76, 1],
+      outputRange: reverse ? [0, 0, 1, 1, 0, 0] : [1, 1, 0, 0, 1, 1],
+    });
   return (
-    <View style={styles.card}>
-      <PlayerCardFinish look={look} />
-      <Text style={styles.brand}>BREAKAWAY</Text>
-      <View style={styles.rating}>
-        <Text
-          accessibilityLabel={
-            ratings.overall === null
-              ? "Overall test rating not yet assessed"
-              : `Overall test rating ${ratings.overall}`
-          }
-          style={styles.overall}
-        >
-          {ratings.overall ?? "—"}
-        </Text>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.position}>
-          {position}
-        </Text>
-        <Text style={styles.ovrLabel}>OVR</Text>
-      </View>
-      <View
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          opacity:
+            reduceMotion === null && active
+              ? 0
+              : reveal.interpolate({
+                  inputRange: [0, 0.1, 1],
+                  outputRange: [0, 1, 1],
+                }),
+          transform: [
+            {
+              translateY: reveal.interpolate({
+                inputRange: [0, 0.18, 0.36, 0.52, 1],
+                outputRange: [160 * scale, 60 * scale, 8 * scale, 0, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <Animated.View
         pointerEvents="none"
-        style={styles.portrait}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
+        style={[
+          styles.face,
+          {
+            opacity: faceOpacity(true),
+            transform: [{ perspective: 900 }, { rotateY: rotation(true) }],
+          },
+        ]}
       >
-        <Svg width="100%" height="100%" viewBox="0 0 110 124">
-          <Circle cx="55" cy="34" r="21" fill="#D8D7CB" opacity=".62" />
-          <Path
-            d="M11 112 C11 86 30 69 55 69 C80 69 99 86 99 112 Q99 117 94 117 L16 117 Q11 117 11 112Z"
-            fill="#D8D7CB"
-            opacity=".62"
-          />
-        </Svg>
-      </View>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={styles.name}>
-        {name?.trim() || "Your game"}
-      </Text>
-      <View style={styles.stats}>
-        {ratings.skills.map((skill) => (
-          <View
-            key={skill.id}
-            accessibilityLabel={`${skill.name}, ${skill.rating === null ? "not assessed" : `test rating ${skill.rating}`}`}
-            style={styles.stat}
+        <PlayerCardFinish look={look} />
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.face,
+          {
+            opacity: faceOpacity(false),
+            transform: [{ perspective: 900 }, { rotateY: rotation(false) }],
+          },
+        ]}
+      >
+        <PlayerCardFinish look={look} />
+        <Text style={styles.brand}>BREAKAWAY</Text>
+        <View style={styles.rating}>
+          <Text
+            accessibilityLabel={
+              ratings.overall === null
+                ? "Overall test rating not yet assessed"
+                : `Overall test rating ${ratings.overall}`
+            }
+            style={styles.overall}
           >
-            <Text style={styles.statLabel}>{skill.short}</Text>
-            <Text style={styles.statValue}>{skill.rating ?? "—"}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
+            {ratings.overall ?? "—"}
+          </Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.position}>
+            {position}
+          </Text>
+          <Text style={styles.ovrLabel}>OVR</Text>
+        </View>
+        <View
+          pointerEvents="none"
+          style={styles.portrait}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <Svg width="100%" height="100%" viewBox="0 0 110 124">
+            <Circle cx="55" cy="34" r="21" fill="#D8D7CB" opacity=".62" />
+            <Path
+              d="M11 112 C11 86 30 69 55 69 C80 69 99 86 99 112 Q99 117 94 117 L16 117 Q11 117 11 112Z"
+              fill="#D8D7CB"
+              opacity=".62"
+            />
+          </Svg>
+        </View>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.name}>
+          {name?.trim() || "Your game"}
+        </Text>
+        <View style={styles.stats}>
+          {ratings.skills.map((skill) => (
+            <View
+              key={skill.id}
+              accessibilityLabel={`${skill.name}, ${skill.rating === null ? "not assessed" : `test rating ${skill.rating}`}`}
+              style={styles.stat}
+            >
+              <Text style={styles.statLabel}>{skill.short}</Text>
+              <Text style={styles.statValue}>{skill.rating ?? "—"}</Text>
+            </View>
+          ))}
+        </View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -235,6 +361,14 @@ const createStyles = (scale: number) =>
       width: 252 * scale,
       height: 328 * scale,
       maxWidth: "100%",
+    },
+    face: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backfaceVisibility: "hidden",
     },
     brand: {
       position: "absolute",

@@ -1488,83 +1488,60 @@ export function Onboarding({
         break;
       case "planComparison":
         content = (
-          <View style={{ gap: 24, paddingTop: 20 }}>
+          <View style={{ gap: 20, paddingTop: 12 }}>
             <Heading>Random sessions don’t know your goal. A plan does.</Heading>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 20,
-                alignItems: "flex-end",
-                justifyContent: "center",
-                paddingVertical: 24,
-              }}
-            >
-              <View style={{ flex: 1, maxWidth: 100, gap: 12 }}>
-                <View
-                  style={[
-                    styles.comparisonBar,
-                    {
-                      height: 122,
-                      justifyContent: "flex-start",
-                      padding: 14,
-                      paddingTop: 18,
-                    },
-                  ]}
-                >
-                  <BarFill id="routine-random" top="#FA4765" bottom="#EB254A" />
-                  <Copy
-                    style={{
-                      textAlign: "center",
-                      fontSize: 12,
-                      lineHeight: 18,
-                      color: colors.background,
-                    }}
-                  >
-                    Training at random
+            <View style={styles.comparisonColumns}>
+              {[
+                {
+                  id: "routine-random",
+                  top: "#FA4765",
+                  bottom: "#EB254A",
+                  short: true,
+                  label: "Without a routine",
+                  detail: "Training at random",
+                  items: ["Guesswork"],
+                },
+                {
+                  id: "routine-plan",
+                  top: "#A6FF35",
+                  bottom: "#14B84D",
+                  short: false,
+                  label: "Your Breakaway plan",
+                  detail: "Built from your answers",
+                  items: ["A clear focus", "Chosen days", "Track practice"],
+                },
+              ].map((column) => (
+                <View key={column.id} style={styles.comparisonColumn}>
+                  <View style={styles.comparisonStage}>
+                    <View
+                      style={[
+                        styles.comparisonBar,
+                        { minHeight: column.short ? 124 : 228, gap: 10 },
+                      ]}
+                    >
+                      <BarFill id={column.id} top={column.top} bottom={column.bottom} />
+                      {column.items.map((label) => (
+                        <View key={label} style={styles.comparisonItem}>
+                          {!column.short ? (
+                            <Check
+                              size={13}
+                              color={colors.background}
+                              style={{ marginTop: 2 }}
+                            />
+                          ) : null}
+                          <Copy style={styles.comparisonItemText}>{label}</Copy>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                  <Copy style={styles.comparisonLabel}>{column.label}</Copy>
+                  <Copy muted style={styles.comparisonDetail}>
+                    {column.detail}
                   </Copy>
                 </View>
-                <Copy muted style={{ textAlign: "center", fontSize: 12, lineHeight: 18 }}>
-                  Without a routine
-                </Copy>
-              </View>
-              <View style={{ flex: 1, maxWidth: 100, gap: 12 }}>
-                <View
-                  style={[
-                    styles.comparisonBar,
-                    {
-                      height: 228,
-                      gap: 10,
-                      justifyContent: "flex-start",
-                      padding: 12,
-                      paddingTop: 18,
-                    },
-                  ]}
-                >
-                  <BarFill id="routine-plan" top="#A6FF35" bottom="#14B84D" />
-                  {["A clear focus", "Your chosen days", "Practice you can track"].map(
-                    (label) => (
-                      <View key={label} style={{ flexDirection: "row", gap: 8 }}>
-                        <Check size={12} color={colors.background} />
-                        <Copy
-                          style={{
-                            flex: 1,
-                            fontSize: 12,
-                            lineHeight: 18,
-                            color: colors.background,
-                          }}
-                        >
-                          {label}
-                        </Copy>
-                      </View>
-                    ),
-                  )}
-                </View>
-                <Copy style={{ textAlign: "center", fontSize: 12, lineHeight: 18 }}>
-                  Your Breakaway plan
-                </Copy>
-              </View>
+              ))}
             </View>
-            <Copy muted style={{ textAlign: "center" }}>
+            <Copy muted style={{ textAlign: "center", fontSize: 13, lineHeight: 20 }}>
               Your focus, setup and available time shape your starting session.
             </Copy>
           </View>
@@ -1651,38 +1628,22 @@ export function Onboarding({
         break;
       case "comparison":
         content = (
-          <View style={{ gap: 24, paddingTop: 16 }}>
+          <View style={{ gap: 16, paddingTop: 16 }}>
             <Heading center>A week that works for you.</Heading>
-            <Copy muted style={{ textAlign: "center" }}>
+            <Copy muted style={{ textAlign: "center", fontSize: 14, lineHeight: 21 }}>
               Your answers so far. Your next step is choosing the days.
             </Copy>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 28,
-                justifyContent: "center",
-                paddingTop: 30,
-              }}
-            >
+            <View style={[styles.comparisonColumns, { paddingTop: 24 }]}>
               {[
-                [answers.frequency ?? "Not answered", "Right now"],
-                [answers.commitment ?? "Not answered", "Your intention"],
-              ].map(([value, label], i) => (
-                <View
-                  key={label}
-                  style={{ alignItems: "center", flex: 1, maxWidth: 105, gap: 12 }}
-                >
-                  <View
-                    style={[
-                      styles.comparisonBar,
-                      {
-                        height: 236,
-                        justifyContent: "flex-start",
-                        paddingHorizontal: 12,
-                        paddingTop: 22,
-                      },
-                    ]}
-                  >
+                [answers.frequency ?? "Not answered", "Right now", "What you told us"],
+                [
+                  answers.commitment ?? "Not answered",
+                  "Your intention",
+                  "What you chose",
+                ],
+              ].map(([value, label, detail], i) => (
+                <View key={label} style={styles.comparisonColumn}>
+                  <View style={[styles.comparisonBar, { minHeight: 236 }]}>
                     <BarFill
                       id={`answers-${i}`}
                       top={i ? "#A6FF35" : "#457425"}
@@ -1690,19 +1651,16 @@ export function Onboarding({
                     />
                     <Text
                       style={[
-                        styles.cardTitle,
-                        {
-                          color: i ? colors.background : colors.white,
-                          textAlign: "center",
-                        },
+                        styles.comparisonAnswer,
+                        { color: i ? colors.background : colors.white },
                       ]}
                     >
                       {value}
                     </Text>
                   </View>
-                  <Copy>{label}</Copy>
-                  <Copy muted style={{ fontSize: 11, textAlign: "center" }}>
-                    {i ? "what you chose" : "what you told us"}
+                  <Copy style={styles.comparisonLabel}>{label}</Copy>
+                  <Copy muted style={styles.comparisonDetail}>
+                    {detail}
                   </Copy>
                 </View>
               ))}
@@ -2398,6 +2356,7 @@ export function Onboarding({
                 position={answers.positionDetail ?? draft.position ?? "—"}
                 look={answers.snapshotStyle}
                 ratings={ratings}
+                active={focused && step === "snapshot"}
               />
             </View>
             <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
@@ -3350,14 +3309,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  comparisonBar: {
-    height: 210,
-    width: "100%",
-    borderRadius: 20,
-    padding: 18,
-    alignItems: "center",
+  comparisonColumns: {
+    flexDirection: "row",
+    gap: 24,
     justifyContent: "center",
+    alignItems: "flex-start",
   },
+  comparisonColumn: { flex: 1, maxWidth: 140, minWidth: 0, alignItems: "center" },
+  comparisonStage: { width: "100%", minHeight: 228, justifyContent: "flex-end" },
+  comparisonBar: {
+    width: "100%",
+    borderRadius: 18,
+    overflow: "hidden",
+    paddingHorizontal: 12,
+    paddingVertical: 18,
+    alignItems: "center",
+  },
+  comparisonItem: { flexDirection: "row", gap: 5, alignSelf: "stretch" },
+  comparisonItemText: { flex: 1, fontSize: 12, lineHeight: 18, color: colors.background },
+  comparisonAnswer: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 18,
+    lineHeight: 24,
+    textAlign: "center",
+    flexShrink: 1,
+  },
+  comparisonLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "center",
+    marginTop: 12,
+    minHeight: 36,
+  },
+  comparisonDetail: { fontSize: 11, lineHeight: 16, textAlign: "center", marginTop: 4 },
   summaryRow: {
     flexDirection: "row",
     gap: 10,
@@ -3402,7 +3386,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: "flex-start",
   },
-  footer: { paddingHorizontal: 24, paddingTop: 12, gap: 0, backgroundColor: "#080F0BF2" },
+  footer: { paddingHorizontal: 24, paddingTop: 12, gap: 0 },
   primary: {
     minHeight: 50,
     borderRadius: 30,

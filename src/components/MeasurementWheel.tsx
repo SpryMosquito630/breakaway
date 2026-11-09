@@ -1,11 +1,20 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import {
   createWheelSelection,
   measurementRowHeight,
   type MeasurementKind,
 } from "../domain/measurementWheel";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { haptic } from "../utils/haptics";
 
 export function MeasurementWheel({
@@ -31,7 +40,6 @@ export function MeasurementWheel({
   formatValue?: (number: number) => string;
   rowHeight?: number;
 }) {
-  const fadeId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const change = useRef(onChange);
   change.current = onChange;
@@ -49,6 +57,7 @@ export function MeasurementWheel({
   );
   const [initialOffset] = useState(() => selection.position(value));
   const offset = useRef(initialOffset);
+  const rowPosition = useRef(new Animated.Value(initialOffset)).current;
   const touched = useRef(false);
   const dragging = useRef(false);
   const initialized = useRef(false);
@@ -67,6 +76,7 @@ export function MeasurementWheel({
     clearIdle();
     const y = selection.finish(offset.current);
     offset.current = y;
+    rowPosition.setValue(y);
     scroll.current?.scrollTo({ y, animated: false });
     interaction.current(false);
   };
@@ -103,7 +113,7 @@ export function MeasurementWheel({
           pointerEvents="none"
           style={[styles.center, { top: rowHeight, height: rowHeight }]}
         />
-        <ScrollView
+        <Animated.ScrollView
           ref={scroll}
           nestedScrollEnabled
           style={{ height: rowHeight * 3, width: "100%" }}
@@ -145,14 +155,20 @@ export function MeasurementWheel({
             offset.current = event.nativeEvent.contentOffset.y;
             finish();
           }}
-          onScroll={(event) => {
-            offset.current = event.nativeEvent.contentOffset.y;
-            selection.move(offset.current);
-            if (selection.active && !dragging.current) settleWhenIdle();
-          }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: rowPosition } } }],
+            {
+              useNativeDriver: Platform.OS !== "web",
+              listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+                offset.current = event.nativeEvent.contentOffset.y;
+                selection.move(offset.current);
+                if (selection.active && !dragging.current) settleWhenIdle();
+              },
+            },
+          )}
           {...(Platform.OS === "web" ? { onWheel: begin } : {})}
         >
-          {values.map((n) => (
+          {values.map((n, index) => (
             <Pressable
               key={n}
               accessibilityRole="radio"
@@ -164,34 +180,37 @@ export function MeasurementWheel({
                 touched.current = true;
                 const y = selection.tap(n);
                 offset.current = y;
+                rowPosition.setValue(y);
                 scroll.current?.scrollTo({ y, animated: false });
                 interaction.current(false);
               }}
               hitSlop={4}
               style={[styles.row, { height: rowHeight }]}
             >
-              <Text style={[styles.value, value === n && { color: "#F7FAF2" }]}>
+              <Animated.Text
+                style={[
+                  styles.value,
+                  value === n && { color: "#F7FAF2" },
+                  {
+                    opacity: rowPosition.interpolate({
+                      inputRange: [
+                        (index - 2) * rowHeight,
+                        (index - 1) * rowHeight,
+                        index * rowHeight,
+                        (index + 1) * rowHeight,
+                        (index + 2) * rowHeight,
+                      ],
+                      outputRange: [0, 0.45, 1, 0.45, 0],
+                      extrapolate: "clamp",
+                    }),
+                  },
+                ]}
+              >
                 {formatValue(n)}
-              </Text>
+              </Animated.Text>
             </Pressable>
           ))}
-        </ScrollView>
-        <Svg
-          pointerEvents="none"
-          style={StyleSheet.absoluteFill}
-          width="100%"
-          height={rowHeight * 3}
-        >
-          <Defs>
-            <LinearGradient id={fadeId} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor="#080F0B" stopOpacity={0.9} />
-              <Stop offset="0.34" stopColor="#080F0B" stopOpacity={0} />
-              <Stop offset="0.66" stopColor="#080F0B" stopOpacity={0} />
-              <Stop offset="1" stopColor="#080F0B" stopOpacity={0.9} />
-            </LinearGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill={`url(#${fadeId})`} />
-        </Svg>
+        </Animated.ScrollView>
       </View>
     </View>
   );
