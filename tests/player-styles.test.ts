@@ -3,10 +3,23 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
+  centeredPlayerStyleIndex,
   playerStyles,
   playerStylesForPosition,
   pitchPositions,
 } from "../src/domain/playerStyles";
+
+test("carousel selection follows the nearest centered card and clamps overscroll", () => {
+  const stride = 301.5;
+  assert.equal(centeredPlayerStyleIndex(0, stride, 4), 0);
+  assert.equal(centeredPlayerStyleIndex(stride / 2 - 0.1, stride, 4), 0);
+  assert.equal(centeredPlayerStyleIndex(stride / 2, stride, 4), 1);
+  assert.equal(centeredPlayerStyleIndex(stride * 2, stride, 4), 2);
+  assert.equal(centeredPlayerStyleIndex(-80, stride, 4), 0);
+  assert.equal(centeredPlayerStyleIndex(stride * 9, stride, 4), 3);
+  assert.equal(centeredPlayerStyleIndex(NaN, stride, 4), 0);
+  assert.equal(centeredPlayerStyleIndex(10, 0, 4), 0);
+});
 import {
   patchFlowDraft,
   isFlowStepReady,

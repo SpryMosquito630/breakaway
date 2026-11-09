@@ -5,9 +5,24 @@ import {
   createWheelSelection,
   displayMeasurement,
   measurementRowHeight,
+  measurementDefaultsForEntry,
   measurementValues,
   wheelIndexAtOffset,
 } from "../src/domain/measurementWheel";
+
+test("measurement entry uses the recorded metric starting values and preserves edited values", () => {
+  assert.deepEqual(measurementDefaultsForEntry({}), { heightCm: 175, weightKg: 70 });
+  assert.deepEqual(measurementDefaultsForEntry({ heightCm: 182.9, weightKg: 81.6 }), {
+    heightCm: 182.9,
+    weightKg: 81.6,
+  });
+  assert.deepEqual(measurementDefaultsForEntry({ heightCm: 168 }), {
+    heightCm: 168,
+    weightKg: 70,
+  });
+  assert.equal(displayMeasurement("height", 175, true), 69);
+  assert.equal(displayMeasurement("weight", 70, true), 154);
+});
 
 test("unit presentation never creates answers and every integer row converts within persisted bounds", () => {
   for (const kind of ["height", "weight"] as const) {

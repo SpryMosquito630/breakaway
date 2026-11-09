@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   StyleSheet,
   Text,
   TextInput,
@@ -31,6 +32,7 @@ import {
   displayMeasurement,
   measurementValues,
   measurementRowHeight,
+  measurementDefaultsForEntry,
   imperialFeet,
   inchesForFeet,
   imperialHeightFromCm,
@@ -38,7 +40,10 @@ import {
   formatImperialHeight,
   type ImperialHeightDraft,
 } from "../domain/measurementWheel";
-import { WelcomeBackground } from "../components/WelcomeBackground";
+import {
+  PositionConfirmationBackground,
+  WelcomeBackground,
+} from "../components/WelcomeBackground";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ArrowLeft,
@@ -94,7 +99,10 @@ import {
   type FlowDraft,
   type OnboardingAnswers,
 } from "../domain/onboardingFlow";
-import { playerStylesForPosition } from "../domain/playerStyles";
+import {
+  centeredPlayerStyleIndex,
+  playerStylesForPosition,
+} from "../domain/playerStyles";
 import { playerStyleImages } from "../data/playerStyleImages";
 import {
   createQuestionAdvance,
@@ -465,16 +473,21 @@ export function Onboarding({
   const [remindersRequested, setRemindersRequested] = useState(false);
   const inset = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  // Measured from the 444×960 reference: 310×669 card, photo about 390px tall.
-  const playerCardWidth = Math.min(width * 0.7, 360);
-  const playerCardHeight = Math.max(500, height * 0.697);
-  const playerPhotoHeight = playerCardHeight * 0.58;
+  // One reference scale keeps the title, card and photo in proportion across phones.
+  // Clean 444×960 frame: title y84, card x67/y182, 310×669, photo 390 high.
+  const playerReferenceScale = Math.min(width / 444, 360 / 310);
+  const playerCardWidth = 310 * playerReferenceScale;
+  const playerCardHeight = 669 * playerReferenceScale;
+  const playerPhotoHeight = 390 * playerReferenceScale;
   const playerCardInset = (width - playerCardWidth) / 2;
-  const playerCardGap = width * 0.074;
+  const playerCardGap = 33 * playerReferenceScale;
+  const playerCarousel = useRef<ScrollViewInstance>(null);
+  const selectedPlayerName = useRef<string | undefined>(undefined);
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState<FlowDraft>({});
   const [imperial, setImperial] = useState(false);
   const [heightPartsDraft, setHeightPartsDraft] = useState<ImperialHeightDraft>({});
+  const [measurementEntryIndex, setMeasurementEntryIndex] = useState(-1);
   const heightPartsRef = useRef<ImperialHeightDraft>({});
   const [activeMeasurementWheel, setActiveMeasurementWheel] = useState<string | null>(
     null,
@@ -485,6 +498,8 @@ export function Onboarding({
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(true);
   const [footerMeasure, setFooterMeasure] = useState({ index: -1, height: 0 });
   const [pendingAdvance] = useState(() => createQuestionAdvance());
+  const [footerReveal] = useState(() => createQuestionAdvance());
+  const [revealedFooterIndex, setRevealedFooterIndex] = useState(-1);
   const [sceneMotion] = useState(() => createSceneTransition());
   const [slide] = useState(() => new Animated.Value(1));
   const [introReveal] = useState(() => new Animated.Value(1));
@@ -667,12 +682,111 @@ export function Onboarding({
     return () => subscription.remove();
   }, [index]);
   const step = flowSteps[index];
+  // Reference editorial beats reveal their manual action after the content arrives.
+  const footerRevealDelay = {
+    assessment: 3500,
+    strengths: 2000,
+    growth: 2500,
+    fuel: 1500,
+  }[step as "assessment" | "strengths" | "growth" | "fuel"];
+  const footerReady =
+    footerRevealDelay === undefined ||
+    reducedMotionEnabled ||
+    revealedFooterIndex === index;
+  useLayoutEffect(() => {
+    footerReveal.cancel();
+    setRevealedFooterIndex(-1);
+    if (footerRevealDelay === undefined || reducedMotionEnabled || !focused) return;
+    const begin = (state: string | null | undefined) => {
+      footerReveal.cancel();
+      setRevealedFooterIndex(-1);
+      if (state !== "active") return;
+      footerReveal.choose(
+        () => {},
+        () => setRevealedFooterIndex(index),
+        footerRevealDelay,
+      );
+    };
+    begin(AppState.currentState);
+    const subscription = AppState.addEventListener("change", begin);
+    return () => {
+      subscription.remove();
+      footerReveal.cancel();
+    };
+  }, [index, focused, reducedMotionEnabled, footerRevealDelay, footerReveal]);
   const automatic = autoAdvanceSteps.includes(step);
   const answers = draft.answers ?? {};
+  useLayoutEffect(() => {
+    if (step !== "measurements") {
+      setMeasurementEntryIndex(-1);
+      return;
+    }
+    const parts = imperialHeightFromCm(measurementDefaultsForEntry(answers).heightCm);
+    heightPartsRef.current = parts;
+    setHeightPartsDraft(parts);
+    setDraft((current) => {
+      const values = measurementDefaultsForEntry(current.answers ?? {});
+      return patchFlowDraft(current, { answers: values });
+    });
+    // Mount wheels only after their initial values exist. Their first native offset
+    // must use 175/70, rather than mounting once at an unanswered fallback position.
+    setMeasurementEntryIndex(index);
+  }, [step]);
   const availablePlayerStyles = playerStylesForPosition(
     draft.position,
     answers.positionDetail,
   );
+  const playerRosterKey = availablePlayerStyles.map((player) => player.id).join("-");
+  // Initial positioning is stable during a drag. Live selection must never control offset.
+  const initialPlayerOffset = useMemo(
+    () => ({
+      x:
+        Math.max(
+          0,
+          availablePlayerStyles.findIndex((player) => player.name === answers.playstyle),
+        ) *
+        (playerCardWidth + playerCardGap),
+      y: 0,
+    }),
+    [step, playerRosterKey, playerCardWidth, playerCardGap],
+  );
+  selectedPlayerName.current = answers.playstyle;
+  // This inspiration carousel alone follows the centered reference card automatically.
+  // Other questions still require an explicit answer.
+  useLayoutEffect(() => {
+    if (step !== "playstyle") return;
+    setDraft((current) => {
+      const roster = playerStylesForPosition(
+        current.position,
+        current.answers?.positionDetail,
+      );
+      if (roster.some((player) => player.name === current.answers?.playstyle))
+        return current;
+      return patchFlowDraft(current, { answers: { playstyle: roster[0].name } });
+    });
+  }, [step, playerRosterKey]);
+  const selectCenteredPlayer = (offset: number) => {
+    if (
+      step !== "playstyle" ||
+      currentIndex.current !== index ||
+      transitionBusy.current ||
+      !mounted.current ||
+      !focus.current ||
+      !foreground.current ||
+      !Number.isFinite(offset)
+    )
+      return;
+    const centeredIndex = centeredPlayerStyleIndex(
+      offset,
+      playerCardWidth + playerCardGap,
+      availablePlayerStyles.length,
+    );
+    const name = availablePlayerStyles[centeredIndex].name;
+    if (selectedPlayerName.current === name) return;
+    selectedPlayerName.current = name;
+    haptic("selection");
+    setDraft((current) => patchFlowDraft(current, { answers: { playstyle: name } }));
+  };
   const availablePhotoCredits = playerPhotoCredits.filter((credit) =>
     availablePlayerStyles.some((player) => `${player.id}.jpg` === credit.file),
   );
@@ -1154,13 +1268,24 @@ export function Onboarding({
         content = (
           <>
             <ScrollView
-              key={availablePlayerStyles.map((player) => player.id).join("-")}
+              ref={playerCarousel}
+              key={playerRosterKey}
               horizontal
-              pagingEnabled={Platform.OS !== "web"}
+              contentOffset={initialPlayerOffset}
+              onScroll={({ nativeEvent }) =>
+                selectCenteredPlayer(nativeEvent.contentOffset.x)
+              }
+              onScrollEndDrag={({ nativeEvent }) =>
+                selectCenteredPlayer(nativeEvent.contentOffset.x)
+              }
+              onMomentumScrollEnd={({ nativeEvent }) =>
+                selectCenteredPlayer(nativeEvent.contentOffset.x)
+              }
+              scrollEventThrottle={16}
               showsHorizontalScrollIndicator={false}
               style={{
                 marginHorizontal: -24,
-                marginTop: Math.max(24, height * 0.044 - 8),
+                marginTop: 40 * playerReferenceScale,
                 flexGrow: 0,
                 flexShrink: 0,
                 ...(Platform.OS === "web" ? { scrollSnapType: "x mandatory" } : {}),
@@ -1183,14 +1308,21 @@ export function Onboarding({
                     selected: answers.playstyle === player.name,
                   }}
                   onPress={() => {
-                    haptic("selection");
-                    answer({ playstyle: player.name });
+                    const offset =
+                      availablePlayerStyles.indexOf(player) *
+                      (playerCardWidth + playerCardGap);
+                    selectCenteredPlayer(offset);
+                    playerCarousel.current?.scrollTo({
+                      x: offset,
+                      animated: !reducedMotionEnabled,
+                    });
                   }}
                   style={[
                     styles.styleCard,
                     {
                       width: playerCardWidth,
                       minHeight: playerCardHeight,
+                      borderRadius: 28 * playerReferenceScale,
                       ...(Platform.OS === "web" ? { scrollSnapAlign: "center" } : {}),
                     },
                     answers.playstyle === player.name && { borderColor: colors.lime },
@@ -1239,8 +1371,24 @@ export function Onboarding({
                       </View>
                     ) : null}
                   </View>
-                  <View style={{ padding: 14, paddingTop: 12, gap: 6 }}>
-                    <Text style={styles.playstyleName}>{player.name}</Text>
+                  <View
+                    style={{
+                      padding: 16 * playerReferenceScale,
+                      paddingTop: 12 * playerReferenceScale,
+                      gap: 6 * playerReferenceScale,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.playstyleName,
+                        {
+                          fontSize: 22 * playerReferenceScale,
+                          lineHeight: 27 * playerReferenceScale,
+                        },
+                      ]}
+                    >
+                      {player.name}
+                    </Text>
                     <Text
                       style={{
                         fontFamily: "Archivo_600SemiBold",
@@ -1357,6 +1505,10 @@ export function Onboarding({
         );
         break;
       case "measurements":
+        if (measurementEntryIndex !== index) {
+          content = <View />;
+          break;
+        }
         content = (
           <View>
             <Text accessibilityRole="header" style={styles.measurementTitle}>
@@ -1631,19 +1783,57 @@ export function Onboarding({
           <View style={{ gap: 16, paddingTop: 16 }}>
             <Heading center>A week that works for you.</Heading>
             <Copy muted style={{ textAlign: "center", fontSize: 14, lineHeight: 21 }}>
-              Your answers so far. Your next step is choosing the days.
+              Your current rhythm. Your intention.{"\n"}Next, choose the days you can
+              protect.
             </Copy>
-            <View style={[styles.comparisonColumns, { paddingTop: 24 }]}>
+            <View
+              style={[
+                styles.comparisonColumns,
+                { paddingTop: 32, gap: 42 * playerReferenceScale },
+              ]}
+            >
               {[
-                [answers.frequency ?? "Not answered", "Right now", "What you told us"],
                 [
-                  answers.commitment ?? "Not answered",
+                  answers.frequency === "Daily"
+                    ? "Daily"
+                    : answers.frequency === "A few times a week"
+                      ? "A few"
+                      : answers.frequency === "Once a week or less"
+                        ? "≤1×"
+                        : "Starting",
+                  answers.frequency === "Daily"
+                    ? "your rhythm"
+                    : answers.frequency === "I’m just getting started"
+                      ? "your rhythm"
+                      : "times a week",
+                  "Right now",
+                  "What you told us",
+                ],
+                [
+                  answers.commitment === "Steady"
+                    ? "2–3×"
+                    : answers.commitment === "Serious"
+                      ? "4–5×"
+                      : "Every",
+                  answers.commitment === "All in" ? "day you can" : "a week",
                   "Your intention",
                   "What you chose",
                 ],
-              ].map(([value, label, detail], i) => (
-                <View key={label} style={styles.comparisonColumn}>
-                  <View style={[styles.comparisonBar, { minHeight: 236 }]}>
+              ].map(([value, cadence, label, detail], i) => (
+                <View
+                  key={label}
+                  style={{ width: 114 * playerReferenceScale, alignItems: "center" }}
+                >
+                  <View
+                    style={[
+                      styles.comparisonBar,
+                      {
+                        minHeight: 268 * playerReferenceScale,
+                        paddingTop: 20 * playerReferenceScale,
+                        paddingHorizontal: 6,
+                      },
+                    ]}
+                  >
                     <BarFill
                       id={`answers-${i}`}
                       top={i ? "#A6FF35" : "#457425"}
@@ -1652,13 +1842,27 @@ export function Onboarding({
                     <Text
                       style={[
                         styles.comparisonAnswer,
-                        { color: i ? colors.background : colors.white },
+                        {
+                          color: i ? colors.background : colors.white,
+                          fontSize: 24 * playerReferenceScale,
+                          lineHeight: 29 * playerReferenceScale,
+                        },
                       ]}
                     >
                       {value}
                     </Text>
+                    <Copy
+                      style={{
+                        textAlign: "center",
+                        color: i ? colors.background : colors.white,
+                        fontSize: 12 * playerReferenceScale,
+                        lineHeight: 17 * playerReferenceScale,
+                      }}
+                    >
+                      {cadence}
+                    </Copy>
                   </View>
-                  <Copy style={styles.comparisonLabel}>{label}</Copy>
+                  <Copy style={[styles.comparisonLabel, { minHeight: 0 }]}>{label}</Copy>
                   <Copy muted style={styles.comparisonDetail}>
                     {detail}
                   </Copy>
@@ -2450,7 +2654,10 @@ export function Onboarding({
   const secondaryLabel = secondaryActionForStep(step);
   const canSkip = secondaryLabel !== null;
   const buttonLabel =
-    step === "diet" || step === "allergies" || step === "comparison"
+    step === "diet" ||
+    step === "allergies" ||
+    step === "comparison" ||
+    step === "equipment"
       ? "Next"
       : step === "assessment"
         ? "Show me"
@@ -2482,17 +2689,31 @@ export function Onboarding({
         <View
           style={{
             paddingHorizontal: 24,
-            paddingTop: Math.max(16, height * 0.0875 - inset.top - 48),
+            paddingTop: Math.max(12, 84 * playerReferenceScale - inset.top),
           }}
         >
-          <Text accessibilityRole="header" style={styles.playstyleHeading}>
+          <Text
+            accessibilityRole="header"
+            style={[
+              styles.playstyleHeading,
+              {
+                fontSize: 26 * playerReferenceScale,
+                lineHeight: 30 * playerReferenceScale,
+              },
+            ]}
+          >
             Which playstyle fits you best?
           </Text>
           <Copy
             muted
-            style={{ textAlign: "center", marginTop: 8, fontSize: 14, lineHeight: 20 }}
+            style={{
+              textAlign: "center",
+              marginTop: 8 * playerReferenceScale,
+              fontSize: 14 * playerReferenceScale,
+              lineHeight: 20 * playerReferenceScale,
+            }}
           >
-            Pick what feels like your game.
+            Pick the player profile that matches how you want to play.
           </Copy>
         </View>
       ) : null}
@@ -2557,6 +2778,9 @@ export function Onboarding({
           }}
           style={[
             styles.footer,
+            footerRevealDelay !== undefined && {
+              minHeight: Math.max(inset.bottom, 16) + 62,
+            },
             { paddingBottom: Math.max(inset.bottom, 16) },
             (purpleScreen || step === "notifications" || step === "comparison") && {
               backgroundColor: "transparent",
@@ -2566,7 +2790,7 @@ export function Onboarding({
             },
           ]}
         >
-          {!automatic ? (
+          {!automatic && footerReady ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={buttonLabel}
@@ -2626,6 +2850,13 @@ export function Onboarding({
               accessibilityLabel={secondaryLabel ?? undefined}
               onPress={() => {
                 if (step === "notifications") setRemindersRequested(false);
+                if (step === "measurements") {
+                  setDraft((current) =>
+                    patchFlowDraft(current, {
+                      answers: { heightCm: undefined, weightKg: undefined },
+                    }),
+                  );
+                }
                 advance();
               }}
               style={styles.skip}
@@ -2682,7 +2913,11 @@ export function Onboarding({
           <View style={[StyleSheet.absoluteFill, { backgroundColor: "#080F0B55" }]} />
         </Animated.View>
       ) : null}
-      {(photoScreen && step !== "welcome") || leavingIntro ? (
+      {step === "positionConfirm" ? (
+        <PositionConfirmationBackground focused={focused} />
+      ) : null}
+      {(photoScreen && step !== "welcome" && step !== "positionConfirm") ||
+      leavingIntro ? (
         <Animated.View
           key="editorial-background"
           pointerEvents="none"
@@ -2701,10 +2936,7 @@ export function Onboarding({
             source={photo}
             contentFit="cover"
             contentPosition={{ left: "50%", top: "50%" }}
-            style={[
-              StyleSheet.absoluteFill,
-              { opacity: step === "positionConfirm" ? 0.9 : 0.55 },
-            ]}
+            style={[StyleSheet.absoluteFill, { opacity: 0.55 }]}
           />
           <View style={[StyleSheet.absoluteFill, { backgroundColor: "#080F0B44" }]} />
         </Animated.View>
@@ -2718,18 +2950,17 @@ export function Onboarding({
                 ? inset.top + 4
                 : inset.top + 8,
           },
-          step === "playstyle" && {
+          (step === "playstyle" || step === "positionConfirm") && {
             paddingTop: inset.top,
             paddingHorizontal: 12,
-            minHeight: inset.top + 48,
+            paddingBottom: 0,
+            minHeight: inset.top,
           },
         ]}
       >
-        {purpleScreen ||
-        step === "playstyle" ||
-        step === "positionConfirm" ||
-        step === "notifications" ||
-        step === "comparison" ? (
+        {step === "playstyle" || step === "positionConfirm" ? null : purpleScreen ||
+          step === "notifications" ||
+          step === "comparison" ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back"

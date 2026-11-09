@@ -1,5 +1,12 @@
 import type { Position } from "./model";
 
+/** Card centers are separated by one width plus the carousel gap. */
+export function centeredPlayerStyleIndex(offset: number, stride: number, count: number) {
+  if (!Number.isFinite(offset) || !Number.isFinite(stride) || stride <= 0 || count < 1)
+    return 0;
+  return Math.max(0, Math.min(count - 1, Math.round(offset / stride)));
+}
+
 /** Stable photo IDs also key the native bundled-image map. Names remain save-compatible. */
 export const playerStyles = [
   {

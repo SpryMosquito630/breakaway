@@ -1,0 +1,59 @@
+{
+  "reviewedAt": "2026-11-09",
+  "title": "Penalty kick seen from behind the goal nets",
+  "provider": "Mixkit",
+  "itemId": 43495,
+  "creator": "No individual creator credited on the reviewed item page",
+  "sourcePage": "https://mixkit.co/free-stock-video/penalty-kick-seen-from-behind-the-goal-nets-43495/",
+  "originalDownloadUrl": "https://assets.mixkit.co/videos/43495/43495-1080.mp4",
+  "source": {
+    "bytes": 27697075,
+    "sha256": "3c5a82931e98fcb5907a35546fc8368aa44f7d917b1ed177677332f5fed0d166"
+  },
+  "license": {
+    "name": "Mixkit Stock Video Free License",
+    "url": "https://mixkit.co/license/#videoFree",
+    "modalUrl": "https://mixkit.co/license/modal/videoFree/",
+    "termsUrl": "https://mixkit.co/terms/",
+    "verification": "Item page explicitly identifies Free License for commercial or personal use. Official license modal permits modification/distribution and commercial/non-commercial projects. Terms revised October 2, 2025 reviewed. Incorporated as app background; no stock redistribution or endorsement."
+  },
+  "transform": {
+    "trimStartSeconds": 1.2,
+    "trimDurationSeconds": 4.6,
+    "sourceDimensions": [
+      1920,
+      1080
+    ],
+    "cropDimensions": [
+      498,
+      1080
+    ],
+    "cropX": 80,
+    "cropY": 0,
+    "outputDimensions": [
+      540,
+      1170
+    ],
+    "encoder": "libx264 preset slow CRF26 yuv420p",
+    "audio": "removed (source also has no audio stream)",
+    "mp4": "faststart",
+    "speed": "original",
+    "poster": "first encoded frame JPEG q:v3"
+  },
+  "assets": {
+    "goal-poster.jpg": {
+      "bytes": 49104,
+      "sha256": "a055dc7d65a42bbf676e889a63fca142349e08173658ff63836c479fd2cda4a0"
+    },
+    "goal.mp4": {
+      "bytes": 714155,
+      "sha256": "3b49a1888211857936591d9547d7164086e1b59182b0c677933cc01ee931ce95"
+    }
+  },
+  "visualReview": {
+    "method": "Entire original reviewed at 2fps; 2\u20134.5s shot detail at 4fps; final portrait encoding reviewed chronologically at 4fps. Actual filmed continuous take, no generated ball or net movement.",
+    "sequence": "View from behind the goal net. Run-up and ball approach, strike, ball travels directly toward camera and visibly strikes/deforms the foreground net at approximately 1.5\u20132 seconds into this trimmed loop. Crop preserves the kicker and ball/net impact; goalkeeper remains outside the narrow crop. Intentional cut to repeat.",
+    "evidence": "work/position-goal-review/portrait-sequence.jpg",
+    "limitation": "Different licensed scene from the private reference; no claim of identical footage."
+  }
+}

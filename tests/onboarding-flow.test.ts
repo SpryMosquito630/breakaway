@@ -9,6 +9,7 @@ import {
   snapshotStyles,
   weekActivities,
   finishOnboardingDraft,
+  patchFlowDraft,
   isFlowStepReady,
   sanitizeOnboardingAnswers,
   type FlowDraft,
@@ -17,6 +18,30 @@ import {
 import { restoreAppData } from "../src/domain/storage";
 import { buildTrainingPayload, parseTrainingPayload } from "../src/connected/sync";
 import { trainingContext } from "../src/coachAi/guide";
+import { measurementDefaultsForEntry } from "../src/domain/measurementWheel";
+
+test("reference measurement defaults stay in the draft and Skip clears both while keeping other answers", () => {
+  const before: FlowDraft = { answers: { name: "Player" } };
+  const entered = patchFlowDraft(before, {
+    answers: measurementDefaultsForEntry(before.answers ?? {}),
+  });
+  assert.deepEqual(entered.answers, { name: "Player", heightCm: 175, weightKg: 70 });
+  assert.deepEqual(before.answers, { name: "Player" });
+  const edited = patchFlowDraft(entered, {
+    answers: { heightCm: 182.9, weightKg: 81.6 },
+  });
+  const reopened = patchFlowDraft(edited, {
+    answers: measurementDefaultsForEntry(edited.answers ?? {}),
+  });
+  assert.equal(reopened.answers?.heightCm, 182.9);
+  assert.equal(reopened.answers?.weightKg, 81.6);
+  const skipped = patchFlowDraft(reopened, {
+    answers: { heightCm: undefined, weightKg: undefined },
+  });
+  assert.equal(skipped.answers?.heightCm, undefined);
+  assert.equal(skipped.answers?.weightKg, undefined);
+  assert.equal(skipped.answers?.name, "Player");
+});
 
 const draft = (): FlowDraft => ({
   ageBand: "13to17",

@@ -1,5 +1,12 @@
 export type MeasurementKind = "height" | "weight";
 export const measurementRowHeight = 32;
+/** First metric values visible at 1:41 in the supplied onboarding recording. */
+export function measurementDefaultsForEntry(values: {
+  heightCm?: number;
+  weightKg?: number;
+}) {
+  return { heightCm: values.heightCm ?? 175, weightKg: values.weightKg ?? 70 };
+}
 const poundsPerKg = 2.2046226218;
 const ranges = {
   height: {

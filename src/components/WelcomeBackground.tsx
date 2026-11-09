@@ -4,13 +4,21 @@ import { Image } from "expo-image";
 import { createVideoPlayer, VideoView, type VideoPlayer } from "expo-video";
 import { ownWelcomeVideo } from "./welcomeVideoPlayback";
 
-// Welcome-only licensed shot sequence: Ruben Velasco / Mixkit 2918.
-// Rights, hashes and portrait crop review: assets/welcome/provenance.json and LICENSE.md.
-const source = require("../../assets/welcome/shot-on-goal.mp4");
-const poster = require("../../assets/welcome/shot-on-goal-poster.jpg");
+// Rights and crop evidence are recorded beside each bundled asset.
+const media = {
+  welcome: {
+    video: require("../../assets/welcome/shot-on-goal.mp4"),
+    poster: require("../../assets/welcome/shot-on-goal-poster.jpg"),
+  },
+  position: {
+    video: require("../../assets/position-confirmation/goal.mp4"),
+    poster: require("../../assets/position-confirmation/goal-poster.jpg"),
+  },
+};
+type Scene = keyof typeof media;
 type Playback = ReturnType<typeof ownWelcomeVideo>;
 
-function WelcomeLoop() {
+function WelcomeLoop({ scene }: { scene: Scene }) {
   const [video, setVideo] = useState<{
     player: VideoPlayer;
     playback: Playback;
@@ -21,7 +29,7 @@ function WelcomeLoop() {
     // Effect ownership also recreates safely under React's development Strict Mode.
     let player: VideoPlayer | undefined;
     try {
-      player = createVideoPlayer(source);
+      player = createVideoPlayer(media[scene].video);
       const playback = ownWelcomeVideo(player, () => setUnavailable(true));
       setVideo({ player, playback });
       // Pause synchronously even if React cannot commit the background unmount yet.
@@ -36,7 +44,7 @@ function WelcomeLoop() {
       player?.release();
       setUnavailable(true);
     }
-  }, []);
+  }, [scene]);
   useEffect(() => {
     video?.playback.play();
   }, [video]);
@@ -60,14 +68,14 @@ function WelcomeLoop() {
           ]}
         />
       ) : null}
-      {!firstFrame || unavailable ? <WelcomePoster /> : null}
+      {!firstFrame || unavailable ? <WelcomePoster scene={scene} /> : null}
     </>
   );
 }
-function WelcomePoster() {
+function WelcomePoster({ scene }: { scene: Scene }) {
   return (
     <Image
-      source={poster}
+      source={media[scene].poster}
       contentFit="cover"
       accessible={false}
       style={StyleSheet.absoluteFill}
@@ -76,6 +84,22 @@ function WelcomePoster() {
 }
 
 export function WelcomeBackground({ focused }: { focused: boolean }) {
+  return <OnboardingVideoBackground focused={focused} scene="welcome" opacity={0.63} />;
+}
+
+export function PositionConfirmationBackground({ focused }: { focused: boolean }) {
+  return <OnboardingVideoBackground focused={focused} scene="position" opacity={0.9} />;
+}
+
+function OnboardingVideoBackground({
+  focused,
+  opacity,
+  scene,
+}: {
+  focused: boolean;
+  opacity: number;
+  scene: Scene;
+}) {
   const [reducedMotion, setReducedMotion] = useState<boolean | null>(null);
   const [foreground, setForeground] = useState(AppState.currentState === "active");
   useEffect(() => {
@@ -112,12 +136,12 @@ export function WelcomeBackground({ focused }: { focused: boolean }) {
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       aria-hidden
-      style={[StyleSheet.absoluteFill, { opacity: 0.63, overflow: "hidden" }]}
+      style={[StyleSheet.absoluteFill, { opacity, overflow: "hidden" }]}
     >
       {focused && foreground && reducedMotion === false ? (
-        <WelcomeLoop />
+        <WelcomeLoop key={scene} scene={scene} />
       ) : (
-        <WelcomePoster />
+        <WelcomePoster scene={scene} />
       )}
     </View>
   );
