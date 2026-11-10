@@ -1,4 +1,13 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -21,6 +30,12 @@ import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useIsFocused } from "@react-navigation/native";
 import { OnboardingFeedbackToast } from "../components/OnboardingFeedbackToast";
+import {
+  barLabelStyle,
+  entranceStyle,
+  growingBarStyle,
+  useOnboardingEntrance,
+} from "../components/useOnboardingEntrance";
 import {
   feedbackAfterAnswer,
   feedbackAfterContinue,
@@ -682,6 +697,7 @@ export function Onboarding({
     return () => subscription.remove();
   }, [index]);
   const step = flowSteps[index];
+  const entrance = useOnboardingEntrance(step, focused, reducedMotionEnabled);
   // Reference editorial beats reveal their manual action after the content arrives.
   const footerRevealDelay = {
     assessment: 3500,
@@ -1641,7 +1657,9 @@ export function Onboarding({
       case "planComparison":
         content = (
           <View style={{ gap: 20, paddingTop: 12 }}>
-            <Heading>Random sessions don’t know your goal. A plan does.</Heading>
+            <Animated.View style={entranceStyle(entrance[0])}>
+              <Heading>Random sessions don’t know your goal. A plan does.</Heading>
+            </Animated.View>
             <View style={styles.comparisonColumns}>
               {[
                 {
@@ -1662,7 +1680,7 @@ export function Onboarding({
                   detail: "Built from your answers",
                   items: ["A clear focus", "Chosen days", "Track practice"],
                 },
-              ].map((column) => (
+              ].map((column, i) => (
                 <View key={column.id} style={styles.comparisonColumn}>
                   <View style={styles.comparisonStage}>
                     <View
@@ -1671,9 +1689,23 @@ export function Onboarding({
                         { minHeight: column.short ? 124 : 228, gap: 10 },
                       ]}
                     >
-                      <BarFill id={column.id} top={column.top} bottom={column.bottom} />
+                      <Animated.View
+                        pointerEvents="none"
+                        style={[
+                          StyleSheet.absoluteFill,
+                          growingBarStyle(entrance[i + 1]),
+                        ]}
+                      >
+                        <BarFill id={column.id} top={column.top} bottom={column.bottom} />
+                      </Animated.View>
                       {column.items.map((label) => (
-                        <View key={label} style={styles.comparisonItem}>
+                        <Animated.View
+                          key={label}
+                          style={[
+                            styles.comparisonItem,
+                            barLabelStyle(entrance[i + 1], column.short ? 124 : 228),
+                          ]}
+                        >
                           {!column.short ? (
                             <Check
                               size={13}
@@ -1682,14 +1714,16 @@ export function Onboarding({
                             />
                           ) : null}
                           <Copy style={styles.comparisonItemText}>{label}</Copy>
-                        </View>
+                        </Animated.View>
                       ))}
                     </View>
                   </View>
-                  <Copy style={styles.comparisonLabel}>{column.label}</Copy>
-                  <Copy muted style={styles.comparisonDetail}>
-                    {column.detail}
-                  </Copy>
+                  <Animated.View style={{ opacity: entrance[3] }}>
+                    <Copy style={styles.comparisonLabel}>{column.label}</Copy>
+                    <Copy muted style={styles.comparisonDetail}>
+                      {column.detail}
+                    </Copy>
+                  </Animated.View>
                 </View>
               ))}
             </View>
@@ -1781,7 +1815,9 @@ export function Onboarding({
       case "comparison":
         content = (
           <View style={{ gap: 16, paddingTop: 16 }}>
-            <Heading center>A week that works for you.</Heading>
+            <Animated.View style={entranceStyle(entrance[0])}>
+              <Heading center>A week that works for you.</Heading>
+            </Animated.View>
             <Copy muted style={{ textAlign: "center", fontSize: 14, lineHeight: 21 }}>
               Your current rhythm. Your intention.{"\n"}Next, choose the days you can
               protect.
@@ -1834,14 +1870,20 @@ export function Onboarding({
                       },
                     ]}
                   >
-                    <BarFill
-                      id={`answers-${i}`}
-                      top={i ? "#A6FF35" : "#457425"}
-                      bottom={i ? "#16B64F" : "#0E4C29"}
-                    />
-                    <Text
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[StyleSheet.absoluteFill, growingBarStyle(entrance[i + 1])]}
+                    >
+                      <BarFill
+                        id={`answers-${i}`}
+                        top={i ? "#A6FF35" : "#457425"}
+                        bottom={i ? "#16B64F" : "#0E4C29"}
+                      />
+                    </Animated.View>
+                    <Animated.Text
                       style={[
                         styles.comparisonAnswer,
+                        barLabelStyle(entrance[i + 1], 268 * playerReferenceScale),
                         {
                           color: i ? colors.background : colors.white,
                           fontSize: 24 * playerReferenceScale,
@@ -1850,17 +1892,21 @@ export function Onboarding({
                       ]}
                     >
                       {value}
-                    </Text>
-                    <Copy
-                      style={{
-                        textAlign: "center",
-                        color: i ? colors.background : colors.white,
-                        fontSize: 12 * playerReferenceScale,
-                        lineHeight: 17 * playerReferenceScale,
-                      }}
+                    </Animated.Text>
+                    <Animated.View
+                      style={barLabelStyle(entrance[i + 1], 268 * playerReferenceScale)}
                     >
-                      {cadence}
-                    </Copy>
+                      <Copy
+                        style={{
+                          textAlign: "center",
+                          color: i ? colors.background : colors.white,
+                          fontSize: 12 * playerReferenceScale,
+                          lineHeight: 17 * playerReferenceScale,
+                        }}
+                      >
+                        {cadence}
+                      </Copy>
+                    </Animated.View>
                   </View>
                   <Copy style={[styles.comparisonLabel, { minHeight: 0 }]}>{label}</Copy>
                   <Copy muted style={styles.comparisonDetail}>
@@ -2404,14 +2450,15 @@ export function Onboarding({
                 ],
                 ["Focus", draft.goal],
                 ["Blocker", answers.blocker],
-              ].map(([label, value]) => (
-                <View
+              ].map(([label, value], rowIndex) => (
+                <Animated.View
                   key={label}
                   style={{
                     flexDirection: "row",
                     gap: 9,
                     alignItems: "center",
                     minHeight: 27,
+                    ...entranceStyle(entrance[rowIndex + 1], 10),
                   }}
                 >
                   <Check size={13} color={colors.lime} />
@@ -2428,7 +2475,7 @@ export function Onboarding({
                   >
                     {value ?? "Not answered"}
                   </Copy>
-                </View>
+                </Animated.View>
               ))}
             </View>
             <Copy muted style={{ fontSize: 13, lineHeight: 20 }}>
@@ -2491,7 +2538,7 @@ export function Onboarding({
               ["pace", "physical"],
               ["passing", "dribbling"],
               ["shooting", "defending"],
-            ].map((group) => (
+            ].map((group, groupIndex) => (
               <View
                 key={group[0]}
                 style={[styles.assessmentPanel, { gap: 10, borderColor: "#74816C33" }]}
@@ -2521,12 +2568,14 @@ export function Onboarding({
                         }}
                       >
                         {skill.rating !== null ? (
-                          <View
+                          <Animated.View
                             style={{
                               height: 4,
                               width: `${skill.rating}%`,
                               borderRadius: 2,
                               backgroundColor: colors.muted,
+                              transformOrigin: "left center",
+                              transform: [{ scaleX: entrance[groupIndex + 1] }],
                             }}
                           />
                         ) : null}
@@ -2651,6 +2700,26 @@ export function Onboarding({
         );
         break;
     }
+  const editorialStages = {
+    assessment: [0, 0, 0, 8],
+    strengths: [0, 0, 0, 1, 2, 3],
+    growth: [0, 0, 0, 1, 2, 3],
+    fuel: [0, 0, 1, 2, 3, 4, 5],
+  }[step as "assessment" | "strengths" | "growth" | "fuel"];
+  if (editorialStages && isValidElement<{ children?: React.ReactNode }>(content)) {
+    content = cloneElement(
+      content,
+      undefined,
+      Children.toArray(content.props.children).map((child, childIndex) => (
+        <Animated.View
+          key={isValidElement(child) ? (child.key ?? childIndex) : childIndex}
+          style={entranceStyle(entrance[editorialStages[childIndex] ?? 0])}
+        >
+          {child}
+        </Animated.View>
+      )),
+    );
+  }
   const secondaryLabel = secondaryActionForStep(step);
   const canSkip = secondaryLabel !== null;
   const buttonLabel =

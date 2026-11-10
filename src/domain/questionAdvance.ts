@@ -67,13 +67,24 @@ export function createSceneTransition() {
   };
 }
 
-/** Intro beats dissolve without competing horizontal motion; later questions slide. */
+/** Recorded editorial handoffs dissolve; ordinary quiz navigation keeps its slide. */
 export function sceneTransitionForSteps(
   from: import("./onboardingFlow").FlowStep,
   to: import("./onboardingFlow").FlowStep,
 ): { kind: "crossfade" | "slide"; duration: number } {
-  return (from === "welcome" && to === "intro") ||
+  if (
+    (from === "welcome" && to === "intro") ||
     (from === "intro" && to === "frequency")
-    ? { kind: "crossfade", duration: 240 }
+  ) {
+    return { kind: "crossfade", duration: 240 };
+  }
+  return (from === "bodyGoal" && to === "planComparison") ||
+    (from === "consistency" && to === "notifications") ||
+    (from === "notifications" && to === "comparison") ||
+    (from === "foodSource" && to === "assessment") ||
+    (from === "assessment" && to === "strengths") ||
+    (from === "strengths" && to === "growth") ||
+    (from === "snapshot" && to === "fuel")
+    ? { kind: "crossfade", duration: 300 }
     : { kind: "slide", duration: 260 };
 }

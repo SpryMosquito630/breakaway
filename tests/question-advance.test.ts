@@ -165,7 +165,7 @@ test("scene animation completion is single-owner and cannot complete an interrup
   assert.equal(stops, 1, "Settled animations do not retain cancellation handles");
 });
 
-test("intro entry and first-question handoff dissolve; Back and later questions keep their slide", async () => {
+test("reference editorial entries dissolve while quiz, card entry and Back navigation keep their slide", async () => {
   const { sceneTransitionForSteps } = await import("../src/domain/questionAdvance");
   const { flowSteps } = await import("../src/domain/onboardingFlow");
   assert.deepEqual(sceneTransitionForSteps("welcome", "intro"), {
@@ -186,9 +186,26 @@ test("intro entry and first-question handoff dissolve; Back and later questions 
   });
   for (let index = 0; index < flowSteps.length - 1; index += 1) {
     if (flowSteps[index] === "welcome" || flowSteps[index] === "intro") continue;
+    const editorialDissolves = [
+      "bodyGoal",
+      "consistency",
+      "notifications",
+      "foodSource",
+      "assessment",
+      "strengths",
+      "snapshot",
+    ];
     assert.deepEqual(sceneTransitionForSteps(flowSteps[index], flowSteps[index + 1]), {
+      kind: editorialDissolves.includes(flowSteps[index]) ? "crossfade" : "slide",
+      duration: editorialDissolves.includes(flowSteps[index]) ? 300 : 260,
+    });
+    assert.deepEqual(sceneTransitionForSteps(flowSteps[index + 1], flowSteps[index]), {
       kind: "slide",
       duration: 260,
     });
   }
+  assert.deepEqual(sceneTransitionForSteps("growth", "snapshot"), {
+    kind: "slide",
+    duration: 260,
+  });
 });
