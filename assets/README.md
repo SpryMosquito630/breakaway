@@ -8,7 +8,11 @@ The original generation was 1086 × 1448 PNG. The app asset is a 900px-wide WebP
 
 ## Drill demonstrations
 
-See `drill-demos/LICENSE.md` and `drill-demos/provenance.json` for source URLs, permissions and the limits of the two filmed examples. Other drills use instructional schematics; do not label them filmed or coach-reviewed.
+See `drill-demos/LICENSE.md` and `drill-demos/provenance.json` for source URLs, permissions and the limits of the two unchanged filmed examples. Authored animated top-view guides for nonfilmed ground-work drills are instructional schematics, not human demonstrations or coach-reviewed technique.
+
+## Drill training photographs
+
+`drill-photos/` contains five licensed Pexels training-context photographs, mapped explicitly to 28 ground-work starter drills. The two verified demo posters take precedence in the interface for sole rolls and marker slalom. Context photographs are not exact-drill instruction frames or filmed demonstrations. Details offer an explicit Photo / Movement guide switch; only actual films receive video badges or appear under the Video demos filter. Exact authors, source/license links, crop dimensions, limits and hashes are recorded in `drill-photos/LICENSE.md` and `provenance.json`. Photo credit links are available in Instructions & notes.
 
 ## Replay example
 

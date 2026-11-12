@@ -34,16 +34,19 @@ import {
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import { adaptDrill } from "../domain/planning";
+import { drillDemos } from "../data/drill-demos";
 export function Library({ navigation }: { navigation: any }) {
   const { data, catalog: drills } = useApp();
   const { C, s } = useTheme();
   const [scope, setScope] = useState("My setup");
   const [skill, setSkill] = useState("All skills");
   const [customOnly, setCustomOnly] = useState(false);
+  const [videoOnly, setVideoOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const extraFilters = Number(skill !== "All skills") + Number(customOnly);
+  const extraFilters =
+    Number(skill !== "All skills") + Number(customOnly) + Number(videoOnly);
   const list = drills.filter(
     (d) =>
       (scope === "All" ||
@@ -51,6 +54,7 @@ export function Library({ navigation }: { navigation: any }) {
         (scope === "My setup" && allowed(d, profileForToday(data)))) &&
       (skill === "All skills" || d.skill === skill) &&
       (!customOnly || d.id.startsWith("custom-")) &&
+      (!videoOnly || Boolean(drillDemos[d.id])) &&
       (d.name + " " + d.skill).toLowerCase().includes(search.toLowerCase().trim()),
   );
   return (
@@ -128,11 +132,16 @@ export function Library({ navigation }: { navigation: any }) {
               />
             ))}
           </View>
-          <View style={{ alignItems: "flex-start" }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             <Chip
               label="Only my drills"
               selected={customOnly}
               onPress={() => setCustomOnly(!customOnly)}
+            />
+            <Chip
+              label="Video demos"
+              selected={videoOnly}
+              onPress={() => setVideoOnly(!videoOnly)}
             />
           </View>
         </View>
@@ -179,6 +188,7 @@ export function Library({ navigation }: { navigation: any }) {
                 setScope("All");
                 setSkill("All skills");
                 setCustomOnly(false);
+                setVideoOnly(false);
                 setSearch("");
               }}
             />

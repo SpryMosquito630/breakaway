@@ -40,3 +40,8 @@ Additional research found no qualified footage for alternating inside touches, a
 ## Previous welcome background reuse — 2026-11-08
 
 The bundled `marker-slalom.mp4` and matching poster previously supplied the decorative welcome background under the same RDNE Stock project / Pexels 7187061 license above. That welcome use has been replaced by the shot sequence documented in `assets/welcome/`; this clip remains the unchanged marker-slalom drill example.
+
+
+## Additional footage search — 2026-11-12
+
+Five fresh official Pexels downloads were visually screened across each complete sequence. None established an additional exact ball-only drill demonstration. No new clip or drill mapping was added. Mixkit personal-use-only footage and institutional noncommercial resources were also excluded. Details, source URLs, hashes, and movement/visibility reasons are recorded in `research-2026-11-12.json`. The Pexels License was checked again on this date. Existing clip permissions, trims, sizes and mapping remain unchanged.

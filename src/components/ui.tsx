@@ -15,6 +15,8 @@ import {
 import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { haptic, type HapticFeedback } from "../utils/haptics";
 import { Drill } from "../domain/model";
+import { DrillArtwork } from "./DrillArtwork";
+import { drillMedia } from "../data/drill-media";
 export { palette as C } from "../theme/palette";
 import { palette as C } from "../theme/palette";
 import { createStyles } from "../theme/styles";
@@ -442,6 +444,7 @@ export function DrillRow({
   const { C, s } = useTheme();
 
   const Icon = categoryIcons[drill.skill] || CircleDot;
+  const media = drillMedia(drill);
   return (
     <View
       style={{
@@ -454,7 +457,7 @@ export function DrillRow({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${action || "View"} ${drill.name}`}
+        accessibilityLabel={`${action || "View"} ${drill.name}${media?.video ? ", video demo available" : ""}`}
         onPress={() => {
           haptic(feedback ?? "selection");
           onPress();
@@ -468,20 +471,24 @@ export function DrillRow({
           backgroundColor: pressed ? C.soft : "transparent",
         })}
       >
-        <View
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            backgroundColor: C.white,
-            borderWidth: 1,
-            borderColor: C.line,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon size={20} color={C.green} strokeWidth={1.7} />
-        </View>
+        {media ? (
+          <DrillArtwork drill={drill} />
+        ) : (
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              backgroundColor: C.white,
+              borderWidth: 1,
+              borderColor: C.line,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon size={20} color={C.green} strokeWidth={1.7} />
+          </View>
+        )}
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={s.h3}>{drill.name}</Text>
           <Text style={s.small}>
