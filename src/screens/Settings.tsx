@@ -23,21 +23,29 @@ import {
   Compass,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { initialData, updateTrainingProfile, pause } from "../domain/model";
+import { updateTrainingProfile, pause } from "../domain/model";
 import { Preferences } from "../components/Preferences";
 import {
   Button,
   Disclaimer,
   Disclosure,
+  Link,
   Page,
   SettingRow,
   Title,
 } from "../components/ui";
 export function Settings({ navigation }: { navigation: any }) {
-  const { data, update } = useApp();
+  const { data, update, reset } = useApp();
   const { C, s, mode, setMode, error: themeError } = useTheme();
   const reminders = useReminders();
   const [resetError, setResetError] = useState("");
+  const [linkError, setLinkError] = useState("");
+  function openLink(url: string) {
+    setLinkError("");
+    void Linking.openURL(url).catch(() =>
+      setLinkError("Could not open the page. Check your connection and try again."),
+    );
+  }
   function resetData() {
     setResetError("");
     haptic("warning");
@@ -46,7 +54,7 @@ export function Settings({ navigation }: { navigation: any }) {
       .then(async () => {
         await resetFeatureStores();
         await reminders.reset();
-        update(() => initialData());
+        await reset();
       })
       .catch(() =>
         setResetError("Reset could not finish. Free device space and try again."),
@@ -93,6 +101,7 @@ export function Settings({ navigation }: { navigation: any }) {
               key={value}
               accessibilityRole="radio"
               accessibilityState={{ checked: mode === value }}
+              aria-checked={mode === value}
               onPress={() => {
                 if (mode === value) return;
                 haptic("selection");
@@ -102,7 +111,7 @@ export function Settings({ navigation }: { navigation: any }) {
                 minHeight: 48,
                 paddingHorizontal: 18,
                 justifyContent: "center",
-                borderRadius: 12,
+                borderRadius: 24,
                 borderWidth: 1,
                 borderColor: mode === value ? C.green : C.lineStrong,
                 backgroundColor: mode === value ? C.green : C.white,
@@ -135,6 +144,23 @@ export function Settings({ navigation }: { navigation: any }) {
             navigation.navigate("ReplayOnboarding");
           }}
         />
+      </View>
+      <View style={s.group}>
+        <Link
+          label="Privacy policy"
+          onPress={() =>
+            openLink("https://sprymosquito630.github.io/breakaway-support/privacy.html")
+          }
+        />
+        <Link
+          label="Support"
+          onPress={() => openLink("https://sprymosquito630.github.io/breakaway-support/")}
+        />
+        {linkError ? (
+          <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
+            {linkError}
+          </Text>
+        ) : null}
       </View>
       <Disclosure label="Privacy & practice notes">
         <Text style={s.small}>
@@ -214,7 +240,7 @@ function ReminderSettings() {
             void setEnabled(value);
           }}
           trackColor={{ false: C.lineStrong, true: C.green }}
-          thumbColor={C.white}
+          thumbColor={C.ink}
         />
       </View>
       {preferences.enabled ? (

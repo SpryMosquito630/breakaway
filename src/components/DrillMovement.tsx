@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { type ReactNode } from "react";
+import { type LayoutChangeEvent, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, Marker, Path, Rect } from "react-native-svg";
 import { type Drill } from "../domain/model";
 import { drillMovements } from "../data/drill-movements";
@@ -6,9 +7,18 @@ import { useTheme } from "./ui";
 export function DrillMovement({
   drill,
   compact = false,
+  hideBall = false,
+  hideLegend = false,
+  overlay,
+  onDiagramLayout,
 }: {
   drill: Drill;
   compact?: boolean;
+  /** Used by the opt-in animated guide; the default diagram stays static. */
+  hideBall?: boolean;
+  hideLegend?: boolean;
+  overlay?: ReactNode;
+  onDiagramLayout?: (event: LayoutChangeEvent) => void;
 }) {
   const { C, s } = useTheme();
   const movement = drillMovements[drill.id];
@@ -16,6 +26,7 @@ export function DrillMovement({
   return (
     <View style={{ gap: 8 }}>
       <View
+        onLayout={onDiagramLayout}
         accessible
         accessibilityLabel={`${drill.name}: ${movement.caption}`}
         style={{ backgroundColor: C.pitchSoft, borderRadius: 12 }}
@@ -91,28 +102,36 @@ export function DrillMovement({
               markerEnd="url(#arrow)"
             />
           ) : null}
-          <Circle
-            cx={
-              drill.id === "toe-taps" || drill.id === "step-over"
-                ? 160
-                : Number(movement.path.match(/M(\d+)/)?.[1] ?? 100)
-            }
-            cy={
-              drill.id === "toe-taps" || drill.id === "step-over"
-                ? 100
-                : Number(movement.path.match(/M\d+ (\d+)/)?.[1] ?? 140)
-            }
-            r={8}
-            stroke={C.green}
-            strokeWidth={2}
-            fill={C.white}
-          />
+          {!hideBall ? (
+            <Circle
+              cx={
+                drill.id === "toe-taps" || drill.id === "step-over"
+                  ? 160
+                  : Number(movement.path.match(/M(\d+)/)?.[1] ?? 100)
+              }
+              cy={
+                drill.id === "toe-taps"
+                  ? 95
+                  : drill.id === "step-over"
+                    ? 100
+                    : Number(movement.path.match(/M\d+ (\d+)/)?.[1] ?? 140)
+              }
+              r={8}
+              stroke={C.green}
+              strokeWidth={2}
+              fill={C.white}
+            />
+          ) : null}
         </Svg>
+        {overlay}
       </View>
       {!compact ? <Text style={s.body}>{movement.caption}</Text> : null}
-      <Text style={s.small}>
-        Top view · Solid: ball{movement.footPath ? " · Dashed: foot" : ""} · Not to scale
-      </Text>
+      {!hideLegend ? (
+        <Text style={s.small}>
+          Top view · Solid: ball{movement.footPath ? " · Dashed: foot" : ""} · Not to
+          scale
+        </Text>
+      ) : null}
     </View>
   );
 }

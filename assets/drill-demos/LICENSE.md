@@ -36,3 +36,12 @@ Additional research found no qualified footage for alternating inside touches, a
 ## Paused posters — 2026-11-08
 
 `sole-contact-poster.jpg` and `marker-slalom-poster.jpg` are unaltered full frames extracted at 1.0 seconds from their corresponding licensed bundled MP4s using ffmpeg (`-frames:v 1 -q:v 3`). They use the same source license and credit above. Both were visually inspected for visible ball and foot contact. Hashes and sizes are in `provenance.json`. Posters appear before first playback and behind visible playback errors; no new footage or movement is implied.
+
+## Previous welcome background reuse — 2026-11-08
+
+The bundled `marker-slalom.mp4` and matching poster previously supplied the decorative welcome background under the same RDNE Stock project / Pexels 7187061 license above. That welcome use has been replaced by the shot sequence documented in `assets/welcome/`; this clip remains the unchanged marker-slalom drill example.
+
+
+## Additional footage search — 2026-11-12
+
+Five fresh official Pexels downloads were visually screened across each complete sequence. None established an additional exact ball-only drill demonstration. No new clip or drill mapping was added. Mixkit personal-use-only footage and institutional noncommercial resources were also excluded. Details, source URLs, hashes, and movement/visibility reasons are recorded in `research-2026-11-12.json`. The Pexels License was checked again on this date. Existing clip permissions, trims, sizes and mapping remain unchanged.

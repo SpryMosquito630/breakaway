@@ -1,0 +1,81 @@
+{
+  "reviewDate": "2026-11-12",
+  "qualifiedNewClips": 0,
+  "method": "Full-duration chronological 16-frame contact sheets extracted locally with ffmpeg and visually inspected. No movement inferred from title. Sources failing obvious setup/visibility checks were excluded before fine-grained contact review.",
+  "licenseChecked": "https://www.pexels.com/license/",
+  "sources": [
+    {
+      "pexelsId": 36294544,
+      "discoveryPage": "https://www.pexels.com/search/videos/soccer%20drill/",
+      "originalDownload": "https://videos.pexels.com/video-files/36294544/15390776_2160_3840_60fps.mp4",
+      "sourceSha256": "4781d2cfc90ca97d97e876bfaa455af061b53b0cb96ed2d9ac542a18a8dabeba",
+      "sourceBytes": 224829632,
+      "decision": "excluded",
+      "reason": "Group jogging on pitch without balls.",
+      "evidence": "work/demo-footage-research/nov12/36294544.jpg"
+    },
+    {
+      "pexelsId": 6084028,
+      "discoveryPage": "https://www.pexels.com/search/videos/soccer%20drill/",
+      "originalDownload": "https://videos.pexels.com/video-files/6084028/6084028-uhd_2160_3840_25fps.mp4",
+      "sourceSha256": "1ccd111d2831ba9b42b76c53bda3c166015c50fc4691c1de16972faf95267915",
+      "sourceBytes": 25556875,
+      "decision": "excluded",
+      "reason": "Cone slalom then shot toward goal. Already-covered slalom movement; not an exact core ball-only foundation.",
+      "evidence": "work/demo-footage-research/nov12/6084028.jpg"
+    },
+    {
+      "pexelsId": 6078259,
+      "discoveryPage": "https://www.pexels.com/search/videos/soccer%20drill/",
+      "originalDownload": "https://videos.pexels.com/video-files/6078259/6078259-uhd_3840_2160_25fps.mp4",
+      "sourceSha256": "22f78f88634ab8ab3f1a431b1813142b722c46ff2d06275a267791291aa933b7",
+      "sourceBytes": 65986094,
+      "decision": "excluded",
+      "reason": "Agility ladder then cone/goalkeeper training, different setup and movement.",
+      "evidence": "work/demo-footage-research/nov12/6078259.jpg"
+    },
+    {
+      "pexelsId": 6077695,
+      "discoveryPage": "https://www.pexels.com/search/videos/soccer%20drill/",
+      "originalDownload": "https://videos.pexels.com/video-files/6077695/6077695-uhd_3840_2160_25fps.mp4",
+      "sourceSha256": "167f18a2ba114dd4fe04c7b2a4fe7af76bf0ffdfd68a184f88f901a66cac74e5",
+      "sourceBytes": 23177394,
+      "decision": "excluded",
+      "reason": "Team running alongside agility ladder without balls.",
+      "evidence": "work/demo-footage-research/nov12/6077695.jpg"
+    },
+    {
+      "pexelsId": 10043798,
+      "discoveryPage": "https://www.pexels.com/search/videos/soccer%20drill/",
+      "originalDownload": "https://videos.pexels.com/video-files/10043798/10043798-uhd_3840_2160_30fps.mp4",
+      "sourceSha256": "b184c37b3d6bc6b86bbae8de2f730628dd505c24f77c6c7310872ae0a79cf45a",
+      "sourceBytes": 38726379,
+      "decision": "excluded",
+      "reason": "Distant overhead team practice; ball-foot contact too small to establish exact core movement.",
+      "evidence": "work/demo-footage-research/nov12/10043798.jpg"
+    }
+  ],
+  "otherSourceConstraints": [
+    {
+      "page": "https://mixkit.co/free-stock-video/soccer-training-session-15195/",
+      "reason": "Free 720p version is personal use only under Restricted License; commercial version requires paid subscription. Excluded before download."
+    },
+    {
+      "page": "https://www.gpb.org/sites/default/files/2020-08/PE4thGradeDistanceLearningPlanSoccer2.pdf",
+      "reason": "Institutional resource uses CC BY-NC-SA; excluded for commercial app integration."
+    },
+    {
+      "page": "https://uruguayeduca.anep.edu.uy/sites/default/files/exelearning/06-2026/15587/ficha.html",
+      "reason": "CC BY-NC-SA educational resource; excluded for commercial app integration."
+    },
+    {
+      "page": "https://commons.wikimedia.org/wiki/File:Football_training_video.webm",
+      "reason": "Licensed CC BY-SA but page identifies stopmotion/clay animation, not filmed technical drill demonstration; excluded."
+    },
+    {
+      "page": "https://vimeo.com/61617488",
+      "reason": "Official Football Skills Coach/ Joe Flurry toe-taps tutorial page found. No redistribution license established, so no download/bundle. Could be a clearly labeled external tutorial link after verifying content and player availability."
+    }
+  ],
+  "coverageLimit": "Bundled filmed instruction remains 2 sources: sole foot-contact example and slalom. No qualified new alternating inside touches, alternating toe taps, pull-back/V pull, weaker-foot, or receive-across-body clip. A limited search is not evidence that no licensed footage exists."
+}

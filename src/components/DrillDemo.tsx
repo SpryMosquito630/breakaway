@@ -1,5 +1,7 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { AppState, Linking, Text, View } from "react-native";
+import { AppState, Linking, Pressable, Text, View } from "react-native";
+import { Pause, Play, RotateCcw } from "lucide-react-native";
+import { haptic } from "../utils/haptics";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import { createVideoPlayer, VideoView } from "expo-video";
@@ -97,6 +99,41 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
             style={{ position: "absolute", inset: 0, borderRadius: 12 }}
           />
         ) : null}
+        {!started && !error ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Play ${demo.title}`}
+            accessibilityState={{ disabled: !ready || !focused }}
+            disabled={!ready || !focused}
+            onPress={() => {
+              haptic("light");
+              start();
+            }}
+            style={({ pressed }) => ({
+              position: "absolute",
+              inset: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 12,
+              backgroundColor: pressed ? "#00000033" : "transparent",
+            })}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#0B211BDD",
+                borderWidth: 1,
+                borderColor: "#FFFFFF99",
+              }}
+            >
+              <Play size={24} color="#FFFFFF" fill="#FFFFFF" />
+            </View>
+          </Pressable>
+        ) : null}
       </View>
       {error ? (
         <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
@@ -112,6 +149,7 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
           <Button
             kind="secondary"
             label={playing ? "Pause demo" : ended ? "Replay demo" : "Play demo"}
+            icon={playing ? Pause : ended ? RotateCcw : Play}
             disabled={!ready || !focused || Boolean(error)}
             onPress={() => (playing ? player.pause() : start())}
           />

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getPalette } from "../src/theme/palette";
+import { getPalette, restoreThemeMode } from "../src/theme/palette";
 function luminance(hex: string) {
   const rgb = hex
     .replace("#", "")
@@ -34,3 +34,10 @@ for (const theme of ["light", "dark"] as const) {
       for (const fill of [c.bg, c.white]) assert.ok(contrast(text, fill) >= 4.5);
   });
 }
+
+test("fresh appearance uses forest while saved light, dark and system choices survive", () => {
+  assert.equal(restoreThemeMode(null), "dark");
+  assert.equal(restoreThemeMode("invalid"), "dark");
+  for (const mode of ["light", "dark", "system"] as const)
+    assert.equal(restoreThemeMode(mode), mode);
+});

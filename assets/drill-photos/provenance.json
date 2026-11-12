@@ -1,0 +1,218 @@
+{
+  "usage": "Contextual training photographs only. Do not label these exact-drill demonstrations, instruction frames, coach-reviewed technique or endorsements.",
+  "assets": [
+    {
+      "file": "sole-control.webp",
+      "sourceId": "13422993",
+      "sourcePage": "https://www.pexels.com/photo/person-stepping-on-soccer-ball-13422993/",
+      "author": "Justin Hofer",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedOn": "2026-11-12",
+      "downloadUrl": "https://images.pexels.com/photos/13422993/pexels-photo-13422993.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "downloadSha256": "3d2ca7708533bb07357e4fc8ad5832d221e5e2c1cc646789f8ac806d6587bc89",
+      "downloadDimensions": [
+        1200,
+        2133
+      ],
+      "transform": {
+        "cropBoxPx": [
+          0,
+          800,
+          1200,
+          1700
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        1200,
+        900
+      ],
+      "bytes": 117452,
+      "sha256": "edb44411233480201bddb8b139304a1b58767b9fdef202bed39f29441032dd2d",
+      "contextNote": "Boot resting on a grounded football. Sole-control context, not a moving roll demonstration.",
+      "suggestedDrillIds": [
+        "sole",
+        "turn",
+        "toe-taps",
+        "foundation-stop",
+        "weak-roll",
+        "weak-v",
+        "v-pull"
+      ]
+    },
+    {
+      "file": "ball-mastery.webp",
+      "sourceId": "30585239",
+      "sourcePage": "https://www.pexels.com/photo/soccer-training-session-on-green-field-30585239/",
+      "author": "Franco Monsalvo",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedOn": "2026-11-12",
+      "downloadUrl": "https://images.pexels.com/photos/30585239/pexels-photo-30585239.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "downloadSha256": "8b70587eeb87ca8309cb4de355e621484414f3374dedaa7bd0c933c35df75b4b",
+      "downloadDimensions": [
+        1200,
+        800
+      ],
+      "transform": {
+        "cropBoxPx": [
+          67,
+          0,
+          1133,
+          800
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        1066,
+        800
+      ],
+      "bytes": 70504,
+      "sha256": "bdf90a7b753aafa2cd267af29282fa246f3924b27bc0cfee37e25292e86733cb",
+      "contextNote": "Player feet and several footballs during training. General grounded ball-mastery context.",
+      "suggestedDrillIds": [
+        "inside",
+        "weak",
+        "receive-across",
+        "shield-turn"
+      ]
+    },
+    {
+      "file": "ground-ball-training.webp",
+      "sourceId": "16543163",
+      "sourcePage": "https://www.pexels.com/photo/man-playing-in-soccer-16543163/",
+      "author": "Володимир Король",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedOn": "2026-11-12",
+      "downloadUrl": "https://images.pexels.com/photos/16543163/pexels-photo-16543163.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "downloadSha256": "09deb4f1aa90e09812efffa109a5dd8376c5d93193e2e9db256eafac6921c629",
+      "downloadDimensions": [
+        1200,
+        1600
+      ],
+      "transform": {
+        "cropBoxPx": [
+          0,
+          650,
+          1200,
+          1550
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        1200,
+        900
+      ],
+      "bytes": 65178,
+      "sha256": "7606739325f0483eee9424b26c20b326489fa80a2ebaecb1f3f00e5517c1d034",
+      "contextNote": "Player training with a grounded ball. General ground-ball / passing context; no wall or partner pass is pictured.",
+      "suggestedDrillIds": [
+        "push",
+        "pass-brake",
+        "pass-angle",
+        "wall",
+        "wall-open",
+        "partner",
+        "partner-first"
+      ]
+    },
+    {
+      "file": "dribbling.webp",
+      "sourceId": "37926571",
+      "sourcePage": "https://www.pexels.com/photo/professional-soccer-player-in-training-session-37926571/",
+      "author": "Franco Monsalvo",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedOn": "2026-11-12",
+      "downloadUrl": "https://images.pexels.com/photos/37926571/pexels-photo-37926571.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "downloadSha256": "6c8be5f445313f3cc7ff302871703e7e00472f3bd270870325b300251cb308a7",
+      "downloadDimensions": [
+        1200,
+        675
+      ],
+      "transform": {
+        "cropBoxPx": [
+          150,
+          0,
+          1050,
+          675
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 58706,
+      "sha256": "8ae9365584481fe27b89d942b6d15d92534f548d67c89c6b793dc6f36c05aab7",
+      "contextNote": "Player carrying a football on grass during training. Dribbling context, not an exact cut or turn demonstration.",
+      "suggestedDrillIds": [
+        "l-turn",
+        "inside-out",
+        "outside-cut",
+        "inside-cut",
+        "step-over",
+        "weak-cut",
+        "carry-scan"
+      ]
+    },
+    {
+      "file": "gate-setup.webp",
+      "sourceId": "29485141",
+      "sourcePage": "https://www.pexels.com/photo/soccer-training-field-with-cones-and-ball-29485141/",
+      "author": "Itiel Cd",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "verifiedOn": "2026-11-12",
+      "downloadUrl": "https://images.pexels.com/photos/29485141/pexels-photo-29485141.jpeg?auto=compress&cs=tinysrgb&w=1280",
+      "downloadSha256": "154dbad45ffc8ba0fc3d5366cd7ee4a0d1d5f9947cd4ee6122540c40d69b1eda",
+      "downloadDimensions": [
+        1280,
+        853
+      ],
+      "transform": {
+        "cropBoxPx": [
+          400,
+          150,
+          1280,
+          810
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        880,
+        660
+      ],
+      "bytes": 81614,
+      "sha256": "3cc5c62e3c37b84c9f8941c641fdd4c7eebf43cb812254b174e8a31d0660a5c0",
+      "contextNote": "Football and flat cones on a training pitch. Equipment/setup context; the pictured cones are not the exact gate or slalom layout.",
+      "suggestedDrillIds": [
+        "gates",
+        "slalom",
+        "gate-pass"
+      ]
+    }
+  ]
+}

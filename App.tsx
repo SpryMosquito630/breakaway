@@ -18,6 +18,7 @@ import { BarlowCondensed_700Bold } from "@expo-google-fonts/barlow-condensed/700
 import { BarlowCondensed_800ExtraBold } from "@expo-google-fonts/barlow-condensed/800ExtraBold";
 import { Archivo_400Regular } from "@expo-google-fonts/archivo/400Regular";
 import { Archivo_500Medium } from "@expo-google-fonts/archivo/500Medium";
+import { Archivo_700Bold } from "@expo-google-fonts/archivo/700Bold";
 import { Archivo_600SemiBold } from "@expo-google-fonts/archivo/600SemiBold";
 import { IBMPlexMono_400Regular } from "@expo-google-fonts/ibm-plex-mono/400Regular";
 import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
@@ -148,7 +149,7 @@ function Main({ navigation }: { navigation: any }) {
         headerShadowVisible: false,
         headerTitleAlign: "left",
         headerTitleStyle: {
-          fontFamily: "Archivo_600SemiBold",
+          fontFamily: "Archivo_700Bold",
           fontSize: 24,
           color: C.ink,
         },
@@ -231,8 +232,11 @@ function Shell() {
       </SafeAreaView>
     );
   return (
-    <SafeAreaView edges={data.onboarded ? [] : ["top"]} style={s.page}>
-      <StatusBar style={isDark ? "light" : "dark"} />
+    <SafeAreaView
+      edges={[]}
+      style={[s.page, !data.onboarded && { backgroundColor: "#080F0B" }]}
+    >
+      <StatusBar style={!data.onboarded || isDark ? "light" : "dark"} />
       {error ? (
         <View accessibilityRole="alert" style={{ padding: 12, backgroundColor: C.soft }}>
           <Text style={s.body}>{error}</Text>
@@ -259,11 +263,12 @@ function Shell() {
           <Stack.Navigator
             screenOptions={{
               headerStyle: { backgroundColor: C.bg },
-              headerTintColor: C.green,
-              headerTitleStyle: { fontFamily: "Archivo_600SemiBold" },
+              headerTintColor: C.ink,
+              headerTitleStyle: { fontFamily: "Archivo_700Bold" },
               headerShadowVisible: false,
               headerBackButtonDisplayMode: "minimal",
               contentStyle: { backgroundColor: C.bg },
+              statusBarStyle: isDark ? "light" : "dark",
               animation: reduce ? "fade" : "default",
             }}
           >
@@ -342,12 +347,7 @@ function Shell() {
             <Stack.Screen
               name="ReplayOnboarding"
               component={ReplayOnboarding}
-              options={({ navigation }) => ({
-                title: "Onboarding",
-                headerRight: () => (
-                  <Link label="Cancel" onPress={() => navigation.goBack()} />
-                ),
-              })}
+              options={{ headerShown: false, statusBarStyle: "light" }}
             />
 
             <Stack.Screen
@@ -506,6 +506,7 @@ function AppContent() {
     Archivo_400Regular,
     Archivo_500Medium,
     Archivo_600SemiBold,
+    Archivo_700Bold,
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
   });

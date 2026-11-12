@@ -15,6 +15,8 @@ import {
 import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { haptic, type HapticFeedback } from "../utils/haptics";
 import { Drill } from "../domain/model";
+import { DrillArtwork } from "./DrillArtwork";
+import { drillMedia } from "../data/drill-media";
 export { palette as C } from "../theme/palette";
 import { palette as C } from "../theme/palette";
 import { createStyles } from "../theme/styles";
@@ -111,7 +113,7 @@ export function Button({
       }}
       style={({ pressed }) => ({
         minHeight: size === "large" ? 68 : 52,
-        borderRadius: 10,
+        borderRadius: 28,
         borderWidth: kind === "secondary" ? 1 : 0,
         borderColor: C.lineStrong,
         paddingHorizontal: 18,
@@ -262,14 +264,14 @@ export function Chip({
         borderColor: selected ? C.green : C.lineStrong,
         paddingHorizontal: 16,
         paddingVertical: 13,
-        borderRadius: 10,
+        borderRadius: 28,
         backgroundColor: selected ? C.green : pressed ? C.line : C.white,
         justifyContent: "center",
       })}
     >
       <Text
         style={{
-          fontFamily: "Archivo_500Medium",
+          fontFamily: "Archivo_600SemiBold",
           fontSize: 14,
           lineHeight: 22,
           color: selected ? C.onPrimary : C.muted,
@@ -311,7 +313,7 @@ export function Choice({
         gap: 16,
         padding: 16,
         minHeight: 68,
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1.5,
         borderColor: selected ? C.green : C.lineStrong,
         backgroundColor: selected ? C.pitchSoft : pressed ? C.soft : C.white,
@@ -397,7 +399,7 @@ export function SearchField({
         borderColor: C.lineStrong,
         borderRadius: 12,
         paddingHorizontal: 14,
-        minHeight: 50,
+        minHeight: 52,
       }}
     >
       <Search size={19} color={C.muted} />
@@ -411,7 +413,7 @@ export function SearchField({
           flex: 1,
           fontFamily: "Archivo_400Regular",
           fontSize: 15,
-          minHeight: 50,
+          minHeight: 52,
           color: C.ink,
         }}
       />
@@ -442,6 +444,7 @@ export function DrillRow({
   const { C, s } = useTheme();
 
   const Icon = categoryIcons[drill.skill] || CircleDot;
+  const media = drillMedia(drill);
   return (
     <View
       style={{
@@ -454,7 +457,7 @@ export function DrillRow({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${action || "View"} ${drill.name}`}
+        accessibilityLabel={`${action || "View"} ${drill.name}${media?.video ? ", video demo available" : ""}`}
         onPress={() => {
           haptic(feedback ?? "selection");
           onPress();
@@ -468,18 +471,24 @@ export function DrillRow({
           backgroundColor: pressed ? C.soft : "transparent",
         })}
       >
-        <View
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            backgroundColor: C.pitchSoft,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon size={20} color={C.green} strokeWidth={1.7} />
-        </View>
+        {media ? (
+          <DrillArtwork drill={drill} />
+        ) : (
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              backgroundColor: C.white,
+              borderWidth: 1,
+              borderColor: C.line,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon size={20} color={C.green} strokeWidth={1.7} />
+          </View>
+        )}
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={s.h3}>{drill.name}</Text>
           <Text style={s.small}>
