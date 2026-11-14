@@ -175,8 +175,6 @@ function SvgTextCallout({
         height={height}
         rx={height / 2}
         fill="#FFFFFF"
-        stroke="#B6FF00"
-        strokeWidth={1.5 / scale}
       />
       <SvgText
         x={labelX + width / 2}
