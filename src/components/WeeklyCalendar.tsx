@@ -56,7 +56,7 @@ export function WeeklyCalendar({
       style={({ pressed }) => [styles.control, { opacity: pressed ? 0.65 : 1 }]}
     >
       <View style={styles.week}>
-        {week.map(({ day, date, today, past, planned, complete }) => (
+        {week.map(({ day, date, today, past, complete }) => (
           <View key={day} style={styles.day}>
             <Text
               style={[
@@ -71,15 +71,15 @@ export function WeeklyCalendar({
               style={[
                 styles.date,
                 {
-                  borderColor: today ? C.lime : "transparent",
-                  backgroundColor: today ? C.pitchSoft : "transparent",
+                  borderColor: past ? C.lineStrong : "transparent",
+                  backgroundColor: today ? C.line : "transparent",
                 },
               ]}
             >
               <Text
                 style={[
                   styles.dateText,
-                  { color: today || complete || planned || past ? C.ink : C.muted },
+                  { color: today || past ? C.ink : C.muted },
                   today && styles.todayText,
                 ]}
               >
@@ -91,12 +91,6 @@ export function WeeklyCalendar({
                 </View>
               ) : null}
             </View>
-            <View
-              style={[
-                styles.planned,
-                { backgroundColor: planned && !complete ? C.green : "transparent" },
-              ]}
-            />
           </View>
         ))}
       </View>
@@ -128,5 +122,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  planned: { width: 4, height: 4, borderRadius: 2 },
 });
