@@ -1,11 +1,12 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { AppState, Linking, Pressable, Text, View } from "react-native";
-import { Pause, Play, RotateCcw } from "lucide-react-native";
+import { Pause, Play } from "lucide-react-native";
 import { haptic } from "../utils/haptics";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import { createVideoPlayer, VideoView } from "expo-video";
-import { drillDemos, type DrillDemoAsset } from "../data/drill-demos";
+import { getDrillDemo, type DrillDemoAsset } from "../data/drill-demos";
+import { OnlineDrillDemo } from "./OnlineDrillDemo";
 import { Button, Chip, Disclosure, Link, useTheme } from "./ui";
 
 // Mounted in pre-practice guidance, always paused initially. Keep player events
@@ -15,13 +16,12 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   const focused = useIsFocused();
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
-  const [ended, setEnded] = useState(false);
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
   const player = useMemo(() => {
     const p = createVideoPlayer(demo.source);
-    p.loop = false;
+    p.loop = true;
     p.muted = true;
     return p;
   }, [demo.source]);
@@ -30,13 +30,8 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
     const play = player.addListener("playingChange", (e) => {
       setPlaying(e.isPlaying);
       if (e.isPlaying) {
-        setEnded(false);
         setStarted(true);
       }
-    });
-    const end = player.addListener("playToEnd", () => {
-      setPlaying(false);
-      setEnded(true);
     });
     const status = player.addListener("statusChange", (e) => {
       setReady(e.status === "readyToPlay");
@@ -52,7 +47,6 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
     });
     return () => {
       play.remove();
-      end.remove();
       status.remove();
       background.remove();
       player.pause();
@@ -67,9 +61,8 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   }, [slow, player]);
   const start = () => {
     try {
-      if (ended || (player.duration > 0 && player.currentTime >= player.duration - 0.1))
+      if (player.duration > 0 && player.currentTime >= player.duration - 0.1)
         player.currentTime = 0;
-      setEnded(false);
       player.play();
     } catch {
       setError("Could not start the demo. Close it and try again.");
@@ -148,8 +141,8 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
         <View style={{ flex: 1, minWidth: 140 }}>
           <Button
             kind="secondary"
-            label={playing ? "Pause demo" : ended ? "Replay demo" : "Play demo"}
-            icon={playing ? Pause : ended ? RotateCcw : Play}
+            label={playing ? "Pause demo" : "Play demo"}
+            icon={playing ? Pause : Play}
             disabled={!ready || !focused || Boolean(error)}
             onPress={() => (playing ? player.pause() : start())}
           />
@@ -168,16 +161,20 @@ export const DrillDemo = memo(function DrillDemo({
   id: string;
   expanded?: boolean;
 }) {
-  const demo = drillDemos[id];
+  const demo = getDrillDemo(id);
   if (!demo) return null;
+  const content =
+    demo.kind === "local" ? (
+      <DemoPlayer key={id} demo={demo} />
+    ) : (
+      <OnlineDrillDemo key={id} demo={demo} />
+    );
   return (
     <View style={{ gap: 4 }}>
       {expanded ? (
-        <DemoPlayer key={id} demo={demo} />
+        content
       ) : (
-        <Disclosure label="Watch movement demo">
-          <DemoPlayer key={id} demo={demo} />
-        </Disclosure>
+        <Disclosure label="Watch movement demo">{content}</Disclosure>
       )}
     </View>
   );
@@ -186,12 +183,35 @@ export const DrillDemo = memo(function DrillDemo({
 export function DrillDemoCredit({ id }: { id: string }) {
   const { C, s } = useTheme();
   const [error, setError] = useState("");
-  const demo = drillDemos[id];
+  const demo = getDrillDemo(id);
   if (!demo) return null;
   const openLink = (url: string) => {
     setError("");
     void Linking.openURL(url).catch(() => setError("Could not open the link."));
   };
+  if (demo.kind === "youtube")
+    return (
+      <View style={{ gap: 8 }}>
+        <Text style={s.small}>
+          {demo.credit} · YouTube original. Official player/link only; no offline
+          redistribution.
+        </Text>
+        <Link label="View original video" onPress={() => openLink(demo.page)} />
+        <Link
+          label="YouTube terms"
+          onPress={() => openLink("https://www.youtube.com/t/terms")}
+        />
+        <Link
+          label="Google privacy policy"
+          onPress={() => openLink("https://policies.google.com/privacy")}
+        />
+        {error ? (
+          <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
+            {error}
+          </Text>
+        ) : null}
+      </View>
+    );
   return (
     <View style={{ gap: 8 }}>
       <Text style={s.small}>

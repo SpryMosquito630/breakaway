@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useState } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import { type Drill } from "../domain/model";
-import { drillDemos } from "../data/drill-demos";
+import { getDrillDemo } from "../data/drill-demos";
 import { drillPhotos } from "../data/drill-media";
 import { drillMovements } from "../data/drill-movements";
 import { drillInstructions } from "../data/drill-instruction";
@@ -24,7 +24,8 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
     void Linking.openURL(url).catch(() => setCreditError("Could not open the link."));
   };
   const instruction = drillInstructions[drill.id];
-  const filmed = Boolean(drillDemos[drill.id]);
+  const demo = getDrillDemo(drill.id);
+  const filmed = demo?.kind === "local";
   return (
     <View style={{ gap: 12 }}>
       {filmed ? (
@@ -60,6 +61,9 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
         </View>
       ) : null}
       <Text style={s.body}>{instruction?.watch ?? drill.cue}</Text>
+      {demo?.kind === "youtube" ? (
+        <DrillDemo key={drill.id} id={drill.id} expanded />
+      ) : null}
       <Disclosure label="Instructions & notes">
         <Steps drill={drill} />
         {instruction ? (
@@ -81,9 +85,8 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
         ) : drillMovements[drill.id] ? (
           <Text style={s.small}>{drillMovements[drill.id].caption}</Text>
         ) : null}
-        {filmed ? (
-          <DrillDemoCredit id={drill.id} />
-        ) : photo ? (
+        {demo ? <DrillDemoCredit id={drill.id} /> : null}
+        {!filmed && photo ? (
           <View style={{ gap: 8 }}>
             <Text style={s.small}>
               {photo.credit} · Training context photo, not a movement demonstration.

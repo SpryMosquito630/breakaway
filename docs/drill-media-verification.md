@@ -1,5 +1,19 @@
 # Drill media verification
 
+## November 14 online video catalog and local looping
+
+The catalog now covers 26 of 30 built-in drill IDs: two unchanged licensed offline films (sole rolls and marker slalom) plus 24 reviewed public YouTube core-technique examples. Four gaps remain: `push`, `weak-roll`, `pass-brake`, and `pass-angle`. Partial matches and instruction-adaptation proposals are excluded. Sources may illustrate the core action with different equipment, cadence or pace; limits remain visible. Weaker-foot examples do not claim the demonstrator's dominance. All 30 distinct photographic assets are preserved, including offline images for online examples.
+
+The two local films loop after Play and pause on navigation blur/background. No player is created for a library row. Online detail/setup retains the photo and optional authored guide, then offers an explicit provider action. Video demos filtering and badges recognize validated local/online examples.
+
+Every current online source has **unknown Made for Kids status**, so all 24 open the timestamped original on YouTube; no current source qualifies for an in-app embed. External playback uses the provider's own controls and is not automatically looped by this app. The optional official embedded player requires verified non-child-directed status and a recognized 13+/adult age band, then explicit user loading. Under-13 and unknown ages cannot create that embed. The disclosure explains provider device/network data collection. Private recordings/profile answers are never serialized into the public-demo document.
+
+The optional player uses the YouTube privacy-enhanced host, genuine native app identity, original provider controls/branding/ads, and official start/end API coordinates. It loops only after user playback and unloads on navigation/background/timer. No copyrighted online source video is bundled or offered for offline download. Original public metadata and research evidence are recorded in [drill-online-video-sources.json](drill-online-video-sources.json); the source-review records do not certify seamless interval boundaries.
+
+Software checks: all 218 tests and TypeScript pass, including interval eligibility, unknown-age/child-status refusal and simulated player start/loop/pause/hidden-document behavior. This catalog integration has not yet received browser/native playback QA or a new production export. The optional embedded player has no eligible live source to exercise. Earlier photo export/browser checks below do not establish runtime verification of these new video paths.
+
+Implementation references: [Expo SDK 58 WebView](https://docs.expo.dev/versions/latest/sdk/webview/), [YouTube official IFrame API](https://developers.google.com/youtube/iframe_api_reference), [YouTube identity requirements](https://developers.google.com/youtube/terms/required-minimum-functionality), and [YouTube developer policies](https://developers.google.com/youtube/terms/developer-policies).
+
 ## Current November 14 real-photo source freeze
 
 All 30 built-in drills have distinct genuine photographic media: 28 real still references plus the two unchanged sole/slalom film posters. Keeper drills are included. No built-in uses an authored-diagram or generated-human thumbnail, and no still photograph or alternate crop is assigned to two drills. Still references show relevant contact/setup/handling phases; descriptions state where a complete movement, incoming pass, foot dominance or rolling distribution is not established.

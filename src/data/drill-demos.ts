@@ -1,4 +1,7 @@
+import { youtubeDrillDemos } from "./drill-online-demos";
+import { validYoutubeDemo, type YoutubeDrillDemo } from "../domain/drillVideo";
 export type DrillDemoAsset = {
+  kind: "local";
   source: number;
   poster: number;
   limit: string;
@@ -12,6 +15,7 @@ export type DrillDemoAsset = {
 // movement example, not evidence that the entire training program was vetted.
 export const drillDemos: Record<string, DrillDemoAsset> = {
   sole: {
+    kind: "local",
     source: require("../../assets/drill-demos/sole-contact.mp4"),
     poster: require("../../assets/drill-demos/sole-contact-poster.jpg"),
     limit: "One-foot example · Alternate feet in this drill.",
@@ -23,6 +27,7 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
       "One-foot sole-control example. Stop with the other foot and alternate using the steps below.",
   },
   slalom: {
+    kind: "local",
     title: "Marker slalom: weave and return",
     source: require("../../assets/drill-demos/marker-slalom.mp4"),
     poster: require("../../assets/drill-demos/marker-slalom-poster.jpg"),
@@ -34,3 +39,11 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
       "Filmed movement example: weaving between cones, turning and returning. Use flat markers spaced for your own walking pace; follow your selected stage’s steps and target.",
   },
 };
+
+export type DrillDemoEntry = DrillDemoAsset | YoutubeDrillDemo;
+export function getDrillDemo(id: string): DrillDemoEntry | undefined {
+  const local = drillDemos[id];
+  if (local) return local;
+  const online = youtubeDrillDemos[id];
+  return online && validYoutubeDemo(online) ? online : undefined;
+}
