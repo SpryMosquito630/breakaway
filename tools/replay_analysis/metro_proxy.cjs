@@ -6,7 +6,7 @@ const MAX_BYTES = 50 * 1024 * 1024;
 module.exports = function analysisMiddleware(
   next,
   projectRoot,
-  { poseOnly = false } = {},
+  { poseOnly = false, coachChat = false } = {},
 ) {
   const runtimePath = path.join(projectRoot, "work/replay-service/runtime.json");
   return (req, res, fallback) => {
@@ -33,7 +33,12 @@ module.exports = function analysisMiddleware(
     };
     // The player-facing shot review exposes local joints only. Other developer
     // integrations remain closed even if their paths are requested directly.
-    if (poseOnly && route !== "/api/replay/health" && route !== "/api/replay/pose")
+    if (
+      poseOnly &&
+      route !== "/api/replay/health" &&
+      route !== "/api/replay/pose" &&
+      !(coachChat && route === "/api/replay/chat")
+    )
       return reply(404, {
         error: { code: "not_found", message: "This endpoint is not enabled." },
       });

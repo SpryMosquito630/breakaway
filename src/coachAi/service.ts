@@ -6,6 +6,9 @@ export type ServiceState = {
   base: string;
   token: string;
   aiAvailable: boolean;
+  chatAvailable?: boolean;
+  chatProvider?: "openai" | "gemini";
+  chatDevAllowed?: boolean;
   jointViewAvailable: boolean;
 };
 export type Feedback = {
@@ -53,6 +56,9 @@ export async function discoverService(
         base,
         token,
         aiAvailable: body.aiAvailable === true,
+        chatAvailable: body.chatAvailable === true,
+        chatProvider: body.chatProvider === "gemini" ? "gemini" : "openai",
+        chatDevAllowed: body.chatDevAllowed === true,
         jointViewAvailable: body.jointViewAvailable === true,
       }
     : null;

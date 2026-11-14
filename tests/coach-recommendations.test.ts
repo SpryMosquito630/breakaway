@@ -45,6 +45,51 @@ test("Offline guide labels its source and uses actual catalog cues and saved act
   assert.deepEqual(offlineCoach("injury pain", data, drills).drillIds, []);
   assert.match(offlineCoach("injury pain", data, drills).reply, /qualified professional/);
 });
+test("Explicit focus requests return that skill and describe the requested focus", () => {
+  const data = initialData();
+  data.profile.goal = "Ball control";
+  for (const [query, skill] of [
+    ["passing", "Passing"],
+    ["passing drills for a goalkeeper", "Passing"],
+    ["work on my weaker foot", "Weaker foot"],
+    ["non-dominant foot", "Weaker foot"],
+    ["dribbling", "Dribbling"],
+  ]) {
+    const reply = offlineCoach(query, data, drills);
+    assert.ok(reply.drillIds.length > 0);
+    assert.ok(
+      reply.drillIds.every((id) => drills.find((d) => d.id === id)?.skill === skill),
+    );
+    assert.ok(reply.reply.includes(skill.toLowerCase()));
+  }
+  assert.equal(data.profile.goal, "Ball control");
+});
+test("Unavailable focus does not silently return unrelated drills", () => {
+  const data = initialData();
+  const catalog = drills.filter((d) => d.skill === "Ball control");
+  const reply = offlineCoach("passing", data, catalog);
+  assert.deepEqual(reply.drillIds, []);
+  assert.match(reply.reply, /No passing catalog drills/);
+});
+test("Unsupported questions explain offline capabilities instead of repeating generic drills", () => {
+  const data = initialData();
+  for (const query of [
+    "hello",
+    "how does this work?",
+    "shooting drills",
+    "shooting practice",
+    "how can I improve shooting",
+    "fitness training",
+    "return",
+    "weather today",
+  ]) {
+    const reply = offlineCoach(query, data, drills);
+    assert.deepEqual(reply.drillIds, []);
+    assert.match(reply.reply, /offline guide matches catalog drills/);
+  }
+  data.plan = ["sole"];
+  assert.match(offlineCoach("my plan", data, drills).reply, /Sole rolls/);
+});
 test("Remote gate fails closed for unknown and under-13 age or disabled build", () => {
   assert.equal(remoteCoachAllowed(undefined, true), false);
   assert.equal(remoteCoachAllowed("under13", true), false);
@@ -85,4 +130,10 @@ test("Remote context minimizes personal data and constrains AI to usable catalog
     ).source,
     "openai",
   );
+});
+test("Gemini replies require the selected provider and eligible drill IDs", () => {
+  const value = { source: "gemini", reply: "Try sole rolls.", drillIds: ["sole"] };
+  assert.equal(validateCoachReply(value, ["sole"], "gemini").source, "gemini");
+  assert.throws(() => validateCoachReply(value, ["sole"], "openai"));
+  assert.throws(() => validateCoachReply(value, [], "gemini"));
 });

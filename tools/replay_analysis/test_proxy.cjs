@@ -58,6 +58,31 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
     }
     assert.equal((await fetch(`${base}/pose`)).status, 405);
     assert.equal(requests.length, 2);
+    await close(proxy);
+    proxy = http.createServer(
+      middleware(fallback, root, { poseOnly: true, coachChat: true }),
+    );
+    await listen(proxy);
+    const coachBase = `http://127.0.0.1:${proxy.address().port}/api/replay`;
+    assert.equal(
+      (
+        await fetch(`${coachBase}/chat`, {
+          method: "POST",
+          body: "test",
+          headers: { Authorization: "Bearer test-session" },
+        })
+      ).status,
+      200,
+    );
+    assert.deepEqual(requests.at(-1), {
+      path: "/chat",
+      authorization: "Bearer test-session",
+    });
+    for (const route of ["analyze", "coach", "food"])
+      assert.equal(
+        (await fetch(`${coachBase}/${route}`, { method: "POST", body: "test" })).status,
+        404,
+      );
   } finally {
     if (proxy) await close(proxy);
     await close(upstream);

@@ -5,7 +5,7 @@ from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from detector import MODEL_SHA256
-from coaching import CoachingError, configured, context_value, authorize_attempt, respond as coach_respond
+from coaching import CoachingError, configured, chat_configured, chat_provider, auth_config, context_value, authorize_attempt, respond as coach_respond
 from coaching_worker import pose_available
 from food_image import food_context, MAX_PHOTO_BYTES
 
@@ -68,7 +68,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path != '/health':
             return self.error(404, 'not_found', 'This endpoint does not exist.')
-        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
+        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_configured(), 'chatProvider': chat_provider(), 'chatDevAllowed': chat_configured() and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
                            'limits': {'maxBytes': MAX_BYTES, 'maxSeconds': 30, 'sampleFps': 15}, 'authentication': 'dev_session_token'})
     def read_body(self):
         max_bytes = min(MAX_BYTES, MAX_PHOTO_BYTES) if self.path == '/food' else MAX_BYTES
@@ -129,7 +129,7 @@ class Handler(BaseHTTPRequestHandler):
                 message = request.get('message')
                 if not isinstance(message, str) or not 1 <= len(message.strip()) <= 1500: raise ClientError(400, 'invalid_message', 'Use a message of 1–1500 characters.')
                 context = context_value(request.get('context', {}))
-                authorize_attempt(self.headers.get('X-User-Token', ''))
+                authorize_attempt(self.headers.get('X-User-Token', ''), chat=True)
                 self.respond(200, coach_respond([{'type': 'input_text', 'text': message}], context))
                 return
             if self.path in {'/coach','/food'} and not configured():

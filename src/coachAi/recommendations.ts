@@ -11,24 +11,28 @@ import { localGuide } from "./guide";
 export type CoachReply = {
   reply: string;
   drillIds: string[];
-  source: "offline" | "openai";
+  source: "offline" | "openai" | "gemini";
 };
 export function remoteCoachAllowed(age: AppData["profile"]["ageBand"], enabled: boolean) {
   return enabled && (age === "adult" || age === "13to17");
 }
-export function coachDrills(message: string, data: AppData, catalog: Drill[]) {
+function requestedGoal(message: string): Goal | undefined {
   const query = message.toLowerCase();
-  const goal: Goal = /weak|other foot/.test(query)
+  return /\b(weak\w*|other foot|non[- ]dominant)\b/.test(query)
     ? "Weaker foot"
-    : /pass|first touch/.test(query)
+    : /\b(pass\w*|first touch)\b/.test(query)
       ? "Passing"
-      : /dribbl|turn/.test(query)
+      : /\b(dribbl\w*|turn\w*)\b/.test(query)
         ? "Dribbling"
-        : /control|touch/.test(query)
+        : /\b(control\w*|touch\w*)\b/.test(query)
           ? "Ball control"
-          : data.profile.goal;
+          : undefined;
+}
+export function coachDrills(message: string, data: AppData, catalog: Drill[]) {
+  const focus = requestedGoal(message);
+  const goal = focus ?? data.profile.goal;
   const profile = { ...data.profile, goal };
-  return matchPlan(catalog, profile)
+  return matchPlan(focus ? catalog.filter((d) => d.skill === focus) : catalog, profile)
     .map((id) => catalog.find((d) => d.id === id)!)
     .filter(Boolean);
 }
@@ -55,18 +59,32 @@ export function offlineCoach(
     !/practice|drill|today/i.test(message)
   )
     return { source: "offline", reply: localGuide(message, data, catalog), drillIds: [] };
+  if (/\bplan\b/i.test(message) && !requestedGoal(message))
+    return { source: "offline", reply: localGuide(message, data, catalog), drillIds: [] };
+  const focus = requestedGoal(message);
+  if (
+    !focus &&
+    (!/\b(practi\w*|train\w*|drill\w*|start|focus)\b/i.test(message) ||
+      /\b(shoot\w*|finish\w*|defend\w*|tackl\w*|heading|goalkeep\w*|fitness|sprint\w*)\b/i.test(
+        message,
+      ))
+  )
+    return {
+      source: "offline",
+      reply:
+        "This offline guide matches catalog drills, rather than answering general questions. Try Passing, Weaker foot, Dribbling or Ball control. You can also ask about your saved plan, sessions or tests.",
+      drillIds: [],
+    };
   const matches = coachDrills(message, data, catalog);
   if (!matches.length)
     return {
       source: "offline",
-      reply:
-        "No catalog drills match your setup. Update your equipment or space in Training preferences, or browse Drills.",
+      reply: `No${focus ? ` ${focus.toLowerCase()}` : ""} catalog drills match your setup. Update your equipment or space in Training preferences, or browse Drills.`,
       drillIds: [],
     };
-  const focused = matches.filter((d) => d.skill === data.profile.goal);
   return {
     source: "offline",
-    reply: `${focused.length ? "Here are drills for your focus" : "Here are drills from the catalog"}, matched to your saved equipment and space. Start with ${matches[0].name}: ${matches[0].cue} Open a drill for its steps and practice timer.`,
+    reply: `${focus ? `Here are ${focus.toLowerCase()} drills` : "Here are drills for today’s practice"}, matched to your saved equipment and space. Start with ${matches[0].name}: ${matches[0].cue} Open a drill for its steps and practice timer.`,
     drillIds: matches.map((d) => d.id),
   };
 }
@@ -82,11 +100,15 @@ export function coachContext(data: AppData, catalog: Drill[]) {
     allowedDrillIds: eligible.map((d) => d.id),
   };
 }
-export function validateCoachReply(value: unknown, allowedIds: string[]): CoachReply {
+export function validateCoachReply(
+  value: unknown,
+  allowedIds: string[],
+  expectedSource: "openai" | "gemini" = "openai",
+): CoachReply {
   const v = value as Partial<CoachReply> | null;
   if (
     !v ||
-    v.source !== "openai" ||
+    v.source !== expectedSource ||
     typeof v.reply !== "string" ||
     !v.reply.trim() ||
     v.reply.length > 3000 ||
@@ -95,5 +117,9 @@ export function validateCoachReply(value: unknown, allowedIds: string[]): CoachR
     v.drillIds.some((id) => typeof id !== "string" || !allowedIds.includes(id))
   )
     throw Error("AI returned an invalid reply. Try again or use the offline guide.");
-  return { reply: v.reply.trim(), drillIds: [...new Set(v.drillIds)], source: "openai" };
+  return {
+    reply: v.reply.trim(),
+    drillIds: [...new Set(v.drillIds)],
+    source: expectedSource,
+  };
 }

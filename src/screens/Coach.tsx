@@ -18,19 +18,18 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../state/AppState";
-import { COACH_REMOTE_ENABLED } from "../config/coach";
+import { COACH_DEV_ENABLED, COACH_REMOTE_ENABLED } from "../config/coach";
 import { connectedClient } from "../connected/client";
 import { discoverService, requestService, type ServiceState } from "../coachAi/service";
 import {
   coachContext,
-  coachDrills,
   offlineCoach,
   remoteCoachAllowed,
   validateCoachReply,
   type CoachReply,
 } from "../coachAi/recommendations";
 import { haptic } from "../utils/haptics";
-import { Button, Disclosure } from "../components/ui";
+import { Button } from "../components/ui";
 
 type Turn = CoachReply & { question: string; id: number };
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
@@ -39,7 +38,7 @@ export function Coach({ navigation }: { navigation: any }) {
   const { data, catalog } = useApp();
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
-  const [mode, setMode] = useState<"offline" | "openai">("offline");
+  const [mode, setMode] = useState<"offline" | "ai">("offline");
   const [service, setService] = useState<ServiceState | null>(null);
   const [connection, setConnection] = useState("");
   const [busy, setBusy] = useState(false);
@@ -52,8 +51,8 @@ export function Coach({ navigation }: { navigation: any }) {
   const allowed = remoteCoachAllowed(data.profile.ageBand, COACH_REMOTE_ENABLED);
   const remoteAllowed = useRef(allowed);
   remoteAllowed.current = allowed;
-  const recommendations = coachDrills("", data, catalog);
   const mounted = useRef(true);
+  const provider = service?.chatProvider === "gemini" ? "Google Gemini" : "OpenAI";
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -77,19 +76,25 @@ export function Coach({ navigation }: { navigation: any }) {
     setConnection("");
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
+      const discovered = await discoverService(controller.signal);
+      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      setService(discovered);
+      if (!discovered?.chatAvailable) {
+        setConnection("AI is not connected. The offline guide is ready.");
+        return;
+      }
       const session = await connectedClient?.auth.getSession();
       if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
-      if (!session?.data.session || session.error) {
+      if (
+        (!session?.data.session || session.error) &&
+        !(COACH_DEV_ENABLED && discovered.chatDevAllowed)
+      ) {
         setConnection(
           "AI needs a signed-in account. Account setup is not available in this build. Continue with the offline guide.",
         );
         return;
       }
-      const discovered = await discoverService(controller.signal);
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
-      setService(discovered);
-      if (discovered?.aiAvailable) setDisclosure(true);
-      else setConnection("AI is not connected. The offline guide is ready.");
+      setDisclosure(true);
     } catch {
       if (mounted.current && remoteAllowed.current)
         setConnection("Could not reach AI. The offline guide is ready.");
@@ -111,7 +116,7 @@ export function Coach({ navigation }: { navigation: any }) {
       setMessage("");
       return;
     }
-    if (!allowed || !service?.aiAvailable) return;
+    if (!allowed || !service?.chatAvailable) return;
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
@@ -119,7 +124,10 @@ export function Coach({ navigation }: { navigation: any }) {
     try {
       const session = await connectedClient?.auth.getSession();
       if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
-      if (!session?.data.session || session.error)
+      if (
+        (!session?.data.session || session.error) &&
+        !(COACH_DEV_ENABLED && service.chatDevAllowed)
+      )
         throw Error(
           "Sign in before sending to AI. You can continue with the offline guide.",
         );
@@ -133,7 +141,11 @@ export function Coach({ navigation }: { navigation: any }) {
         true,
       );
       if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
-      const reply = validateCoachReply(value, context.allowedDrillIds);
+      const reply = validateCoachReply(
+        value,
+        context.allowedDrillIds,
+        service.chatProvider,
+      );
       setTurns((previous) => [
         ...previous.slice(-19),
         { ...reply, question: text, id: ++nextId.current },
@@ -206,7 +218,7 @@ export function Coach({ navigation }: { navigation: any }) {
           <View style={styles.grow}>
             <Text style={s.h2}>Your training corner</Text>
             <Text style={s.small}>
-              {mode === "offline" ? "Offline guide · no AI" : "AI coach · OpenAI"}
+              {mode === "offline" ? "Offline guide · no AI" : `AI coach · ${provider}`}
             </Text>
           </View>
         </View>
@@ -229,34 +241,25 @@ export function Coach({ navigation }: { navigation: any }) {
           <ChevronRight size={16} color={C.muted} />
         </Pressable>
         {turns.length === 0 ? (
-          <>
-            <View style={styles.starters}>
-              {starters.map((text) => (
-                <Pressable
-                  key={text}
-                  accessibilityRole="button"
-                  disabled={busy || checking}
-                  onPress={() => void send(text)}
-                  style={({ pressed }) => [
-                    styles.starter,
-                    {
-                      backgroundColor: pressed ? C.pitchSoft : C.soft,
-                      borderColor: C.lineStrong,
-                    },
-                  ]}
-                >
-                  <Text style={s.small}>{text}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Text style={s.h3}>A drill to start with</Text>
-            {drillCards(recommendations.slice(0, 1).map((d) => d.id))}
-            {!recommendations.length ? (
-              <Text style={s.body}>
-                No matching drills. Edit your setup to find a starting point.
-              </Text>
-            ) : null}
-          </>
+          <View style={styles.starters}>
+            {starters.map((text) => (
+              <Pressable
+                key={text}
+                accessibilityRole="button"
+                disabled={busy || checking}
+                onPress={() => void send(text)}
+                style={({ pressed }) => [
+                  styles.starter,
+                  {
+                    backgroundColor: pressed ? C.pitchSoft : C.soft,
+                    borderColor: C.lineStrong,
+                  },
+                ]}
+              >
+                <Text style={s.small}>{text}</Text>
+              </Pressable>
+            ))}
+          </View>
         ) : (
           turns.map((turn) => (
             <View key={turn.id} style={styles.turn}>
@@ -268,7 +271,7 @@ export function Coach({ navigation }: { navigation: any }) {
               <Text style={[s.small, { color: C.green }]}>
                 {turn.source === "offline"
                   ? "Offline · fixed rules"
-                  : "AI coach · OpenAI"}
+                  : `AI coach · ${turn.source === "gemini" ? "Google Gemini" : "OpenAI"}`}
               </Text>
               <Text selectable style={s.body}>
                 {turn.reply}
@@ -277,51 +280,39 @@ export function Coach({ navigation }: { navigation: any }) {
             </View>
           ))
         )}
-        <Disclosure label="About this coach">
-          <Text style={s.small}>
-            Offline replies use fixed rules and your saved setup. They stay on this
-            device. Chat is cleared when the app closes.
+        {allowed ? (
+          <Button
+            label={
+              checking
+                ? "Checking connection…"
+                : mode === "ai"
+                  ? "Use offline guide"
+                  : "Connect AI coach"
+            }
+            disabled={checking || busy}
+            kind="secondary"
+            onPress={() => (mode === "ai" ? setMode("offline") : void checkConnection())}
+          />
+        ) : null}
+        {connection ? (
+          <Text accessibilityLiveRegion="polite" style={s.small}>
+            {connection}
           </Text>
-          {allowed ? (
-            <Button
-              label={
-                checking
-                  ? "Checking connection…"
-                  : mode === "openai"
-                    ? "Use offline guide"
-                    : "Connect AI coach"
-              }
-              disabled={checking || busy}
-              kind="secondary"
-              onPress={() =>
-                mode === "openai" ? setMode("offline") : void checkConnection()
-              }
-            />
-          ) : (
-            <Text style={s.small}>
-              AI chat is not connected in this build. The offline guide is available.
-            </Text>
-          )}
-          {connection ? (
-            <Text accessibilityLiveRegion="polite" style={s.small}>
-              {connection}
-            </Text>
-          ) : null}
-        </Disclosure>
+        ) : null}
         {disclosure && allowed ? (
           <View style={[styles.consent, { backgroundColor: C.soft }]}>
             <Text style={s.h3}>Before you use AI</Text>
             <Text style={s.body}>
               Each send shares your message, saved position, training focus and compatible
-              drill names and cues with OpenAI through the coaching server. Do not include
-              private details. Videos, body measurements, practice history and test
-              results are not included. Earlier chat messages are not sent.
+              drill names and cues with {provider} through the coaching server. Do not
+              include private details. Videos, body measurements, practice history and
+              test results are not included. Earlier chat messages are not sent.
             </Text>
             <Button
               label="Enable AI chat"
               kind="lime"
               onPress={() => {
-                setMode("openai");
+                setMode("ai");
                 setDisclosure(false);
               }}
             />
