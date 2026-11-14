@@ -4,7 +4,7 @@ Coach is a normal fifth tab beside Train, Drills, Analyze and Progress. It opens
 
 ## Private cellular Coach active; production account setup pending
 
-`EXPO_PUBLIC_COACH_REMOTE_ENABLED=true` opts into the Coach connection control independently of `EXPO_PUBLIC_DEVELOPER_FEATURES`. Both flags default off. Enabling Coach does not expose other developer screens. Default/offline Coach never probes the remote service. Unknown age and under-13 profiles cannot connect or send; changing to either aborts an in-flight request and returns to offline mode.
+`EXPO_PUBLIC_COACH_REMOTE_ENABLED=true` opts into the Coach connection control independently of `EXPO_PUBLIC_DEVELOPER_FEATURES`. Both flags default off. Enabling Coach does not expose other developer screens. Default/offline Coach never probes the remote service. Unknown age and under-13 profiles cannot connect or send; changing to either aborts an in-flight request and returns to offline mode. For legacy profiles missing an age range, the visible **Connect AI coach** entry opens an unselected age-range question and explicit save action before any connection check. It fills only a missing range, preserves all training data, and never replaces an existing age selection. Under-13 profiles show an explanation and retain the offline guide.
 
 The private paired-phone debug connection is active and verified. Normal production AI still requires account integration. A real exchange requires:
 

@@ -5,6 +5,7 @@ import {
   type AppData,
   type Drill,
   type Goal,
+  type AgeBand,
 } from "../domain/model";
 import { localGuide } from "./guide";
 
@@ -15,6 +16,12 @@ export type CoachReply = {
 };
 export function remoteCoachAllowed(age: AppData["profile"]["ageBand"], enabled: boolean) {
   return enabled && (age === "adult" || age === "13to17");
+}
+/** This recovery prompt can fill legacy profiles, never replace a saved age range. */
+export function saveMissingCoachAge(data: AppData, ageBand: AgeBand): AppData {
+  return data.profile.ageBand === undefined
+    ? { ...data, profile: { ...data.profile, ageBand } }
+    : data;
 }
 function requestedGoal(message: string): Goal | undefined {
   const query = message.toLowerCase();

@@ -33,17 +33,19 @@ import {
   coachContext,
   offlineCoach,
   remoteCoachAllowed,
+  saveMissingCoachAge,
   validateCoachReply,
   type CoachReply,
 } from "../coachAi/recommendations";
 import { haptic } from "../utils/haptics";
-import { Button } from "../components/ui";
+import { Button, Choice } from "../components/ui";
+import type { AgeBand } from "../domain/model";
 
 type Turn = CoachReply & { question: string; id: number };
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
 export function Coach({ navigation }: { navigation: any }) {
   const { C, s } = useTheme();
-  const { data, catalog } = useApp();
+  const { data, catalog, update } = useApp();
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mode, setMode] = useState<"offline" | "ai">("offline");
@@ -55,6 +57,8 @@ export function Coach({ navigation }: { navigation: any }) {
   const [pairing, setPairing] = useState(false);
   const [pairCode, setPairCode] = useState("");
   const [error, setError] = useState("");
+  const [askingAge, setAskingAge] = useState(false);
+  const [ageChoice, setAgeChoice] = useState<AgeBand | undefined>();
   const request = useRef<AbortController | null>(null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const nextId = useRef(0);
@@ -368,7 +372,10 @@ export function Coach({ navigation }: { navigation: any }) {
             </View>
           ))
         )}
-        {allowed && !pairing ? (
+        {COACH_REMOTE_ENABLED &&
+        data.profile.ageBand !== "under13" &&
+        !pairing &&
+        !askingAge ? (
           <Button
             label={
               checking
@@ -379,8 +386,63 @@ export function Coach({ navigation }: { navigation: any }) {
             }
             disabled={checking || busy}
             kind="secondary"
-            onPress={() => (mode === "ai" ? setMode("offline") : void checkConnection())}
+            onPress={() => {
+              if (data.profile.ageBand === undefined) {
+                setAgeChoice(undefined);
+                setAskingAge(true);
+              } else if (mode === "ai") setMode("offline");
+              else void checkConnection();
+            }}
           />
+        ) : null}
+        {COACH_REMOTE_ENABLED && data.profile.ageBand === "under13" ? (
+          <Text style={s.small}>
+            AI coach is unavailable for under-13 profiles. You can keep using the offline
+            training guide.
+          </Text>
+        ) : null}
+        {askingAge && COACH_REMOTE_ENABLED && data.profile.ageBand === undefined ? (
+          <View style={[styles.consent, { backgroundColor: C.soft }]}>
+            <Text style={s.h3}>What is your age range?</Text>
+            <Text style={s.small}>
+              Choose your age range before connecting AI. It stays on this device and is
+              not sent with your questions.
+            </Text>
+            {(
+              [
+                ["under13", "Under 13"],
+                ["13to17", "13–17"],
+                ["adult", "18 or older"],
+              ] as const
+            ).map(([value, label]) => (
+              <Choice
+                key={value}
+                label={label}
+                selected={ageChoice === value}
+                onPress={() => setAgeChoice(value)}
+              />
+            ))}
+            <Button
+              label="Save age range"
+              disabled={!ageChoice}
+              kind="lime"
+              onPress={() => {
+                if (!ageChoice) return;
+                update((current) => saveMissingCoachAge(current, ageChoice));
+                setAskingAge(false);
+                setAgeChoice(undefined);
+                setConnection("");
+              }}
+            />
+            <Button
+              label="Keep offline guide"
+              kind="secondary"
+              onPress={() => {
+                setAskingAge(false);
+                setAgeChoice(undefined);
+              }}
+            />
+          </View>
         ) : null}
         {pairing && allowed && COACH_DEV_ENABLED ? (
           <View style={[styles.consent, { backgroundColor: C.soft }]}>

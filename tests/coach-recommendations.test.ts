@@ -5,10 +5,32 @@ import {
   coachDrills,
   offlineCoach,
   remoteCoachAllowed,
+  saveMissingCoachAge,
   validateCoachReply,
 } from "../src/coachAi/recommendations";
 import { initialData, allowed, recommendedForPosition } from "../src/domain/model";
 import { drills } from "../src/data/drills";
+
+test("Legacy Coach age recovery only fills a missing range and preserves training data", () => {
+  const legacy = initialData();
+  delete legacy.profile.ageBand;
+  const saved = saveMissingCoachAge(legacy, "adult");
+  assert.equal(legacy.profile.ageBand, undefined);
+  assert.equal(saved.profile.ageBand, "adult");
+  assert.equal(remoteCoachAllowed(saved.profile.ageBand, true), true);
+  assert.equal(saved.plan, legacy.plan);
+  assert.equal(saved.history, legacy.history);
+  assert.equal(saved.assessments, legacy.assessments);
+  assert.equal(saved.active, legacy.active);
+  for (const age of ["under13", "13to17", "adult"] as const) {
+    const existing = { ...legacy, profile: { ...legacy.profile, ageBand: age } };
+    assert.equal(saveMissingCoachAge(existing, "adult"), existing);
+    assert.equal(existing.profile.ageBand, age);
+  }
+  const younger = saveMissingCoachAge(legacy, "under13");
+  assert.equal(remoteCoachAllowed(younger.profile.ageBand, true), false);
+  assert.equal(saveMissingCoachAge(younger, "adult"), younger);
+});
 
 test("Coach recommends real catalog drills that respect gear, space and specialist position", () => {
   const data = initialData();
