@@ -1,4 +1,5 @@
 import { DEVELOPER_FEATURES } from "../config/features";
+import { COACH_REMOTE_ENABLED } from "../config/coach";
 import { assertConnectedAccess, connectedAccessAllowed } from "./access";
 import "react-native-url-polyfill/auto";
 import { createClient } from "@supabase/supabase-js";
@@ -6,12 +7,13 @@ import * as SecureStore from "expo-secure-store";
 import { AppState, Platform } from "react-native";
 import { registerFeatureReset } from "../features/resetRegistry";
 import { readConnectionConfig } from "./config";
-const config = DEVELOPER_FEATURES
-  ? readConnectionConfig(
-      process.env.EXPO_PUBLIC_SUPABASE_URL,
-      process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    )
-  : null;
+const config =
+  DEVELOPER_FEATURES || COACH_REMOTE_ENABLED
+    ? readConnectionConfig(
+        process.env.EXPO_PUBLIC_SUPABASE_URL,
+        process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      )
+    : null;
 // Web uses the SDK's browser storage. Native tokens stay in the platform keychain.
 export const connectedClient = config
   ? createClient(config.url, config.key, {

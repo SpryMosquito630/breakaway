@@ -25,6 +25,7 @@ import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Mediu
 import {
   CalendarDays,
   ScanLine,
+  MessageCircle,
   TrafficCone,
   ChartNoAxesCombined,
   Settings2,
@@ -34,6 +35,7 @@ import { Onboarding, ReplayOnboarding } from "./src/screens/Onboarding";
 import { Today, Plan } from "./src/screens/Home";
 import { Library, Detail, Replace } from "./src/screens/Library";
 import { ShotAnalysis } from "./src/screens/ShotAnalysis";
+import { Coach } from "./src/screens/Coach";
 import { Practice, Recap } from "./src/screens/Practice";
 import { Assessment } from "./src/screens/Assessment";
 import {
@@ -134,6 +136,7 @@ const icons = {
   Today: CalendarDays,
   Drills: TrafficCone,
   Analyze: ScanLine,
+  Coach: MessageCircle,
   Progress: ChartNoAxesCombined,
 };
 function Main({ navigation }: { navigation: any }) {
@@ -195,6 +198,7 @@ function Main({ navigation }: { navigation: any }) {
         component={ShotAnalysis}
         options={{ title: "Shot analysis", tabBarLabel: "Analyze" }}
       />
+      <Tab.Screen name="Coach" component={Coach} />
       <Tab.Screen name="Progress" component={Progress} />
     </Tab.Navigator>
   );
