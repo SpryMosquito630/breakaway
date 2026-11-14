@@ -280,7 +280,8 @@ function Shell() {
               headerShadowVisible: false,
               headerBackButtonDisplayMode: "minimal",
               contentStyle: { backgroundColor: C.bg },
-              statusBarStyle: isDark ? "light" : "dark",
+              // expo-status-bar owns appearance, including in Expo Go where the
+              // host's Info.plist cannot enable react-native-screens overrides.
               animation: reduce ? "fade" : "default",
             }}
           >
@@ -359,7 +360,7 @@ function Shell() {
             <Stack.Screen
               name="ReplayOnboarding"
               component={ReplayOnboarding}
-              options={{ headerShown: false, statusBarStyle: "light" }}
+              options={{ headerShown: false }}
             />
 
             <Stack.Screen

@@ -10,6 +10,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.sprymosquito630.breakaway",
       "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": true,
         "ITSAppUsesNonExemptEncryption": false
       }
     },
