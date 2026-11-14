@@ -76,8 +76,8 @@ export function ShotPoseOverlay({
             y1={points[a]!.y * pose.height}
             x2={points[b]!.x * pose.width}
             y2={points[b]!.y * pose.height}
-            stroke="#B6FF3B"
-            strokeWidth={1.8 / scale}
+            stroke="#B6FF00"
+            strokeWidth={2.3 / scale}
           />
         ) : null,
       )}
@@ -87,8 +87,8 @@ export function ShotPoseOverlay({
             key={index}
             cx={point.x * pose.width}
             cy={point.y * pose.height}
-            r={2.7 / scale}
-            fill="#B6FF3B"
+            r={3.1 / scale}
+            fill="#B6FF00"
             stroke="#10271D"
             strokeWidth={0.8 / scale}
           />
@@ -157,15 +157,15 @@ function SvgTextCallout({
         y1={y}
         x2={endX}
         y2={labelY + height / 2}
-        stroke="#FFFFFF"
-        strokeWidth={1.4 / scale}
+        stroke="#B6FF00"
+        strokeWidth={1.6 / scale}
       />
       <Circle
         cx={x}
         cy={y}
         r={3.4 / scale}
-        fill="#183724"
-        stroke="#FFFFFF"
+        fill="#B6FF00"
+        stroke="#10271D"
         strokeWidth={1.8 / scale}
       />
       <Rect
@@ -175,6 +175,8 @@ function SvgTextCallout({
         height={height}
         rx={height / 2}
         fill="#FFFFFF"
+        stroke="#B6FF00"
+        strokeWidth={1.5 / scale}
       />
       <SvgText
         x={labelX + width / 2}

@@ -24,7 +24,8 @@ import {
   StepForward,
   Upload,
 } from "lucide-react-native";
-import { Button, Chip, Disclosure, Page, useTheme } from "../components/ui";
+import { Button, Disclosure, Page, useTheme } from "../components/ui";
+import { haptic } from "../utils/haptics";
 import { ReplayAnalysis } from "../domain/replay";
 import { replays } from "../replays/storage";
 import { useApp } from "../state/AppState";
@@ -42,6 +43,8 @@ import {
   type JointResult,
 } from "../coachAi/service";
 import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
+
+const NEON = "#B6FF00";
 
 type Clip = {
   id: string;
@@ -231,7 +234,7 @@ export function ShotAnalysis() {
             { opacity: picking ? 0.4 : pressed ? 0.7 : 1 },
           ]}
         >
-          <View style={[styles.captureCircle, { backgroundColor: C.lime }]}>
+          <View style={[styles.captureCircle, { backgroundColor: NEON }]}>
             <Camera size={25} color={C.onLime} />
           </View>
           <Text style={[s.small, { color: C.ink }]}>Record shot</Text>
@@ -702,7 +705,9 @@ function ShotReview({
             style={{
               height: 6,
               width: `${duration > 0 ? Math.max(0, Math.min(100, (time / duration) * 100)) : 0}%`,
-              backgroundColor: C.green,
+              backgroundColor: NEON,
+              borderWidth: 1,
+              borderColor: C.green,
             }}
           />
         </View>
@@ -736,7 +741,7 @@ function ShotReview({
             onPress={togglePlayback}
             style={({ pressed }) => [
               styles.playControl,
-              { backgroundColor: C.lime, opacity: !usable ? 0.35 : pressed ? 0.7 : 1 },
+              { backgroundColor: NEON, opacity: !usable ? 0.35 : pressed ? 0.7 : 1 },
             ]}
           >
             {playing ? (
@@ -773,7 +778,7 @@ function ShotReview({
               style={({ pressed }) => [
                 styles.speedControl,
                 {
-                  backgroundColor: speed === value ? C.ink : "transparent",
+                  backgroundColor: speed === value ? NEON : "transparent",
                   opacity: !usable ? 0.35 : pressed ? 0.7 : 1,
                 },
               ]}
@@ -783,7 +788,7 @@ function ShotReview({
                   s.small,
                   {
                     fontFamily: "Archivo_600SemiBold",
-                    color: speed === value ? C.bg : C.muted,
+                    color: speed === value ? C.onLime : C.muted,
                   },
                 ]}
               >
@@ -830,12 +835,12 @@ function ShotReview({
       {pose ? (
         <View style={{ gap: 10 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            <Chip
+            <TrackingChip
               label="Body lines"
               selected={showPose}
               onPress={() => setShowPose(!showPose)}
             />
-            <Chip
+            <TrackingChip
               label="Labels"
               selected={showLabels}
               onPress={() => setShowLabels(!showLabels)}
@@ -851,12 +856,12 @@ function ShotReview({
               }}
             >
               <Text style={s.small}>Kicking foot</Text>
-              <Chip
+              <TrackingChip
                 label="Left"
                 selected={kickingFoot === "left"}
                 onPress={() => setKickingFoot("left")}
               />
-              <Chip
+              <TrackingChip
                 label="Right"
                 selected={kickingFoot === "right"}
                 onPress={() => setKickingFoot("right")}
@@ -961,6 +966,48 @@ function ShotReview({
         </Text>
       </Disclosure>
     </View>
+  );
+}
+
+function TrackingChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { C, s } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={() => {
+        haptic("selection");
+        onPress();
+      }}
+      style={({ pressed }) => ({
+        minHeight: 48,
+        justifyContent: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 28,
+        backgroundColor: selected ? NEON : C.white,
+        borderWidth: 1,
+        borderColor: selected ? C.green : C.lineStrong,
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <Text
+        style={[
+          s.small,
+          { fontFamily: "Archivo_600SemiBold", color: selected ? C.onLime : C.muted },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
