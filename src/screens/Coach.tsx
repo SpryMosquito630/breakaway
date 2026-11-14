@@ -20,7 +20,15 @@ import { useTheme } from "../theme/ThemeProvider";
 import { useApp } from "../state/AppState";
 import { COACH_DEV_ENABLED, COACH_REMOTE_ENABLED } from "../config/coach";
 import { connectedClient } from "../connected/client";
-import { discoverService, requestService, type ServiceState } from "../coachAi/service";
+import {
+  discoverService,
+  requestService,
+  restoreCoachPair,
+  pairCoachService,
+  forgetCoachPair,
+  ServiceError,
+  type ServiceState,
+} from "../coachAi/service";
 import {
   coachContext,
   offlineCoach,
@@ -44,6 +52,8 @@ export function Coach({ navigation }: { navigation: any }) {
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
   const [disclosure, setDisclosure] = useState(false);
+  const [pairing, setPairing] = useState(false);
+  const [pairCode, setPairCode] = useState("");
   const [error, setError] = useState("");
   const request = useRef<AbortController | null>(null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -66,6 +76,9 @@ export function Coach({ navigation }: { navigation: any }) {
       setMode("offline");
       setService(null);
       setDisclosure(false);
+      setPairing(false);
+      setPairCode("");
+      void forgetCoachPair();
     }
   }, [allowed]);
   async function checkConnection() {
@@ -74,6 +87,9 @@ export function Coach({ navigation }: { navigation: any }) {
     request.current = controller;
     setChecking(true);
     setConnection("");
+    setError("");
+    setPairing(false);
+    setDisclosure(false);
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
       const discovered = await discoverService(controller.signal);
@@ -94,10 +110,63 @@ export function Coach({ navigation }: { navigation: any }) {
         );
         return;
       }
+      if (COACH_DEV_ENABLED && discovered.chatPairRequired) {
+        const paired = await restoreCoachPair(discovered);
+        if (!mounted.current || !remoteAllowed.current || controller.signal.aborted)
+          return;
+        setService(paired);
+        if (!paired.chatPairToken) {
+          setPairCode("");
+          setPairing(true);
+          return;
+        }
+      }
       setDisclosure(true);
     } catch {
       if (mounted.current && remoteAllowed.current)
         setConnection("Could not reach AI. The offline guide is ready.");
+    } finally {
+      clearTimeout(timer);
+      if (mounted.current) setChecking(false);
+    }
+  }
+  async function pairDevice() {
+    if (
+      !allowed ||
+      !COACH_DEV_ENABLED ||
+      !service ||
+      !service.chatDevAllowed ||
+      !service.chatPairRequired ||
+      checking ||
+      busy ||
+      !/^\d{8}$/.test(pairCode)
+    )
+      return;
+    const controller = new AbortController();
+    request.current = controller;
+    setChecking(true);
+    setConnection("");
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const paired = await pairCoachService(service, pairCode, controller.signal);
+      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) {
+        await forgetCoachPair();
+        return;
+      }
+      setService(paired);
+      setPairCode("");
+      setPairing(false);
+      setDisclosure(true);
+      haptic("success");
+    } catch (e) {
+      if (mounted.current && remoteAllowed.current) {
+        setPairCode("");
+        setConnection(
+          e instanceof Error && e.name !== "AbortError"
+            ? e.message
+            : "Pairing timed out. Try again.",
+        );
+      }
     } finally {
       clearTimeout(timer);
       if (mounted.current) setChecking(false);
@@ -152,6 +221,25 @@ export function Coach({ navigation }: { navigation: any }) {
       ]);
       setMessage("");
     } catch (e) {
+      if (e instanceof ServiceError && e.code === "pair_required") {
+        await forgetCoachPair();
+        if (mounted.current && remoteAllowed.current) {
+          setMode("offline");
+          setDisclosure(false);
+          setPairing(true);
+          setPairCode("");
+          setService((previous) =>
+            previous
+              ? {
+                  ...previous,
+                  chatPairRequired: true,
+                  chatPairToken: undefined,
+                  chatPairExpiresAt: undefined,
+                }
+              : null,
+          );
+        }
+      }
       if (mounted.current && remoteAllowed.current)
         setError(
           e instanceof Error && e.name !== "AbortError"
@@ -280,7 +368,7 @@ export function Coach({ navigation }: { navigation: any }) {
             </View>
           ))
         )}
-        {allowed ? (
+        {allowed && !pairing ? (
           <Button
             label={
               checking
@@ -293,6 +381,47 @@ export function Coach({ navigation }: { navigation: any }) {
             kind="secondary"
             onPress={() => (mode === "ai" ? setMode("offline") : void checkConnection())}
           />
+        ) : null}
+        {pairing && allowed && COACH_DEV_ENABLED ? (
+          <View style={[styles.consent, { backgroundColor: C.soft }]}>
+            <Text style={s.h3}>Pair this phone</Text>
+            <Text style={s.small}>
+              Enter the one-time code provided with your Expo link.
+            </Text>
+            <TextInput
+              accessibilityLabel="Coach pairing code"
+              value={pairCode}
+              onChangeText={(value) => setPairCode(value.replace(/\D/g, "").slice(0, 8))}
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={8}
+              autoCorrect={false}
+              autoCapitalize="none"
+              placeholder="8-digit code"
+              placeholderTextColor={C.muted}
+              editable={!checking && !busy}
+              style={[
+                s.body,
+                styles.pairInput,
+                { color: C.ink, borderColor: C.lineStrong, backgroundColor: C.bg },
+              ]}
+            />
+            <Button
+              label={checking ? "Pairing…" : "Pair phone"}
+              onPress={() => void pairDevice()}
+              disabled={checking || busy || pairCode.length !== 8}
+              kind="lime"
+            />
+            <Button
+              label="Keep offline guide"
+              onPress={() => {
+                setPairing(false);
+                setPairCode("");
+              }}
+              kind="secondary"
+              disabled={checking || busy}
+            />
+          </View>
         ) : null}
         {connection ? (
           <Text accessibilityLiveRegion="polite" style={s.small}>
@@ -422,6 +551,7 @@ const styles = StyleSheet.create({
   question: { padding: 14, borderRadius: 16, marginLeft: 28 },
   notice: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   consent: { padding: 16, gap: 12, borderRadius: 16 },
+  pairInput: { minHeight: 52, padding: 14, borderWidth: 1, borderRadius: 12 },
   composer: {
     flexDirection: "row",
     alignItems: "flex-end",

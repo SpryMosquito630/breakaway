@@ -10,7 +10,11 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "breakaway-pose-proxy-"));
   const requests = [];
   const upstream = http.createServer((req, res) => {
-    requests.push({ path: req.url, authorization: req.headers.authorization });
+    requests.push({
+      path: req.url,
+      authorization: req.headers.authorization,
+      ...(req.headers["x-coach-pair"] ? { pair: req.headers["x-coach-pair"] } : {}),
+    });
     req.resume();
     req.on("end", () => {
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -50,7 +54,7 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
       { path: "/health", authorization: "" },
       { path: "/pose", authorization: "Bearer test-session" },
     ]);
-    for (const route of ["analyze", "chat", "coach", "food"]) {
+    for (const route of ["analyze", "chat", "coach", "food", "pair"]) {
       assert.equal(
         (await fetch(`${base}/${route}`, { method: "POST", body: "test" })).status,
         404,
@@ -83,6 +87,43 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
         (await fetch(`${coachBase}/${route}`, { method: "POST", body: "test" })).status,
         404,
       );
+    assert.equal(
+      (await fetch(`${coachBase}/pair`, { method: "POST", body: "{}" })).status,
+      404,
+    );
+    await close(proxy);
+    proxy = http.createServer(
+      middleware(fallback, root, { poseOnly: true, coachChat: true, coachPairing: true }),
+    );
+    await listen(proxy);
+    const pairedBase = `http://127.0.0.1:${proxy.address().port}/api/replay`;
+    assert.equal(
+      (
+        await fetch(`${pairedBase}/pair`, {
+          method: "POST",
+          body: '{"code":"12345678"}',
+          headers: { Authorization: "Bearer test-session" },
+        })
+      ).status,
+      200,
+    );
+    assert.equal(requests.at(-1).path, "/pair");
+    assert.equal(
+      (await fetch(`${pairedBase}/pair`, { method: "POST", body: "x".repeat(513) }))
+        .status,
+      413,
+    );
+    assert.equal(
+      (
+        await fetch(`${pairedBase}/chat`, {
+          method: "POST",
+          body: "{}",
+          headers: { "X-Coach-Pair": "private-phone-token" },
+        })
+      ).status,
+      200,
+    );
+    assert.equal(requests.at(-1).pair, "private-phone-token");
   } finally {
     if (proxy) await close(proxy);
     await close(upstream);

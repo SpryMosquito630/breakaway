@@ -59,6 +59,8 @@ def verified_user(token, transport=None):
 
 def authorize_attempt(user_token, chat=False):
     global AI_ATTEMPTS
+    if chat and chat_provider() and not auth_config() and os.environ.get('ALLOW_DEV_AI') == '1' and AI_ATTEMPTS >= MAX_AI_ATTEMPTS:
+        raise CoachingError('ai_quota', 'The development AI request limit has been reached.')
     if not (chat_configured() if chat else configured()): raise CoachingError('ai_unconfigured', 'AI requires server credentials and verified account configuration or an explicit development opt-in.')
     # Auth configuration always takes precedence: an absent/expired JWT never falls back to dev mode.
     user=verified_user(user_token) if auth_config() else None
