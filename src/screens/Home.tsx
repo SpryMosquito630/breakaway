@@ -4,7 +4,7 @@ import { useState } from "react";
 import { haptic } from "../utils/haptics";
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { ArrowRight, ArrowLeftRight, CalendarDays, Check } from "lucide-react-native";
+import { ArrowRight, ArrowLeftRight, CalendarDays } from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import { days, time, getDrillDuration } from "../domain/model";
 import {
@@ -15,6 +15,7 @@ import {
   todayOverride,
 } from "../domain/sessionTime";
 import { useLocalDay } from "../hooks/useLocalDay";
+import { WeeklyCalendar } from "../components/WeeklyCalendar";
 import {
   Page,
   Note,
@@ -240,66 +241,17 @@ export function Today({ navigation }: { navigation: any }) {
             {progress.count} / {progress.target} sessions
           </Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Edit weekly schedule. ${progress.count} of ${progress.target} complete this week. Completed days: ${progress.completedDays.join(", ") || "none"}`}
-          onPress={() => {
+        <WeeklyCalendar
+          now={now}
+          scheduledDays={profile.days}
+          completedDays={progress.completedDays}
+          count={progress.count}
+          target={progress.target}
+          onEdit={() => {
             haptic("selection");
             navigation.navigate("Preferences", { section: "schedule" });
           }}
-          style={{
-            flexDirection: "row",
-            backgroundColor: C.white,
-            borderRadius: 12,
-            padding: 4,
-          }}
-        >
-          {days.map((d) => (
-            <View
-              key={d}
-              style={{
-                flex: 1,
-                height: 48,
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 7,
-                borderRadius: 12,
-                backgroundColor:
-                  d === today
-                    ? C.green
-                    : progress.completedDays.includes(d)
-                      ? C.pitchSoft
-                      : "transparent",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Archivo_500Medium",
-                  fontSize: 12,
-                  color: d === today ? C.onPrimary : C.muted,
-                }}
-              >
-                {d.slice(0, 1)}
-              </Text>
-              {progress.completedDays.includes(d) ? (
-                <Check size={12} color={d === today ? C.onPrimary : C.green} />
-              ) : (
-                <View
-                  style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: profile.days.includes(d)
-                      ? d === today
-                        ? C.onPrimary
-                        : C.green
-                      : "transparent",
-                  }}
-                />
-              )}
-            </View>
-          ))}
-        </Pressable>
+        />
       </View>
       <View style={{ gap: 12 }}>
         <Text style={s.h2}>{`Today’s drills · ${ids.length}`}</Text>
