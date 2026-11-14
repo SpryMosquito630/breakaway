@@ -1,0 +1,517 @@
+{
+  "reviewDate": "2026-11-14",
+  "reviewMethod": "Watch skill with --no-whisper on actual local sources. Supplemented with full-duration uniform contact sheets and dense 2 fps source/trim contact sheets; final native output contact sheets reviewed. No transcript used. No generated visuals.",
+  "loopPolicy": "Native muted MP4 repeated by app; clear reset at loop boundary, not seamless. No reversing or artificial movement synthesis.",
+  "assets": [
+    {
+      "id": "sole",
+      "drillIds": [
+        "sole"
+      ],
+      "status": "core-movement-verified",
+      "title": "Sole roll and opposite-foot stop",
+      "bytes": 945325,
+      "sha256": "90ae6e3952e6fc9f751ea78d3366151d5db85239fc1ba4990fc1acb439b22c4c",
+      "posterSha256": "967a0b1880fa2837c69c31c65ebab40f872f42f998520cd94c2a9549087a55c8",
+      "sourceId": "K8eGjOk4gSY",
+      "sourceTitle": "10 Best Ball Mastery Skills ⚽️",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=K8eGjOk4gSY",
+      "sourceBytes": 122602924,
+      "sourceSha256": "768051cfbcdb364a88162ccc6d71db29809708c7ed5e9232cd85934e2f1d53f3",
+      "sourceStartSeconds": 390,
+      "sourceEndSeconds": 398,
+      "durationSeconds": 8.0,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220304"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Best Ball Mastery Skills ⚽️ — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Sole rolls across body; opposite sole catches, repeated on both sides.",
+      "limit": "The source travels slowly around a marker; follow the app stationary practice instructions.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-sole.mp4",
+      "poster": "ballwork-sole-poster.jpg"
+    },
+    {
+      "id": "outside-cut",
+      "drillIds": [
+        "outside-cut"
+      ],
+      "status": "core-movement-verified",
+      "title": "Outside cut and follow",
+      "bytes": 587444,
+      "sha256": "647c5b4508d267f9bf9fdb88abd989fd42b64469585c88e9889aba4e1d64c1e8",
+      "posterSha256": "456fc50c990f6845e0219b8ca3e231257b4adc94cd11b4660709bc719fa2ca02",
+      "sourceId": "K8eGjOk4gSY",
+      "sourceTitle": "10 Best Ball Mastery Skills ⚽️",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=K8eGjOk4gSY",
+      "sourceBytes": 122602924,
+      "sourceSha256": "768051cfbcdb364a88162ccc6d71db29809708c7ed5e9232cd85934e2f1d53f3",
+      "sourceStartSeconds": 67.55,
+      "sourceEndSeconds": 70.95,
+      "durationSeconds": 3.416667,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220304"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Best Ball Mastery Skills ⚽️ — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Approach, outside-foot cut at cone, body turns and follows ball.",
+      "limit": "Source uses a cone and a quicker approach; app uses walking pace and no marker.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-outside-cut.mp4",
+      "poster": "ballwork-outside-cut-poster.jpg"
+    },
+    {
+      "id": "step-over",
+      "drillIds": [
+        "step-over"
+      ],
+      "status": "core-movement-verified",
+      "title": "Scissors and outside-foot exit",
+      "bytes": 480156,
+      "sha256": "1f7e99dabac90373cd236cdae63913206d9713d8761efd79b6c03cbde21dfc92",
+      "posterSha256": "59208af114623470505aa9de0080058d2d073d308891ed7ae46270604d4b82de",
+      "sourceId": "K8eGjOk4gSY",
+      "sourceTitle": "10 Best Ball Mastery Skills ⚽️",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=K8eGjOk4gSY",
+      "sourceBytes": 122602924,
+      "sourceSha256": "768051cfbcdb364a88162ccc6d71db29809708c7ed5e9232cd85934e2f1d53f3",
+      "sourceStartSeconds": 245,
+      "sourceEndSeconds": 248.2,
+      "durationSeconds": 3.208008,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220304"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Best Ball Mastery Skills ⚽️ — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Inside-to-outside foot circle around ball followed by opposite-foot outside push.",
+      "limit": "Source calls this scissors and starts from a moving dribble; app starts from a stationary ball.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-step-over.mp4",
+      "poster": "ballwork-step-over-poster.jpg"
+    },
+    {
+      "id": "v-pull",
+      "drillIds": [
+        "v-pull",
+        "weak-v"
+      ],
+      "status": "core-movement-verified",
+      "title": "Sole pull and inside push",
+      "bytes": 941078,
+      "sha256": "725e2519dfa52315967f97a5306eec0dd53a51bd6795df272cde7e99cb76b48a",
+      "posterSha256": "6bba202353e423e36f161fbcfba87759e7d5fc3b67b2c728613b76423c0b49f3",
+      "sourceId": "K8eGjOk4gSY",
+      "sourceTitle": "10 Best Ball Mastery Skills ⚽️",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=K8eGjOk4gSY",
+      "sourceBytes": 122602924,
+      "sourceSha256": "768051cfbcdb364a88162ccc6d71db29809708c7ed5e9232cd85934e2f1d53f3",
+      "sourceStartSeconds": 435,
+      "sourceEndSeconds": 442.5,
+      "durationSeconds": 7.5,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220304"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Best Ball Mastery Skills ⚽️ — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Sole pulls ball back; same foot inside pushes it diagonally out; repeats alternate side.",
+      "limit": "Source demonstrates both feet, without the learner walk-around reset. For weaker-foot practice use your less comfortable foot; demonstrator dominance is unknown.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-v-pull.mp4",
+      "poster": "ballwork-v-pull-poster.jpg"
+    },
+    {
+      "id": "inside-out",
+      "drillIds": [
+        "inside-out",
+        "weak"
+      ],
+      "status": "core-movement-verified",
+      "title": "Inside and outside of one foot",
+      "bytes": 776893,
+      "sha256": "e8a49c8064a441b83b6bfd308cf5343e8193482625c07e29d9dcc8c294a21d5b",
+      "posterSha256": "7dd86d006327b1b0632120bc0d1ec8690a51c0ac5a7de90ed2a180f4ba81c85e",
+      "sourceId": "CosG13seo3o",
+      "sourceTitle": "10 Ball Mastery Soccer Drills for Kids U6 U8 U10 U12",
+      "author": "Progressive Soccer",
+      "authorUrl": "https://www.youtube.com/channel/UCkZM4O__WAhfWIsuH9BeRHw",
+      "sourcePage": "https://www.youtube.com/watch?v=CosG13seo3o",
+      "sourceBytes": 54581963,
+      "sourceSha256": "f65b205a3fe945b9df17028204deb9dad46654b1d1468c664f58c930faae7b8a",
+      "sourceStartSeconds": 17.3,
+      "sourceEndSeconds": 24.5,
+      "durationSeconds": 7.208333,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "Progressive Soccer",
+        "upload_date": "20231208"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Ball Mastery Soccer Drills for Kids U6 U8 U10 U12 — Progressive Soccer, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Close view of same-foot inside/outside pairs; changes feet, repeats.",
+      "limit": "Source switches feet freely and omits the prescribed four touches then sole-stop reset. For weaker-foot practice use your less comfortable foot; demonstrator dominance is unknown.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-inside-out.mp4",
+      "poster": "ballwork-inside-out-poster.jpg"
+    },
+    {
+      "id": "l-turn",
+      "drillIds": [
+        "l-turn"
+      ],
+      "status": "core-movement-verified",
+      "title": "L pull behind standing leg",
+      "bytes": 665415,
+      "sha256": "31434d77ed8fed211ab6a8332ecffcad0dcad0cd5a74e786295d937915e2e2d0",
+      "posterSha256": "3c6cccf023b50d3c38df4a2d8fb123e078932206ffd977905dbd0e232ea36cc0",
+      "sourceId": "CosG13seo3o",
+      "sourceTitle": "10 Ball Mastery Soccer Drills for Kids U6 U8 U10 U12",
+      "author": "Progressive Soccer",
+      "authorUrl": "https://www.youtube.com/channel/UCkZM4O__WAhfWIsuH9BeRHw",
+      "sourcePage": "https://www.youtube.com/watch?v=CosG13seo3o",
+      "sourceBytes": 54581963,
+      "sourceSha256": "f65b205a3fe945b9df17028204deb9dad46654b1d1468c664f58c930faae7b8a",
+      "sourceStartSeconds": 320,
+      "sourceEndSeconds": 326.5,
+      "durationSeconds": 6.5,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "Progressive Soccer",
+        "upload_date": "20231208"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "10 Ball Mastery Soccer Drills for Kids U6 U8 U10 U12 — Progressive Soccer, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Sole draws ball backwards, foot taps it sideways behind standing leg, repeats opposite side.",
+      "limit": "Source repeats the footwork in a compact stance; app asks you to turn and collect after each L.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-l-turn.mp4",
+      "poster": "ballwork-l-turn-poster.jpg"
+    },
+    {
+      "id": "toe-taps",
+      "drillIds": [
+        "toe-taps"
+      ],
+      "status": "core-movement-verified",
+      "title": "Alternate toe taps",
+      "bytes": 544633,
+      "sha256": "90aa1119c7d8e424abdf0d9893ddb67c339e18441265339b0fa48f13b8636dd5",
+      "posterSha256": "1cd9cc1a6f78b5912b7b72e0b6c5d42c2ec29a7c0e9ac723577b733d645db550",
+      "sourceId": "VT8KF3_ssqU",
+      "sourceTitle": "Toe Taps Tutorial on TopTekkers ⚽️📱",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=VT8KF3_ssqU",
+      "sourceBytes": 4978391,
+      "sourceSha256": "7bdc8ba710fad1a5e221cb63ad3f2b4d8b9ea0fb412f9f9a6110105a27b19c4b",
+      "sourceStartSeconds": 14,
+      "sourceEndSeconds": 18.7,
+      "durationSeconds": 4.708333,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20211211"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "Toe Taps Tutorial on TopTekkers ⚽️📱 — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Alternating soles touch the top of the stationary ball with balanced support-leg hops.",
+      "limit": "Source uses surrounding markers and original orange coaching highlights; no markers required in app.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-toe-taps.mp4",
+      "poster": "ballwork-toe-taps-poster.jpg"
+    },
+    {
+      "id": "inside-cut",
+      "drillIds": [
+        "inside-cut",
+        "weak-cut"
+      ],
+      "status": "core-movement-verified",
+      "title": "Inside hook and follow",
+      "bytes": 213965,
+      "sha256": "5e243e2d8242a1ceaaef09852a6556cbb266a9c28cee494346b60c06419bec4c",
+      "posterSha256": "cfc2ffed2d8b8c47215465c74b02ae3e5d5c3202cd497971944dfbcfafb29916",
+      "sourceId": "e48Lpw_W6DI",
+      "sourceTitle": "Inside Hook Turn Tutorial on TopTekkers ⚽️📱",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=e48Lpw_W6DI",
+      "sourceBytes": 2393659,
+      "sourceSha256": "7755a1c3ad42d6a265ad3bf8be2ff87c7522a3cefa4f86517dedf0c2451e7739",
+      "sourceStartSeconds": 44.1,
+      "sourceEndSeconds": 46.8,
+      "durationSeconds": 2.708333,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220601"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "Inside Hook Turn Tutorial on TopTekkers ⚽️📱 — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Inside of foot hooks ball across and back; player pivots and follows outgoing ball.",
+      "limit": "Short core turn excerpt begins at setup contact; source uses a quicker pace and markers. For weaker-foot practice use your less comfortable foot; no actor dominance or exact two-touch plus sole-stop reset is claimed.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-inside-cut.mp4",
+      "poster": "ballwork-inside-cut-poster.jpg"
+    },
+    {
+      "id": "inside",
+      "drillIds": [
+        "inside"
+      ],
+      "status": "core-movement-verified",
+      "title": "Inside touches between feet",
+      "bytes": 363644,
+      "sha256": "7fda57606201942784e277aad31709cac5d9a63f6414c75edd03d0b4da569c8b",
+      "posterSha256": "f9fe3bcfa9dfcd57a1e5f90bbbc06e00137a1f6a478dff53dc9babf64a4d6849",
+      "sourceId": "ybElh46hdo0",
+      "sourceTitle": "Ball Boxing Tutorial on TopTekkers ⚽️📱",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=ybElh46hdo0",
+      "sourceBytes": 5180194,
+      "sourceSha256": "7b7f2a320dfc96c1f876709462bd1826c0994b0d0169e9f7929652f4cdb83463",
+      "sourceStartSeconds": 26,
+      "sourceEndSeconds": 33,
+      "durationSeconds": 6.958333,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20220309"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "Ball Boxing Tutorial on TopTekkers ⚽️📱 — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Stationary inside-foot touches alternately move ball between left and right feet.",
+      "limit": "Original coaching highlight briefly marks head-up posture; app asks gentle controlled touches.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-inside.mp4",
+      "poster": "ballwork-inside-poster.jpg"
+    },
+    {
+      "id": "turn",
+      "drillIds": [
+        "turn"
+      ],
+      "status": "core-movement-verified",
+      "title": "Sole pull-back and turn",
+      "bytes": 173066,
+      "sha256": "a4bef8a8c00fed8252b5655a383aedbf2a8577f4f7c568f3a5f1b20273c24370",
+      "posterSha256": "fb58dd177665468fbceebbe3c5cbe063c8f7bbf1c1bd249a3aee31ea5b7199b6",
+      "sourceId": "6q-BUDweNHY",
+      "sourceTitle": "Train and Master the Drag Back in 5 Minutes a day: Quick Turns in Soccer! ⚽🔥",
+      "author": "State Soccer TV - For Parents & Children",
+      "authorUrl": "https://www.youtube.com/channel/UCapPbn9S5sD4CT3V3KG4M2g",
+      "sourcePage": "https://www.youtube.com/watch?v=6q-BUDweNHY",
+      "sourceBytes": 1398404,
+      "sourceSha256": "b3cc874e89dab5fda5c8021d8be804b29a9b7c1c8c08927a2b22fa61bf3557de",
+      "sourceStartSeconds": 18.85,
+      "sourceEndSeconds": 20.5,
+      "durationSeconds": 1.666667,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "State Soccer TV - For Parents & Children",
+        "upload_date": "20241209"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "Train and Master the Drag Back in 5 Minutes a day: Quick Turns in Soccer! ⚽🔥 — State Soccer TV - For Parents & Children, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained. Portrait preserved with black side padding.",
+      "movementEvidence": "Instructor places sole on ball, pulls it behind his standing line and pivots to follow in the opposite direction.",
+      "limit": "A short standing-start teaching demonstration; app adds two or three approach touches and alternates feet. Portrait source letterboxed without distortion; original captions retained.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-turn.mp4",
+      "poster": "ballwork-turn-poster.jpg"
+    },
+    {
+      "id": "receive-across",
+      "drillIds": [
+        "receive-across"
+      ],
+      "status": "core-movement-verified",
+      "title": "Receive on the back foot",
+      "bytes": 337208,
+      "sha256": "cce5e68a2b49417089d0920fc54df3aa0840efdddbd3d31243ae626d0fc77e54",
+      "posterSha256": "8ddf12e61475500df9e3abcb4e89b20ffdaf11b3610c2f1b5ede4fc70b77948a",
+      "sourceId": "kaLe2YWsd9w",
+      "sourceTitle": "1to 1 Coaching - Receiving on the  back foot to play forward",
+      "author": "The Coaching Manual",
+      "authorUrl": "https://www.youtube.com/channel/UCHCkQnt7cQqA6ZC41f1W4cA",
+      "sourcePage": "https://www.youtube.com/watch?v=kaLe2YWsd9w",
+      "sourceBytes": 23496768,
+      "sourceSha256": "3babfd4863b22bb6c6bcf457d77cae2bb314f16291a4f5f6dd6e116acaa9bf47",
+      "sourceStartSeconds": 30.1,
+      "sourceEndSeconds": 32.7,
+      "durationSeconds": 2.583333,
+      "codec": "h264",
+      "resolution": [
+        1280,
+        720
+      ],
+      "hasAudio": false,
+      "license": "Creative Commons Attribution (YouTube reuse allowed)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "licenseVersionNote": "Both sources predate August 2025; CC BY 3.0 attribution requirements used conservatively. Saved YouTube metadata states Creative Commons Attribution license (reuse allowed); license version was not separately encoded in metadata.",
+      "licenseEvidenceField": {
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "channel": "The Coaching Manual",
+        "upload_date": "20180613"
+      },
+      "licenseInterpretationSource": "https://support.google.com/youtube/answer/2797468?hl=en",
+      "credit": "1to 1 Coaching - Receiving on the  back foot to play forward — The Coaching Manual, CC BY. Trimmed, muted and compressed for Breakaway.",
+      "changes": "Excerpt trimmed; audio removed; resized/compressed to 1280×720 H.264 24 fps. Original source overlays retained.",
+      "movementEvidence": "Incoming ground ball, far inside foot cushions ball across the body, hips open, then outgoing pass.",
+      "limit": "Uses a wall return with a coach and marker setup instead of the app self-roll; extra return pass follows the core reception.",
+      "rightsNote": "Original creator official instructional channel, explicit CC reuse metadata. Incidental branded kit and original publisher banners remain; they are not used as app branding and no endorsement is asserted. This is CC footage, not Pexels stock subject to Pexels commercial brand clause. No model-release document was supplied.",
+      "file": "ballwork-receive-across.mp4",
+      "poster": "ballwork-receive-across-poster.jpg"
+    }
+  ],
+  "rejected": [
+    {
+      "source": "Pexels 7187047",
+      "reason": "6 fps review confirms stationary foot circles, not inside touches; lacks complete step-over exit. Wilson text on ball also triggers Pexels current commercial brand restriction."
+    },
+    {
+      "sources": [
+        "7187046",
+        "7187061",
+        "7187083"
+      ],
+      "reason": "Cone dribbling; no new exact ball mastery movement, previously reviewed pool. Do not map indiscriminately."
+    },
+    {
+      "source": "5449935",
+      "reason": "Airborne juggling, not requested ground skill."
+    },
+    {
+      "source": "30147550",
+      "reason": "Very short moving dribble, no requested complete skill."
+    },
+    {
+      "source": "DBZnUBNqNu4",
+      "reason": "No Creative Commons license present; excluded from downloading or redistribution."
+    },
+    {
+      "source": "2d0XwK1vE84",
+      "reason": "Actual footage inspected: forward sole pushes and stops only. No complete forward-sideways-back sole path for weak-roll; sole contact also wrong for inside-foot push."
+    },
+    {
+      "source": "rL02fVqrLNc",
+      "reason": "CC metadata exists but channel is match analysis with broadcast footage; no original-footage authorship established. Not downloaded; cannot supply redistribution rights to third-party game excerpts."
+    }
+  ]
+}

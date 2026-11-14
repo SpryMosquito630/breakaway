@@ -34,7 +34,7 @@ import {
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import { adaptDrill } from "../domain/planning";
-import { getDrillDemo } from "../data/drill-demos";
+import { getInAppDrillDemo } from "../data/drill-demos";
 export function Library({ navigation }: { navigation: any }) {
   const { data, catalog: drills } = useApp();
   const { C, s } = useTheme();
@@ -54,7 +54,7 @@ export function Library({ navigation }: { navigation: any }) {
         (scope === "My setup" && allowed(d, profileForToday(data)))) &&
       (skill === "All skills" || d.skill === skill) &&
       (!customOnly || d.id.startsWith("custom-")) &&
-      (!videoOnly || Boolean(getDrillDemo(d.id))) &&
+      (!videoOnly || Boolean(getInAppDrillDemo(d.id))) &&
       (d.name + " " + d.skill).toLowerCase().includes(search.toLowerCase().trim()),
   );
   return (

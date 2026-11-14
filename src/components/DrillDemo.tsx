@@ -1,17 +1,19 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Linking, Pressable, Text, View } from "react-native";
 import { Pause, Play } from "lucide-react-native";
 import { haptic } from "../utils/haptics";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import { createVideoPlayer, VideoView } from "expo-video";
-import { getDrillDemo, type DrillDemoAsset } from "../data/drill-demos";
+import { getDrillDemo } from "../data/drill-demos";
+import type { DirectDrillDemo } from "../domain/directDrillVideo";
+import { createDirectDemoPlayback } from "../domain/directDemoPlayback";
 import { OnlineDrillDemo } from "./OnlineDrillDemo";
 import { Button, Chip, Disclosure, Link, useTheme } from "./ui";
 
 // Mounted in pre-practice guidance, always paused initially. Keep player events
 // local: video playback never publishes updates to the practice clock/app state.
-const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) {
+const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DirectDrillDemo }) {
   const { C, s } = useTheme();
   const focused = useIsFocused();
   const [playing, setPlaying] = useState(false);
@@ -19,14 +21,26 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const mounted = useRef(true);
+  const foreground = useRef(
+    AppState.currentState !== "background" && AppState.currentState !== "inactive",
+  );
+  const focus = useRef(focused);
+  focus.current = focused;
   const player = useMemo(() => {
-    const p = createVideoPlayer(demo.source);
+    const p = createVideoPlayer(demo.kind === "remote" ? null : demo.source);
     p.loop = true;
     p.muted = true;
     return p;
-  }, [demo.source]);
+  }, [demo.source, demo.kind]);
+  const playback = useMemo(
+    () => createDirectDemoPlayback(player, demo.source, demo.kind === "remote"),
+    [player, demo.source, demo.kind],
+  );
   useEffect(() => {
-    player.pause();
+    mounted.current = true;
+    playback.setActive(focus.current && foreground.current);
     const play = player.addListener("playingChange", (e) => {
       setPlaying(e.isPlaying);
       if (e.isPlaying) {
@@ -43,31 +57,39 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
     });
     setReady(player.status === "readyToPlay");
     const background = AppState.addEventListener("change", (state) => {
-      if (state !== "active") player.pause();
+      foreground.current = state === "active";
+      playback.setActive(focus.current && foreground.current);
     });
     return () => {
+      mounted.current = false;
+      playback.dispose();
       play.remove();
       status.remove();
       background.remove();
-      player.pause();
       player.release();
     };
-  }, [player]);
+  }, [player, playback]);
   useEffect(() => {
-    if (!focused) player.pause();
-  }, [focused, player]);
+    playback.setActive(focused && foreground.current);
+  }, [focused, playback]);
   useEffect(() => {
     player.playbackRate = slow ? 0.5 : 1;
   }, [slow, player]);
-  const start = () => {
+  const start = async () => {
+    setError("");
+    setLoading(true);
     try {
       if (player.duration > 0 && player.currentTime >= player.duration - 0.1)
         player.currentTime = 0;
-      player.play();
+      await playback.start(Boolean(error));
     } catch {
-      setError("Could not start the demo. Close it and try again.");
+      if (mounted.current)
+        setError("Could not load the demo. Retry or follow the written steps.");
+    } finally {
+      if (mounted.current) setLoading(false);
     }
   };
+  const disabled = !focused || loading || (demo.kind === "local" && !ready && !error);
   return (
     <View style={{ gap: 12 }}>
       <View style={{ width: "100%", aspectRatio: 16 / 9 }}>
@@ -96,11 +118,11 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Play ${demo.title}`}
-            accessibilityState={{ disabled: !ready || !focused }}
-            disabled={!ready || !focused}
+            accessibilityState={{ disabled }}
+            disabled={disabled}
             onPress={() => {
               haptic("light");
-              start();
+              void start();
             }}
             style={({ pressed }) => ({
               position: "absolute",
@@ -132,8 +154,8 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
         <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
           {error}
         </Text>
-      ) : !ready ? (
-        <Text style={s.small}>Loading bundled demo…</Text>
+      ) : loading || (demo.kind === "local" && !ready) ? (
+        <Text style={s.small}>Loading demo…</Text>
       ) : null}
       <View
         style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", alignItems: "center" }}
@@ -141,14 +163,28 @@ const DemoPlayer = memo(function DemoPlayer({ demo }: { demo: DrillDemoAsset }) 
         <View style={{ flex: 1, minWidth: 140 }}>
           <Button
             kind="secondary"
-            label={playing ? "Pause demo" : "Play demo"}
+            label={
+              playing
+                ? "Pause demo"
+                : error
+                  ? "Retry demo"
+                  : loading
+                    ? "Loading demo…"
+                    : "Play demo"
+            }
             icon={playing ? Pause : Play}
-            disabled={!ready || !focused || Boolean(error)}
-            onPress={() => (playing ? player.pause() : start())}
+            disabled={disabled}
+            onPress={() => (playing ? playback.pause() : void start())}
           />
         </View>
         <Chip label="Slow · 0.5×" selected={slow} onPress={() => setSlow(!slow)} />
       </View>
+      {demo.kind === "remote" ? (
+        <Text style={s.small}>
+          Loads from {new URL(demo.source.uri).hostname} when you play · Internet
+          required.
+        </Text>
+      ) : null}
       <Text style={s.small}>{demo.limit}</Text>
     </View>
   );
@@ -164,7 +200,7 @@ export const DrillDemo = memo(function DrillDemo({
   const demo = getDrillDemo(id);
   if (!demo) return null;
   const content =
-    demo.kind === "local" ? (
+    demo.kind !== "youtube" ? (
       <DemoPlayer key={id} demo={demo} />
     ) : (
       <OnlineDrillDemo key={id} demo={demo} />
@@ -215,14 +251,11 @@ export function DrillDemoCredit({ id }: { id: string }) {
   return (
     <View style={{ gap: 8 }}>
       <Text style={s.small}>
-        {demo.credit} · Pexels License. Trimmed/resized for offline playback. No coaching
+        {demo.credit} · {demo.license.name}. {demo.license.changes} No coaching
         endorsement.
       </Text>
       <Link label="View source footage" onPress={() => openLink(demo.page)} />
-      <Link
-        label="Pexels License"
-        onPress={() => openLink("https://www.pexels.com/license/")}
-      />
+      <Link label={demo.license.name} onPress={() => openLink(demo.license.url)} />
       {error ? (
         <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
           {error}

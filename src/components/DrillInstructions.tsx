@@ -25,7 +25,7 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
   };
   const instruction = drillInstructions[drill.id];
   const demo = getDrillDemo(drill.id);
-  const filmed = demo?.kind === "local";
+  const filmed = demo !== undefined && demo.kind !== "youtube";
   return (
     <View style={{ gap: 12 }}>
       {filmed ? (
@@ -62,7 +62,9 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
       ) : null}
       <Text style={s.body}>{instruction?.watch ?? drill.cue}</Text>
       {demo?.kind === "youtube" ? (
-        <DrillDemo key={drill.id} id={drill.id} expanded />
+        <Disclosure label="Online video reference">
+          <DrillDemo key={drill.id} id={drill.id} expanded />
+        </Disclosure>
       ) : null}
       <Disclosure label="Instructions & notes">
         <Steps drill={drill} />
@@ -86,7 +88,7 @@ export function DrillInstructions({ drill, note }: { drill: Drill; note?: string
           <Text style={s.small}>{drillMovements[drill.id].caption}</Text>
         ) : null}
         {demo ? <DrillDemoCredit id={drill.id} /> : null}
-        {!filmed && photo ? (
+        {photo ? (
           <View style={{ gap: 8 }}>
             <Text style={s.small}>
               {photo.credit} · Training context photo, not a movement demonstration.

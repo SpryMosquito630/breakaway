@@ -1,21 +1,23 @@
 import { youtubeDrillDemos } from "./drill-online-demos";
 import { validYoutubeDemo, type YoutubeDrillDemo } from "../domain/drillVideo";
-export type DrillDemoAsset = {
-  kind: "local";
-  source: number;
-  poster: number;
-  limit: string;
-  title: string;
-  credit: string;
-  page: string;
-  cue: string;
-  description: string;
-};
+import { additionalDrillDemos } from "./drill-direct-demos";
+import {
+  validDirectDrillDemo,
+  type DirectDrillDemo,
+  type BundledDrillDemo,
+} from "../domain/directDrillVideo";
+export type DrillDemoAsset = BundledDrillDemo;
 // Only map footage whose visible movement matches this drill. A demo is a
 // movement example, not evidence that the entire training program was vetted.
 export const drillDemos: Record<string, DrillDemoAsset> = {
   sole: {
     kind: "local",
+    rightsReviewedOn: "2026-11-06",
+    license: {
+      name: "Pexels License",
+      url: "https://www.pexels.com/license/",
+      changes: "Trimmed/resized and audio removed for offline playback.",
+    },
     source: require("../../assets/drill-demos/sole-contact.mp4"),
     poster: require("../../assets/drill-demos/sole-contact-poster.jpg"),
     limit: "One-foot example · Alternate feet in this drill.",
@@ -28,6 +30,12 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
   },
   slalom: {
     kind: "local",
+    rightsReviewedOn: "2026-11-06",
+    license: {
+      name: "Pexels License",
+      url: "https://www.pexels.com/license/",
+      changes: "Trimmed/resized and audio removed for offline playback.",
+    },
     title: "Marker slalom: weave and return",
     source: require("../../assets/drill-demos/marker-slalom.mp4"),
     poster: require("../../assets/drill-demos/marker-slalom-poster.jpg"),
@@ -40,10 +48,16 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
   },
 };
 
-export type DrillDemoEntry = DrillDemoAsset | YoutubeDrillDemo;
+export type DrillDemoEntry = DirectDrillDemo | YoutubeDrillDemo;
+export function getInAppDrillDemo(id: string): DirectDrillDemo | undefined {
+  // New reviewed footage can replace an earlier partial contact example.
+  const additional = additionalDrillDemos[id];
+  if (additional && validDirectDrillDemo(additional)) return additional;
+  return drillDemos[id];
+}
 export function getDrillDemo(id: string): DrillDemoEntry | undefined {
-  const local = drillDemos[id];
-  if (local) return local;
+  const direct = getInAppDrillDemo(id);
+  if (direct) return direct;
   const online = youtubeDrillDemos[id];
   return online && validYoutubeDemo(online) ? online : undefined;
 }

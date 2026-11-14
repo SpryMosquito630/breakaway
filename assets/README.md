@@ -12,7 +12,7 @@ The original generation was 1086 × 1448 PNG. The app asset is a 900px-wide WebP
 
 ## Drill demonstrations
 
-See `drill-demos/LICENSE.md` and `drill-demos/provenance.json` for source URLs, permissions and the limits of the two unchanged bundled filmed examples. They now loop after explicit playback. Another 24 reviewed core-technique examples are original YouTube links, not bundled video files; their metadata grants no offline redistribution rights. Unknown Made for Kids status keeps all current online sources external-only. See `docs/drill-online-video-sources.json` for source/interval evidence and gaps. Authored animated top-view guides for nonfilmed ground-work drills are instructional schematics, not human demonstrations or coach-reviewed technique.
+See `drill-clips/LICENSE.md`, `provenance.json` and `ballwork-provenance.json` for the new rights-cleared in-app footage, plus `drill-demos` for the original films. The active catalog has 18 filmed drill IDs using 15 distinct clips; related weaker-foot variants reuse real technique with explicit guidance. Playback is muted and loops after Play. All original library photo thumbnails remain distinct. Public online references stay separate, external-only where provider status is unknown, and are not counted as in-app footage. Twelve filming gaps are specified in `docs/drill-filming-gaps.md`; authored guides are instructional schematics, not human demos.
 
 ## Drill training photographs
 

@@ -1,6 +1,20 @@
 # Drill media verification
 
-## November 14 online video catalog and local looping
+## Current November 14 in-app clips and refined analysis
+
+18 of 30 drill IDs now have in-app filmed core-action examples, using 15 distinct active clips. This includes 14 ballwork IDs, wall passing, partner passing, partner first touch and marker slalom. The new sole demonstration supersedes the earlier one-foot contact example. Weaker-foot variants reuse the relevant actual technique with explicit learner-foot instructions; no demonstrator dominance is inferred. All 30 distinct library photographs remain.
+
+Fourteen new short MP4 assets (about 8 MB before posters) are genuine footage from sources explicitly permitting reuse: official creator CC BY material and Pexels. Source titles, creators, source URLs, license/change notices, SHA256 and precise movement limits are retained in assets/drill-clips. Original provider overlays remain. These are core-action examples with stated differences, not certification of every authored stage or a coach endorsement. The short portrait pull-back teaching clip is visibly softer and has a quick reset. All loops repeat the original forward action; no fake reverse motion or seamless-loop claim.
+
+The Video demos filter and badges count only in-app direct clips. External references are quiet detail disclosures and are not counted as completed in-app footage. Twelve genuine filming gaps remain; see [drill-filming-gaps.md](drill-filming-gaps.md). No footage was forced onto an unrelated drill to inflate coverage.
+
+Playback begins only after Play, loops muted, supports half speed, and pauses/releases outside the relevant foreground screen. Native bundled numeric assets and Metro web asset objects/strings are validated. Optional remote MP4 support loads only after explicit Play and handles cancellation/retry; no remote source is currently needed for the accepted clips. Existing original posters and unique photo credits remain available. Browser QA verified actual 3.32-second in-app playback, loop/mute, half speed and the fitted 350×196.875 player.
+
+Analyze now gives the replay more room, uses compact step/play/speed controls (0.5×/1×/2×), quiet save/restart actions, folded consent/options and readable white callout pills. Real pose geometry, consent/youth gates, authoritative clock and seeking remain intact. A genuine public-video upload, 9.2-second seeking, frame stepping, playback-rate change and fitted 350×557 replay/overlay were checked at 390×844. Physical native camera/overlay behavior remains unverified. The development body service was resumed in a persistent local session; production hosting remains a separate dependency.
+
+All 223 project tests, TypeScript, formatting and whitespace checks pass. Final iOS production export passes. Full decoding and stream checks validate every new MP4 as silent H.264 yuv420p under 30 seconds. Browser evidence is in output/screenshots/breakaway-analysis-refined.jpg and breakaway-in-app-drill-video.jpg.
+
+## Earlier November 14 online-reference catalog — superseded
 
 The catalog now covers 26 of 30 built-in drill IDs: two unchanged licensed offline films (sole rolls and marker slalom) plus 24 reviewed public YouTube core-technique examples. Four gaps remain: `push`, `weak-roll`, `pass-brake`, and `pass-angle`. Partial matches and instruction-adaptation proposals are excluded. Sources may illustrate the core action with different equipment, cadence or pace; limits remain visible. Weaker-foot examples do not claim the demonstrator's dominance. All 30 distinct photographic assets are preserved, including offline images for online examples.
 

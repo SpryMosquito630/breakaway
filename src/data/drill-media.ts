@@ -1,5 +1,5 @@
 import type { Drill } from "../domain/model";
-import { getDrillDemo } from "./drill-demos";
+import { drillDemos, getInAppDrillDemo } from "./drill-demos";
 
 export type DrillPhoto = {
   source: number;
@@ -246,9 +246,13 @@ export const drillPhotos: Record<string, DrillPhoto> = {
 };
 
 export function drillMedia(drill: Pick<Drill, "id" | "skill">) {
-  const demo = getDrillDemo(drill.id);
-  if (demo?.kind === "local")
-    return { source: demo.poster, description: demo.description, video: true };
+  const demo = getInAppDrillDemo(drill.id);
+  if (drillDemos[drill.id])
+    return {
+      source: drillDemos[drill.id].poster,
+      description: drillDemos[drill.id].description,
+      video: true,
+    };
   const photo = drillPhotos[drill.id];
   if (photo)
     return { source: photo.source, description: photo.description, video: Boolean(demo) };
