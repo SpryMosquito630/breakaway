@@ -24,6 +24,7 @@ import { IBMPlexMono_400Regular } from "@expo-google-fonts/ibm-plex-mono/400Regu
 import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
 import {
   CalendarDays,
+  ScanLine,
   TrafficCone,
   ChartNoAxesCombined,
   Settings2,
@@ -32,6 +33,7 @@ import { AppProvider, useApp } from "./src/state/AppState";
 import { Onboarding, ReplayOnboarding } from "./src/screens/Onboarding";
 import { Today, Plan } from "./src/screens/Home";
 import { Library, Detail, Replace } from "./src/screens/Library";
+import { ShotAnalysis } from "./src/screens/ShotAnalysis";
 import { Practice, Recap } from "./src/screens/Practice";
 import { Assessment } from "./src/screens/Assessment";
 import {
@@ -131,6 +133,7 @@ const Tab = createBottomTabNavigator();
 const icons = {
   Today: CalendarDays,
   Drills: TrafficCone,
+  Analyze: ScanLine,
   Progress: ChartNoAxesCombined,
 };
 function Main({ navigation }: { navigation: any }) {
@@ -187,6 +190,11 @@ function Main({ navigation }: { navigation: any }) {
         options={{ title: "Train", tabBarLabel: "Train" }}
       />
       <Tab.Screen name="Drills" component={Library} />
+      <Tab.Screen
+        name="Analyze"
+        component={ShotAnalysis}
+        options={{ title: "Shot analysis", tabBarLabel: "Analyze" }}
+      />
       <Tab.Screen name="Progress" component={Progress} />
     </Tab.Navigator>
   );

@@ -3,7 +3,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
 const MAX_BYTES = 50 * 1024 * 1024;
-module.exports = function analysisMiddleware(next, projectRoot) {
+module.exports = function analysisMiddleware(
+  next,
+  projectRoot,
+  { poseOnly = false } = {},
+) {
   const runtimePath = path.join(projectRoot, "work/replay-service/runtime.json");
   return (req, res, fallback) => {
     const route = req.url?.split("?")[0];
@@ -27,6 +31,12 @@ module.exports = function analysisMiddleware(next, projectRoot) {
       });
       res.end(JSON.stringify(body));
     };
+    // The player-facing shot review exposes local joints only. Other developer
+    // integrations remain closed even if their paths are requested directly.
+    if (poseOnly && route !== "/api/replay/health" && route !== "/api/replay/pose")
+      return reply(404, {
+        error: { code: "not_found", message: "This endpoint is not enabled." },
+      });
     if (req.method === "OPTIONS") return reply(200, { ok: true });
     if (
       (route.endsWith("/health") && req.method !== "GET") ||

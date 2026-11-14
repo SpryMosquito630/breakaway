@@ -1,5 +1,24 @@
 # Breakaway local video-analysis development service
 
+### Player shot Joint View
+
+The player-facing shot screen can enable **only** local body-joint estimation with
+`EXPO_PUBLIC_SHOT_POSE_ANALYSIS=true` while keeping
+`EXPO_PUBLIC_DEVELOPER_FEATURES=false`. In this mode Metro exposes only
+`/api/replay/health` and `/api/replay/pose`; other analysis routes return 404.
+This does not enable OpenAI or expose the developer screens. Start the Python
+service first, then restart Expo through `start-expo.cjs` so its session token
+is injected without being printed:
+
+```sh
+EXPO_PUBLIC_SHOT_POSE_ANALYSIS=true EXPO_PUBLIC_DEVELOPER_FEATURES=false node tools/replay_analysis/start-expo.cjs --tunnel --port 8082
+```
+
+Preserve the current tunnel/port configuration when restarting an existing
+session. `node --test tools/replay_analysis/test_proxy.cjs` checks this restricted
+route boundary. Joint View estimates visible landmarks; it does not judge shot
+technique or measure ball speed.
+
 The app sends a selected recording only after **Analyze**. It is processed on this computer using the pinned official YOLOX Nano ONNX model. Ball tracking and Joint View do not send recordings to an AI API. The separately opted-in AI feedback action sends up to eight reduced-size frames to OpenAI only when explicitly configured. The phone reaches this computer through the existing Expo HTTPS development tunnel, so the upload necessarily travels through that tunnel provider. This is a development prototype, not production hosting or production authentication.
 
 The service returns automatic **ball tracking only**: source dimensions/timestamps, normalized ball centers, optional marker radius, uncalibrated detector scores and normalized image movement. It does not infer body feints, cuts, technique advice, skill phases, physical speed or player ratings. Authored demo notes in the sample replay stay separate from a new recording's results.
