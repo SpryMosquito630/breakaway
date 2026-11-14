@@ -20,7 +20,7 @@ const ready: FlowDraft = {
   answers: { playstyle: "Kevin De Bruyne", positionDetail: "CM" },
 };
 
-test("setup includes two manual comparison interludes and explicit optional measurements without fake generation", () => {
+test("free-app setup keeps ten screens with explicit measurements and comparisons inactive", () => {
   assert.deepEqual(flowSteps, [
     "welcome",
     "focus",
@@ -28,11 +28,9 @@ test("setup includes two manual comparison interludes and explicit optional meas
     "playstyle",
     "experience",
     "equipment",
-    "planComparison",
     "days",
     "identity",
     "measurements",
-    "growth",
     "plan",
   ]);
   assert.deepEqual(autoAdvanceSteps, ["focus", "position", "experience"]);
@@ -43,7 +41,7 @@ test("fresh setup never preselects required choices and merged forms require bot
   for (const step of flowSteps) {
     assert.equal(
       isFlowStepReady({}, step),
-      ["welcome", "measurements", "planComparison", "growth"].includes(step),
+      ["welcome", "measurements"].includes(step),
       step,
     );
     assert.equal(isFlowStepReady(ready, step), true, step);

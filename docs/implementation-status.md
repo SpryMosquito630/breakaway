@@ -5,7 +5,7 @@ The shipping app is an account-free soccer practice tool: Train, Drills, Progres
 ## Shipping
 
 - Coach has a dedicated tab with a clearly labeled offline catalog guide and real drill recommendations. Live AI is prepared behind a separate Coach flag, but needs provider credentials, authenticated account UI/session and protected chat-route hosting before activation; see docs/coach-chat.md.
-- Onboarding includes two illustrated comparison interludes: bottom-up bars after equipment and a drawn training journey after height/weight. They keep manual Continue, reduced-motion support and qualitative labels; no score growth or guaranteed result is claimed.
+- Free-app onboarding uses the shorter ten-screen flow. The two illustrated comparison interludes (bottom-up bars and a drawn training journey) are retained but inactive: only their entries in `flowSteps` are removed. Their render cases, component, manual Continue and reduced-motion animations remain available for later. Position still leads directly to player inspiration; height/weight remain explicit.
 
 - Constraint-aware plans, visible session drills, custom drills/playlists, practice history and six self-reported test scores.
 - Per-minute drill pacing scaled to the frozen block length; revised difficulty set/reset constraints.

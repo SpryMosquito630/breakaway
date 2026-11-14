@@ -152,11 +152,9 @@ export const flowSteps: readonly FlowStep[] = [
   "playstyle",
   "experience",
   "equipment",
-  "planComparison",
   "days",
   "identity",
   "measurements",
-  "growth",
   "plan",
 ];
 /** Simple single choices advance; merged forms retain an explicit Continue action. */
