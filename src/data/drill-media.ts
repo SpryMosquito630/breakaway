@@ -9,10 +9,11 @@ export type DrillPhoto = {
   license: string;
 };
 
-// Context photographs are deliberately separate from verified movement demos.
-// Custom drills do not inherit starter media or an implied demonstration.
-const contextPhotos: Record<string, DrillPhoto> = {
-  "sole-control": {
+// Each mapped drill owns a distinct original photograph, never another crop of
+// a shared source. Unmapped drills use their authored movement diagram/icon.
+// Context photographs are separate from verified films; custom drills inherit none.
+export const drillPhotos: Record<string, DrillPhoto> = {
+  "foundation-stop": {
     source: require("../../assets/drill-photos/sole-control.webp"),
     description:
       "Boot resting on a grounded football. Sole-control context, not a moving roll demonstration.",
@@ -20,24 +21,15 @@ const contextPhotos: Record<string, DrillPhoto> = {
     page: "https://www.pexels.com/photo/person-stepping-on-soccer-ball-13422993/",
     license: "https://www.pexels.com/license/",
   },
-  "ball-mastery": {
-    source: require("../../assets/drill-photos/ball-mastery.webp"),
-    description:
-      "Player feet and several footballs during training. General grounded ball-mastery context.",
-    credit: "Franco Monsalvo",
-    page: "https://www.pexels.com/photo/soccer-training-session-on-green-field-30585239/",
-    license: "https://www.pexels.com/license/",
-  },
-  "ground-ball-training": {
+  push: {
     source: require("../../assets/drill-photos/ground-ball-training.webp"),
     description:
       "Player training with a grounded ball. General ground-ball / passing context; no wall or partner pass is pictured.",
-    credit:
-      "\u0412\u043e\u043b\u043e\u0434\u0438\u043c\u0438\u0440 \u041a\u043e\u0440\u043e\u043b\u044c",
+    credit: "Володимир Король",
     page: "https://www.pexels.com/photo/man-playing-in-soccer-16543163/",
     license: "https://www.pexels.com/license/",
   },
-  dribbling: {
+  "carry-scan": {
     source: require("../../assets/drill-photos/dribbling.webp"),
     description:
       "Player carrying a football on grass during training. Dribbling context, not an exact cut or turn demonstration.",
@@ -45,7 +37,7 @@ const contextPhotos: Record<string, DrillPhoto> = {
     page: "https://www.pexels.com/photo/professional-soccer-player-in-training-session-37926571/",
     license: "https://www.pexels.com/license/",
   },
-  "gate-setup": {
+  gates: {
     source: require("../../assets/drill-photos/gate-setup.webp"),
     description:
       "Football and flat cones on a training pitch. Equipment/setup context; the pictured cones are not the exact gate or slalom layout.",
@@ -53,37 +45,54 @@ const contextPhotos: Record<string, DrillPhoto> = {
     page: "https://www.pexels.com/photo/soccer-training-field-with-cones-and-ball-29485141/",
     license: "https://www.pexels.com/license/",
   },
-};
-
-export const drillPhotos: Record<string, DrillPhoto> = {
-  sole: contextPhotos["sole-control"],
-  turn: contextPhotos["sole-control"],
-  "toe-taps": contextPhotos["sole-control"],
-  "foundation-stop": contextPhotos["sole-control"],
-  "weak-roll": contextPhotos["sole-control"],
-  "weak-v": contextPhotos["sole-control"],
-  "v-pull": contextPhotos["sole-control"],
-  inside: contextPhotos["ball-mastery"],
-  weak: contextPhotos["ball-mastery"],
-  "receive-across": contextPhotos["ball-mastery"],
-  "shield-turn": contextPhotos["ball-mastery"],
-  push: contextPhotos["ground-ball-training"],
-  "pass-brake": contextPhotos["ground-ball-training"],
-  "pass-angle": contextPhotos["ground-ball-training"],
-  wall: contextPhotos["ground-ball-training"],
-  "wall-open": contextPhotos["ground-ball-training"],
-  partner: contextPhotos["ground-ball-training"],
-  "partner-first": contextPhotos["ground-ball-training"],
-  "l-turn": contextPhotos["dribbling"],
-  "inside-out": contextPhotos["dribbling"],
-  "outside-cut": contextPhotos["dribbling"],
-  "inside-cut": contextPhotos["dribbling"],
-  "step-over": contextPhotos["dribbling"],
-  "weak-cut": contextPhotos["dribbling"],
-  "carry-scan": contextPhotos["dribbling"],
-  gates: contextPhotos["gate-setup"],
-  slalom: contextPhotos["gate-setup"],
-  "gate-pass": contextPhotos["gate-setup"],
+  "toe-taps": {
+    source: require("../../assets/drill-photos/toe-taps.webp"),
+    description:
+      "A player rests a boot on a football during outdoor practice. Static sole-contact context; not a demonstration of alternating toe taps.",
+    credit: "Kampus Production",
+    page: "https://www.pexels.com/photo/a-person-stepping-on-the-ball-while-wearing-cleats-8941645/",
+    license: "https://www.pexels.com/license/",
+  },
+  "inside-out": {
+    source: require("../../assets/drill-photos/inside-out.webp"),
+    description:
+      "A player keeps a grounded football close during practice. Dribbling context; the photograph does not show the full inside–outside sequence.",
+    credit: "Laura Rincón",
+    page: "https://www.pexels.com/photo/a-girl-during-a-soccer-training-16248865/",
+    license: "https://www.pexels.com/license/",
+  },
+  "inside-cut": {
+    source: require("../../assets/drill-photos/inside-cut.webp"),
+    description:
+      "Lower legs and a grounded football during outdoor practice. Close-control context, not an exact inside-cut demonstration.",
+    credit: "DIALO Photography",
+    page: "https://www.pexels.com/photo/boy-playing-football-9263797/",
+    license: "https://www.pexels.com/license/",
+  },
+  "outside-cut": {
+    source: require("../../assets/drill-photos/outside-cut.webp"),
+    description:
+      "Lower legs approaching a grounded football on a training field. Dribbling context, not an exact outside-cut demonstration.",
+    credit: "Franco Monsalvo",
+    page: "https://www.pexels.com/photo/soccer-training-session-showing-multiple-players-30585009/",
+    license: "https://www.pexels.com/license/",
+  },
+  partner: {
+    source: require("../../assets/drill-photos/partner.webp"),
+    description:
+      "Two players and a football during outdoor practice. Partner-practice context, not a complete passing demonstration.",
+    credit: "Florian Thomschke",
+    page: "https://www.pexels.com/photo/boy-in-soccer-training-19793237/",
+    license: "https://www.pexels.com/license/",
+  },
+  "gate-pass": {
+    source: require("../../assets/drill-photos/gate-pass.webp"),
+    description:
+      "Footballs and cones arranged on grass for practice. Equipment context; this is not the exact two-marker gate layout.",
+    credit: "MESSALA CIULLA",
+    page: "https://www.pexels.com/photo/photograph-of-soccer-balls-near-training-cones-6658150/",
+    license: "https://www.pexels.com/license/",
+  },
 };
 
 export function drillMedia(drill: Pick<Drill, "id" | "skill">) {

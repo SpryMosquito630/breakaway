@@ -12,7 +12,7 @@ See `drill-demos/LICENSE.md` and `drill-demos/provenance.json` for source URLs, 
 
 ## Drill training photographs
 
-`drill-photos/` contains five licensed Pexels training-context photographs, mapped explicitly to 28 ground-work starter drills. The two verified demo posters take precedence in the interface for sole rolls and marker slalom. Context photographs are not exact-drill instruction frames or filmed demonstrations. Details offer an explicit Photo / Movement guide switch; only actual films receive video badges or appear under the Video demos filter. Exact authors, source/license links, crop dimensions, limits and hashes are recorded in `drill-photos/LICENSE.md` and `provenance.json`. Photo credit links are available in Instructions & notes.
+`drill-photos/` contains ten licensed Pexels training-context photographs, each assigned to one starter drill and sourced from a different original. The two verified films keep their own unique posters for sole rolls and marker slalom. The other sixteen ground-work drills use their individual authored movement diagrams; keeper/custom drills without a guide retain honest category icons. Context photographs are not exact-drill instruction frames or filmed demonstrations. Details offer an explicit Photo / Movement guide switch; only actual films receive video badges or appear under the Video demos filter. Exact authors, source/license links, crop dimensions, limits and hashes are recorded in `drill-photos/LICENSE.md` and `provenance.json`. Photo credit links are available in Instructions & notes.
 
 ## Replay example
 

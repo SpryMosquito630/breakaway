@@ -17,6 +17,7 @@ import { haptic, type HapticFeedback } from "../utils/haptics";
 import { Drill } from "../domain/model";
 import { DrillArtwork } from "./DrillArtwork";
 import { drillMedia } from "../data/drill-media";
+import { drillMovements } from "../data/drill-movements";
 export { palette as C } from "../theme/palette";
 import { palette as C } from "../theme/palette";
 import { createStyles } from "../theme/styles";
@@ -471,7 +472,7 @@ export function DrillRow({
           backgroundColor: pressed ? C.soft : "transparent",
         })}
       >
-        {media ? (
+        {media || drillMovements[drill.id] ? (
           <DrillArtwork drill={drill} />
         ) : (
           <View
