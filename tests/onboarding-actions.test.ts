@@ -25,12 +25,12 @@ test("short setup visits ten useful screens including optional measurements with
     "welcome",
     "focus",
     "position",
+    "playstyle",
     "experience",
     "equipment",
     "days",
     "identity",
     "measurements",
-    "playstyle",
     "plan",
   ]);
   assert.deepEqual(autoAdvanceSteps, ["focus", "position", "experience"]);

@@ -53,6 +53,12 @@ const typographyKeys = new Set([
   "verticalAlign",
 ]);
 
+// Let successive words overlap softly after the page arrives, without holding
+// navigation or extending longer titles into a separate reading delay.
+const wordFadeDuration = 420;
+const maxWordStagger = 140;
+const staggerWindow = 520;
+
 /**
  * Skillers' 00:01.6–00:02.3 title reveals words in place while its page slides.
  * Each word owns a real native Text view: inline virtual Text cannot receive
@@ -111,15 +117,17 @@ export function OnboardingHeading({
       value.stopAnimation();
       value.setValue(0);
     });
-    // Longer headings reveal within the same short window instead of adding wait.
-    const stagger = Math.min(120, 360 / Math.max(values.length - 1, 1));
+    const stagger = Math.min(
+      maxWordStagger,
+      staggerWindow / Math.max(values.length - 1, 1),
+    );
     const animation = Animated.parallel(
       values.map((value, index) =>
         Animated.timing(value, {
           toValue: 1,
           delay: index * stagger,
-          duration: 220,
-          easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+          duration: wordFadeDuration,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
           useNativeDriver: Platform.OS !== "web",
           isInteraction: false,
         }),
