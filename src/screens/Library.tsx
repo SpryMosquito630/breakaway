@@ -64,6 +64,11 @@ export function Library({ navigation }: { navigation: any }) {
         {["My setup", "Saved", "All"].map((f) => (
           <Chip key={f} label={f} selected={f === scope} onPress={() => setScope(f)} />
         ))}
+        <Chip
+          label="Videos"
+          selected={videoOnly}
+          onPress={() => setVideoOnly(!videoOnly)}
+        />
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Text style={[s.small, { flex: 1 }]}>
@@ -137,11 +142,6 @@ export function Library({ navigation }: { navigation: any }) {
               label="Only my drills"
               selected={customOnly}
               onPress={() => setCustomOnly(!customOnly)}
-            />
-            <Chip
-              label="Video demos"
-              selected={videoOnly}
-              onPress={() => setVideoOnly(!videoOnly)}
             />
           </View>
         </View>
