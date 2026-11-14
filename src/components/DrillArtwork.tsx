@@ -4,22 +4,11 @@ import { Image } from "expo-image";
 import { Play } from "lucide-react-native";
 import type { Drill } from "../domain/model";
 import { drillMedia } from "../data/drill-media";
-import { drillMovements } from "../data/drill-movements";
-import { useTheme } from "../theme/ThemeProvider";
-import { DrillMovementThumbnail } from "./DrillMovementThumbnail";
 
 /** A still image only. Browsing the library never allocates video players. */
 export const DrillArtwork = memo(function DrillArtwork({ drill }: { drill: Drill }) {
-  const { C } = useTheme();
   const media = drillMedia(drill);
-  if (!media) {
-    if (!drillMovements[drill.id]) return null;
-    return (
-      <View style={[styles.frame, { backgroundColor: C.pitchSoft }]} accessible={false}>
-        <DrillMovementThumbnail drillId={drill.id} />
-      </View>
-    );
-  }
+  if (!media) return null;
   return (
     <View style={styles.frame} accessible={false}>
       <Image

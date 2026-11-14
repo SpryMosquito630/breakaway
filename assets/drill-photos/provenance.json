@@ -1,5 +1,5 @@
 {
-  "usage": "One distinct original source per drill. Context photographs only; no exact-drill, coach-review or endorsement claims. Films remain in drill-demos. Unmapped drills use authored diagrams or explicit keeper/custom icons.",
+  "usage": "Genuine photographed references only. One distinct photographic scene per drill; video stills must identify their genuine frame/action. No generated human imagery or schematic replacement is permitted as completed drill-photo coverage. Context images are not complete demonstrations or endorsements.",
   "assets": [
     {
       "file": "sole-control.webp",
@@ -38,7 +38,10 @@
       "sha256": "4c3cd2e0e394464ff644ff73748fdd2005baf5d10ea770384b92ce352184d21d",
       "contextNote": "Boot resting on a grounded football. Sole-control context, not a moving roll demonstration.",
       "drillId": "foundation-stop",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement.",
+      "photographic": true,
+      "photographIdentity": "13422993",
+      "credit": "Justin Hofer"
     },
     {
       "file": "ground-ball-training.webp",
@@ -77,46 +80,66 @@
       "sha256": "1c7167fff8fae687a60ca6e9a9b2e159712b20f493388d32a61c992edcf7575b",
       "contextNote": "Player training with a grounded ball. General ground-ball / passing context; no wall or partner pass is pictured.",
       "drillId": "push",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement.",
+      "photographic": true,
+      "photographIdentity": "16543163",
+      "credit": "Володимир Король"
     },
     {
       "file": "dribbling.webp",
-      "sourceId": "37926571",
-      "sourcePage": "https://www.pexels.com/photo/professional-soccer-player-in-training-session-37926571/",
-      "author": "Franco Monsalvo",
-      "license": "Pexels License",
-      "licenseUrl": "https://www.pexels.com/license/",
+      "drillId": "carry-scan",
+      "sourceId": "commons-79676257",
+      "photographIdentity": "commons-79676257",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:2019147193617_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_1548_-_B70I9847.jpg",
+      "author": "Sven Mandel",
+      "credit": "Sven Mandel · CC BY-SA 4.0 · cropped/resized",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "verifiedOn": "2026-11-14",
-      "downloadUrl": "https://images.pexels.com/photos/37926571/pexels-photo-37926571.jpeg?auto=compress&cs=tinysrgb&w=1200",
-      "downloadSha256": "6c8be5f445313f3cc7ff302871703e7e00472f3bd270870325b300251cb308a7",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/2019147193617_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_1548_-_B70I9847.jpg/1920px-2019147193617_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_1548_-_B70I9847.jpg",
+      "downloadSha256": "da8565f4b4041ea25307013114e7f8cf5b967229dec2055490a80643b7c7a9a0",
       "downloadDimensions": [
-        1200,
-        675
+        1920,
+        1280
       ],
       "transform": {
         "cropBoxPx": [
           150,
           0,
-          1050,
-          675
+          1856,
+          1280
         ],
         "format": "WebP",
-        "quality": 76,
+        "quality": 78,
         "method": 6,
-        "metadata": "stripped",
-        "generativeEdits": false,
         "resizedMaxWidth": 900,
-        "priorEncode": "Previously cropped source rendition encoded as WebP quality78 on2026-11-12; decoded, max-width900 resized and re-encoded quality76 on2026-11-14."
+        "metadata": "stripped",
+        "generativeEdits": false
       },
       "dimensions": [
         900,
         675
       ],
-      "bytes": 53270,
-      "sha256": "af58e6ac749fa76e4970c9e66d4c6defc31227ff9a5325468165bec68495270c",
-      "contextNote": "Player carrying a football on grass during training. Dribbling context, not an exact cut or turn demonstration.",
-      "drillId": "carry-scan",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "bytes": 43214,
+      "sha256": "ae5d56e023db057acd89021ceb475907f1200fa4cb781abed12b6830ee1addb0",
+      "contextNote": "Alphonso Davies carrying a grounded ball for Bayern Munich in real match action. Player, face, boots and full ball are retained. A still cannot establish the timing of each scan; use the written carry-and-scan steps.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:2019147193617_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_1548_-_B70I9847.jpg",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Alphonso Davies"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:2019147193617_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_1548_-_B70I9847.jpg",
+        "sourceDescription": "during 1.FC Kaiserslautern vs FC Bayern München at Fritz-Walter-Stadion, Kaiserslautern, Rheinland-Pfalz, Germany on 2019-05-27, Photo: Sven Mandel"
+      },
+      "framingReview": "Full player head/face, body and ball retained in the real4:3 source crop. No generated extension, synthetic blur/padding or upscaling."
     },
     {
       "file": "gate-setup.webp",
@@ -155,7 +178,10 @@
       "sha256": "505a3f16d28705b233284cd9609aa916ccdf091763bd2b0cdb44894246e511bc",
       "contextNote": "Football and flat cones on a training pitch. Equipment/setup context; the pictured cones are not the exact gate or slalom layout.",
       "drillId": "gates",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement.",
+      "photographic": true,
+      "photographIdentity": "29485141",
+      "credit": "Itiel Cd"
     },
     {
       "file": "toe-taps.webp",
@@ -194,33 +220,93 @@
       "bytes": 79082,
       "sha256": "a1afa436dda3dcbfaa70ab80afd1696ff08f1cc9aa17975ba0ab016492977522",
       "contextNote": "A player rests a boot on a football during outdoor practice. Static sole-contact context; not a demonstration of alternating toe taps.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement.",
+      "photographic": true,
+      "photographIdentity": "8941645",
+      "credit": "Kampus Production"
     },
     {
       "file": "inside-out.webp",
       "drillId": "inside-out",
-      "sourceId": "16248865",
-      "sourcePage": "https://www.pexels.com/photo/a-girl-during-a-soccer-training-16248865/",
-      "author": "Laura Rincón",
-      "license": "Pexels License",
-      "licenseUrl": "https://www.pexels.com/license/",
-      "termsUrl": "https://www.pexels.com/terms-of-service/",
+      "sourceId": "commons-81344356",
+      "photographIdentity": "commons-81344356",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Liverpool_vs._Chelsea,_UEFA_Super_Cup_2019-08-14_33.jpg",
+      "author": "Mehdi Bolourian",
+      "credit": "Mehdi Bolourian / Fars Media Corporation · CC BY4.0 · cropped/resized",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
       "verifiedOn": "2026-11-14",
-      "downloadUrl": "https://images.pexels.com/photos/16248865/pexels-photo-16248865.jpeg?auto=compress&cs=tinysrgb&w=1000",
-      "downloadSha256": "6408cf9a0792d9a22ce44972a05bdaeb73308eb268fe8d1700032565e2f5e263",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cc/Liverpool_vs._Chelsea%2C_UEFA_Super_Cup_2019-08-14_33.jpg/960px-Liverpool_vs._Chelsea%2C_UEFA_Super_Cup_2019-08-14_33.jpg",
+      "downloadSha256": "78b704491dc7687ddeb578ae8c77e7b2f1a9a27bb63bc13b64e4ad211ba84e3e",
       "downloadDimensions": [
-        1000,
-        1250
+        960,
+        640
       ],
       "transform": {
         "cropBoxPx": [
+          60,
           0,
-          500,
-          1000,
-          1250
+          913,
+          640
         ],
         "format": "WebP",
-        "quality": 76,
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        853,
+        640
+      ],
+      "bytes": 67516,
+      "sha256": "54b65a416b58a56978d89e18718ad9adf4b94648248753f8f765819d28c28244",
+      "contextNote": "Virgil van Dijk controlling the ball under pressure in real Liverpool match action. This shows close-control contact and body balance, not the complete repeated inside–outside sequence; practise without an opponent.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Liverpool_vs._Chelsea,_UEFA_Super_Cup_2019-08-14_33.jpg",
+        "originalCredit": "https://www.farsnews.com/photo/13980524000054/سوپرجام-اروپا-لیورپول-چلسی (Archive)",
+        "licenseShortName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+      },
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Virgil van Dijk"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Liverpool_vs._Chelsea,_UEFA_Super_Cup_2019-08-14_33.jpg",
+        "sourceDescription": "Liverpool vs. Chelsea, 2019 UEFA Super Cup"
+      },
+      "framingReview": "Full player head/face, body and ball retained in the real4:3 source crop. No generated extension, synthetic blur/padding or upscaling."
+    },
+    {
+      "file": "inside-cut.webp",
+      "drillId": "inside-cut",
+      "sourceId": "commons-194856716",
+      "photographIdentity": "commons-194856716",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Declan_Rice_4_England_v_Ghana_at_2026_Fifa_World_Cup_by_YantsImages_03.jpg",
+      "author": "YantsImages",
+      "credit": "YantsImages · CC BY-SA 4.0 · cropped/resized",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Declan_Rice_4_England_v_Ghana_at_2026_Fifa_World_Cup_by_YantsImages_03.jpg/1920px-Declan_Rice_4_England_v_Ghana_at_2026_Fifa_World_Cup_by_YantsImages_03.jpg",
+      "downloadSha256": "c00ff8adadee352bed9a0c87ddb3a827486ca3145916f754aadd3c8e0e640a46",
+      "downloadDimensions": [
+        1920,
+        1280
+      ],
+      "transform": {
+        "cropBoxPx": [
+          180,
+          0,
+          1886,
+          1280
+        ],
+        "format": "WebP",
+        "quality": 78,
         "method": 6,
         "resizedMaxWidth": 900,
         "metadata": "stripped",
@@ -230,114 +316,53 @@
         900,
         675
       ],
-      "bytes": 50916,
-      "sha256": "b8c37592d942a4185524cf96f743e307f650b34a259529a7d0594ba0626e2e2f",
-      "contextNote": "A player keeps a grounded football close during practice. Dribbling context; the photograph does not show the full inside–outside sequence.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
-    },
-    {
-      "file": "inside-cut.webp",
-      "drillId": "inside-cut",
-      "sourceId": "9263797",
-      "sourcePage": "https://www.pexels.com/photo/boy-playing-football-9263797/",
-      "author": "DIALO Photography",
-      "license": "Pexels License",
-      "licenseUrl": "https://www.pexels.com/license/",
-      "termsUrl": "https://www.pexels.com/terms-of-service/",
-      "verifiedOn": "2026-11-14",
-      "downloadUrl": "https://images.pexels.com/photos/9263797/pexels-photo-9263797.jpeg?auto=compress&cs=tinysrgb&w=1000",
-      "downloadSha256": "54b90ce0ccd742e3baad3c83523ac33cd2088eed6f29225cef7e24df7d5179b6",
-      "downloadDimensions": [
-        1000,
-        1500
-      ],
-      "transform": {
-        "cropBoxPx": [
-          260,
-          1000,
-          927,
-          1500
-        ],
-        "format": "WebP",
-        "quality": 76,
-        "method": 6,
-        "resizedMaxWidth": 900,
-        "metadata": "stripped",
-        "generativeEdits": false
+      "bytes": 53908,
+      "sha256": "51fdf7bd067c0e043868b277969b694c144e5b04d8ec6dff1c182b33446d8753",
+      "contextNote": "Declan Rice changing direction with a grounded ball for England in real match action. This is a close-control and body-position reference; follow the slow, controlled inside-cut steps rather than the match pace.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Declan_Rice_4_England_v_Ghana_at_2026_Fifa_World_Cup_by_YantsImages_03.jpg",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
       },
-      "dimensions": [
-        667,
-        500
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Declan Rice"
       ],
-      "bytes": 20456,
-      "sha256": "1a8598f00338bba6284f42cfccf96ac6be96c59a6414859f439495c74eaa4331",
-      "contextNote": "Lower legs and a grounded football during outdoor practice. Close-control context, not an exact inside-cut demonstration.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Declan_Rice_4_England_v_Ghana_at_2026_Fifa_World_Cup_by_YantsImages_03.jpg",
+        "sourceDescription": "FOXBOROUGH, UNITED STATES - June 23: Declan Rice #4 of England in action during the FIFA World Cup 2026 Group L match between England and Ghana on June 23, 2026 Boston Stadium , Foxborough, Massachusetts"
+      },
+      "framingReview": "Full player head/face, body and ball retained in the real4:3 source crop. No generated extension, synthetic blur/padding or upscaling."
     },
     {
       "file": "outside-cut.webp",
       "drillId": "outside-cut",
-      "sourceId": "30585009",
-      "sourcePage": "https://www.pexels.com/photo/soccer-training-session-showing-multiple-players-30585009/",
-      "author": "Franco Monsalvo",
-      "license": "Pexels License",
-      "licenseUrl": "https://www.pexels.com/license/",
-      "termsUrl": "https://www.pexels.com/terms-of-service/",
+      "sourceId": "commons-195580804",
+      "photographIdentity": "commons-195580804",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Mohamed_Salah_Argentina_v_Egypt_7_July_2026-191.jpg",
+      "author": "Bryan Berlin",
+      "credit": "Bryan Berlin / WikiPortraits · CC BY-SA 4.0 · cropped/resized",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "verifiedOn": "2026-11-14",
-      "downloadUrl": "https://images.pexels.com/photos/30585009/pexels-photo-30585009.jpeg?auto=compress&cs=tinysrgb&w=1000",
-      "downloadSha256": "67015a32fc59ab3836b24ca7d8ea6160d7e0976abd27ac5087f445416c283a53",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Mohamed_Salah_Argentina_v_Egypt_7_July_2026-191.jpg/1920px-Mohamed_Salah_Argentina_v_Egypt_7_July_2026-191.jpg",
+      "downloadSha256": "fa3df0aa3fca8b66999a5639d90e44c6a49fe9a9bed23bd6a56b3f5a9faa9818",
       "downloadDimensions": [
-        1000,
-        667
-      ],
-      "transform": {
-        "cropBoxPx": [
-          230,
-          390,
-          590,
-          660
-        ],
-        "format": "WebP",
-        "quality": 76,
-        "method": 6,
-        "resizedMaxWidth": 900,
-        "metadata": "stripped",
-        "generativeEdits": false
-      },
-      "dimensions": [
-        360,
-        270
-      ],
-      "bytes": 10888,
-      "sha256": "3b5c3b55068836fa98bfc3d3d16cb1a44358ccb913be09386476cb591a961a0e",
-      "contextNote": "Lower legs approaching a grounded football on a training field. Dribbling context, not an exact outside-cut demonstration.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
-    },
-    {
-      "file": "partner.webp",
-      "drillId": "partner",
-      "sourceId": "19793237",
-      "sourcePage": "https://www.pexels.com/photo/boy-in-soccer-training-19793237/",
-      "author": "Florian Thomschke",
-      "license": "Pexels License",
-      "licenseUrl": "https://www.pexels.com/license/",
-      "termsUrl": "https://www.pexels.com/terms-of-service/",
-      "verifiedOn": "2026-11-14",
-      "downloadUrl": "https://images.pexels.com/photos/19793237/pexels-photo-19793237.jpeg?auto=compress&cs=tinysrgb&w=1000",
-      "downloadSha256": "033ff37a1a6a2eaa002088a2931087b06cce015373f04b08450aa7a78839fafe",
-      "downloadDimensions": [
-        1000,
-        667
+        1920,
+        1280
       ],
       "transform": {
         "cropBoxPx": [
           0,
           0,
-          1000,
-          667
+          1706,
+          1280
         ],
         "format": "WebP",
-        "quality": 76,
+        "quality": 78,
         "method": 6,
         "resizedMaxWidth": 900,
         "metadata": "stripped",
@@ -345,12 +370,84 @@
       },
       "dimensions": [
         900,
-        600
+        675
       ],
-      "bytes": 28102,
-      "sha256": "da5dd8a9902ffc4455f36b58397baba8ca2662ba9425a066c455f54482ed5b98",
-      "contextNote": "Two players and a football during outdoor practice. Partner-practice context, not a complete passing demonstration.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "bytes": 82758,
+      "sha256": "452d37cd3577afb53d1cf82f3067825eafd015cf049ebce07df612717444cdf9",
+      "contextNote": "Mohamed Salah carrying a grounded ball for Egypt in real match action. Close-control and direction-change context; the still does not establish a complete outside-cut repetition.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Mohamed_Salah_Argentina_v_Egypt_7_July_2026-191.jpg",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Mohamed Salah"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Mohamed_Salah_Argentina_v_Egypt_7_July_2026-191.jpg",
+        "sourceDescription": "Mohamed Salah during Argentina v Egypt at the 2026 FIFA World Cup"
+      },
+      "framingReview": "Full player head/face, body and ball retained in the real4:3 source crop. No generated extension, synthetic blur/padding or upscaling."
+    },
+    {
+      "file": "partner.webp",
+      "drillId": "partner",
+      "sourceId": "commons-70124870",
+      "photographIdentity": "commons-70124870",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Iran_and_Spain_match_at_the_FIFA_World_Cup_(2018-06-20)_35.jpg",
+      "author": "Meghdad Madadi.",
+      "credit": "Meghdad Madadi / Tasnim News Agency · CC BY 4.0 · cropped/resized",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/61/Iran_and_Spain_match_at_the_FIFA_World_Cup_%282018-06-20%29_35.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "downloadSha256": "2f557d74db3461af32bf4bfabc7bc8f529061a966be0a38db5541d8f6ef7c371",
+      "downloadDimensions": [
+        800,
+        557
+      ],
+      "transform": {
+        "cropBoxPx": [
+          0,
+          25,
+          704,
+          553
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        704,
+        528
+      ],
+      "bytes": 36078,
+      "sha256": "8a9c9cd9499580970562ce31230a932722d9fd5fbe043e3f411b167fca574766",
+      "contextNote": "Sergio Busquets preparing to pass a grounded ball for Spain in real match action. Professional passing/body-position reference; the receiving partner and the drill’s sideways step are outside this still.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Iran_and_Spain_match_at_the_FIFA_World_Cup_(2018-06-20)_35.jpg",
+        "originalCredit": "https://www.tasnimnews.ir/en/media/2018/06/21/1754913/spain-s-accidental-goal-breaches-iran-s-great-defense-in-world-cup-2018",
+        "licenseShortName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+      },
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Sergio Busquets"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Iran_and_Spain_match_at_the_FIFA_World_Cup_(2018-06-20)_35.jpg",
+        "sourceDescription": "Iran and Spain match at the FIFA World Cup 2018 in Russia."
+      },
+      "framingReview": "Full player head/face, body and ball retained in the real4:3 source crop. No generated extension, synthetic blur/padding or upscaling."
     },
     {
       "file": "gate-pass.webp",
@@ -389,27 +486,967 @@
       "bytes": 92884,
       "sha256": "72c6d5378fd1706eef0e434350bc5178ad1d07de061e56fa932b258d25ff5aef",
       "contextNote": "Footballs and cones arranged on grass for practice. Equipment context; this is not the exact two-marker gate layout.",
-      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement."
+      "rightsReview": "Pexels source-page license and current terms verified. Used as contextual imagery inside authored drill instruction UI; not standalone stock redistribution or endorsement.",
+      "photographic": true,
+      "photographIdentity": "6658150",
+      "credit": "MESSALA CIULLA"
+    },
+    {
+      "file": "inside.webp",
+      "drillId": "inside",
+      "sourceId": "commons-138414360",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Carli_de_Murga_Dribbling_the_Ball_-_PHI_vs_AFG,_September_12,_2023.png",
+      "author": "Jethrude Hipolito",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "credit": "© Jethrude Hipolito / https://www.jethrude.com / CC BY-SA4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Carli_de_Murga_Dribbling_the_Ball_-_PHI_vs_AFG%2C_September_12%2C_2023.png/960px-Carli_de_Murga_Dribbling_the_Ball_-_PHI_vs_AFG%2C_September_12%2C_2023.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "bae3f8c0ffd91b34b71a027d4f52cf5acb45cc6084f15f95fd27fd70d390f289",
+      "downloadDimensions": [
+        960,
+        1200
+      ],
+      "transform": {
+        "cropBoxPx": [
+          160,
+          530,
+          880,
+          1070
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        720,
+        540
+      ],
+      "bytes": 31504,
+      "sha256": "e81c2d616543495e65ca2cec6703daf5938e35b9a45fbf37c58addc00c5c4a8b",
+      "contextNote": "A real match photograph of close ball control between the feet. This illustrates inside-foot contact context; one still does not demonstrate repeated alternating touches.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Carli_de_Murga_Dribbling_the_Ball_-_PHI_vs_AFG,_September_12,_2023.png",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "requiredAttribution": "Primary file page requires author name, Jethrude.com website URL, CC-BY-SA4.0 and disclosure of changes."
+      },
+      "photographic": true,
+      "photographIdentity": "commons-138414360",
+      "professionalAction": true,
+      "subjects": [
+        "Carli de Murga"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Carli_de_Murga_Dribbling_the_Ball_-_PHI_vs_AFG,_September_12,_2023.png",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      },
+      "authorWebsite": "https://www.jethrude.com"
+    },
+    {
+      "file": "turn.webp",
+      "drillId": "turn",
+      "sourceId": "commons-180594100",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Marko_Divkovic_dribbling.jpg",
+      "author": "https://vilfortpark.dk",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "credit": "https://vilfortpark.dk · CC BY-SA 4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Marko_Divkovic_dribbling.jpg/960px-Marko_Divkovic_dribbling.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "546e239b590fc44d987abdce9fc884b544b65f7c89e3eebcb217e38f7e7334e9",
+      "downloadDimensions": [
+        960,
+        760
+      ],
+      "transform": {
+        "cropBoxPx": [
+          160,
+          160,
+          960,
+          760
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        800,
+        600
+      ],
+      "bytes": 72440,
+      "sha256": "5c2afd271b87638a8a2cab518ed882bd019d11ef12631a57ef3be10f1ad3d7d0",
+      "contextNote": "A real match photograph of a player controlling the ball while changing direction. Close turning/contact context; the complete pull-back-turn sequence is not shown.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Marko_Divkovic_dribbling.jpg",
+        "originalCredit": "https://vilfortpark.dk",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "photographic": true,
+      "photographIdentity": "commons-180594100",
+      "professionalAction": true,
+      "subjects": [
+        "Marko Divkovic"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Marko_Divkovic_dribbling.jpg",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      }
+    },
+    {
+      "file": "weak.webp",
+      "drillId": "weak",
+      "sourceId": "commons-46023312",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ali_Karimi_on_the_dribble_against_Esteghlal_FC.jpg",
+      "author": "Javid Nikpour",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "credit": "Javid Nikpour · CC BY 4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Ali_Karimi_on_the_dribble_against_Esteghlal_FC.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "downloadSha256": "3e64e3bd3a3db4ed88097fc09ac7c8f9682ac581aac31e9e8a0b055aafbe19df",
+      "downloadDimensions": [
+        800,
+        533
+      ],
+      "transform": {
+        "cropBoxPx": [
+          150,
+          130,
+          790,
+          530
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        640,
+        400
+      ],
+      "bytes": 31784,
+      "sha256": "149787d429d54c772337f3723e29fcdf72682a417cb6dbdbdacdcbc0bd883d61",
+      "contextNote": "A real match photograph of close foot-to-ball control. Use your own less comfortable foot for this drill; the pictured player’s foot dominance is not inferred.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Ali_Karimi_on_the_dribble_against_Esteghlal_FC.jpg",
+        "originalCredit": "https://www.tasnimnews.ir/fa/media/1393/01/22/335119/دیدار-تیم-های-فوتبال-استقلال-تهران-و-تراکتورسازی-تبریز",
+        "licenseShortName": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+      },
+      "photographic": true,
+      "photographIdentity": "commons-46023312",
+      "professionalAction": true,
+      "subjects": [
+        "Ali Karimi"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Ali_Karimi_on_the_dribble_against_Esteghlal_FC.jpg",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      }
+    },
+    {
+      "file": "weak-cut.webp",
+      "drillId": "weak-cut",
+      "sourceId": "commons-25798836",
+      "photographIdentity": "commons-25798836",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Gervinho_dribbling_(7013686289).jpg",
+      "author": "Ronnie Macdonald from Chelmsford, United Kingdom",
+      "credit": "Ronnie Macdonald from Chelmsford, United Kingdom · CC BY 2.0 · cropped/resized",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Gervinho_dribbling_%287013686289%29.jpg/1920px-Gervinho_dribbling_%287013686289%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "41d248995f890d5f71894a01540c6f2c7b904e3e0b570e27d92594e338bb42ba",
+      "downloadDimensions": [
+        1920,
+        1280
+      ],
+      "transform": {
+        "cropBoxPx": [
+          620,
+          300,
+          1420,
+          900
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        800,
+        600
+      ],
+      "bytes": 90452,
+      "sha256": "1babe0e14310ed33cfb0df756468ca7c99d7e04ed061a62c0405eaab63a477fc",
+      "contextNote": "Gervinho turning with the ball in real Arsenal match action. Cut/contact and balance reference; the photographed player’s less comfortable foot is not inferred. Follow your own weaker-foot steps at walking pace.",
+      "rightsReview": "Primary Commons file-specific license and creator metadata rechecked. Cropped/resized derivative retains the source CC license and required attribution. Professional-player photograph is a practice reference only; depicted players, clubs, federations and sponsors do not endorse or affiliate with Breakaway. No independent model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Gervinho_dribbling_(7013686289).jpg",
+        "originalCredit": "Gervinho dribbling",
+        "licenseShortName": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+      },
+      "photographic": true,
+      "professionalAction": true,
+      "subjects": [
+        "Gervinho"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Gervinho_dribbling_(7013686289).jpg",
+        "sourceDescription": "Gervinho dribbling"
+      },
+      "framingReview": "Gervinho’s full head and body retained in authentic match action, viewed from behind. Ball position is inside the crop; his leg naturally partly occludes the ball. No generated extension, artificial background, padding or upscaling."
+    },
+    {
+      "file": "shield-turn.webp",
+      "drillId": "shield-turn",
+      "sourceId": "commons-118454241",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Dribble_au_football.jpg",
+      "author": "Happiraphael",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "credit": "Happiraphael · CC BY-SA 4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Dribble_au_football.jpg/960px-Dribble_au_football.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "fdd2bcdc88fafb197259674006241dbc1245efefe9b53a90a7abaeff05bd64da",
+      "downloadDimensions": [
+        960,
+        640
+      ],
+      "transform": {
+        "cropBoxPx": [
+          50,
+          60,
+          810,
+          630
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        760,
+        570
+      ],
+      "bytes": 55424,
+      "sha256": "1d8913c09a9da866ec8e76d0c132847c75399117e1c9def5f3427cc011ece0e7",
+      "contextNote": "A real match photograph showing a player placing their body between the ball and a defender. Shielding context; practise the written drill without contact or an actual defender.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Dribble_au_football.jpg",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "photographic": true,
+      "photographIdentity": "commons-118454241",
+      "professionalAction": true,
+      "subjects": [
+        "Côte d’Ivoire and Sierra Leone senior internationals"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Dribble_au_football.jpg",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      }
+    },
+    {
+      "file": "pass-brake.webp",
+      "drillId": "pass-brake",
+      "sourceId": "commons-73076963",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Entrenamiento_KM.jpg",
+      "author": "Kmreykjavik",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "credit": "Kmreykjavik · CC BY-SA 4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Entrenamiento_KM.jpg/1280px-Entrenamiento_KM.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "3079829a9007f60510cfa03b6143b3062947b525ad3abaa2aaa4f4c47de395f8",
+      "downloadDimensions": [
+        1280,
+        853
+      ],
+      "transform": {
+        "cropBoxPx": [
+          350,
+          170,
+          1250,
+          845
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 55436,
+      "sha256": "9fb9b9b62760497a038abafc5fbd462dde393d6fea44e8caaa440d42cf2f89cd",
+      "contextNote": "A real partner-practice photograph with close foot control of a grounded ball. Controlled receive/stop context; it does not show the complete pass-and-brake sequence.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:Entrenamiento_KM.jpg",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "photographic": true,
+      "photographIdentity": "commons-73076963"
+    },
+    {
+      "file": "pass-angle.webp",
+      "drillId": "pass-angle",
+      "sourceId": "commons-140708270",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:OJ_Porteria_Dribbling_Toward_the_Goal_-_PHI_vs_AFG,_September_12,_2023.png",
+      "author": "Jethrude Hipolito",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "credit": "© Jethrude Hipolito / https://www.jethrude.com / CC BY-SA4.0 · cropped/resized",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/OJ_Porteria_Dribbling_Toward_the_Goal_-_PHI_vs_AFG%2C_September_12%2C_2023.png/960px-OJ_Porteria_Dribbling_Toward_the_Goal_-_PHI_vs_AFG%2C_September_12%2C_2023.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "5f680d66485a88460a82a2fdf206721991ba907ec6781c133d3ec6951cacf312",
+      "downloadDimensions": [
+        960,
+        1358
+      ],
+      "transform": {
+        "cropBoxPx": [
+          160,
+          650,
+          960,
+          1250
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        800,
+        600
+      ],
+      "bytes": 45240,
+      "sha256": "128f00d3a1d1cc9c217fac4d2c55160a39b5f093997794f71bb578f54b0dccc1",
+      "contextNote": "A real match photograph of the inside foot approaching the ball on an angle. Foot/contact setup context; use a gentle ground pass toward your own clear diagonal target.",
+      "rightsReview": "Commons file-specific license metadata verified through the primary Wikimedia API and file page. Cropped/resized derivative is offered under the same CC license. Incidental kit/equipment marks and pictured people do not imply endorsement; no model release is claimed.",
+      "licenseEvidence": {
+        "filePage": "https://commons.wikimedia.org/wiki/File:OJ_Porteria_Dribbling_Toward_the_Goal_-_PHI_vs_AFG,_September_12,_2023.png",
+        "originalCredit": "Own work",
+        "licenseShortName": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "requiredAttribution": "Primary file page requires author name, Jethrude.com website URL, CC-BY-SA4.0 and disclosure of changes."
+      },
+      "photographic": true,
+      "photographIdentity": "commons-140708270",
+      "professionalAction": true,
+      "subjects": [
+        "OJ Porteria"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:OJ_Porteria_Dribbling_Toward_the_Goal_-_PHI_vs_AFG,_September_12,_2023.png",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      },
+      "authorWebsite": "https://www.jethrude.com"
+    },
+    {
+      "file": "weak-roll.webp",
+      "drillId": "weak-roll",
+      "sourceId": "unsplash-O8p7DUgZ1KA",
+      "sourcePage": "https://unsplash.com/photos/player-with-foot-on-a-soccer-ball-indoors-O8p7DUgZ1KA",
+      "author": "Alfonso Scarpa",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://images.unsplash.com/photo-1763775468707-573c7cd6b0da?auto=format&fit=max&fm=jpg&q=80&w=1000",
+      "downloadSha256": "019f08da82743fe6128b748c064338b07e9a22a00a1e878d0b57ac7e86aa9c16",
+      "downloadDimensions": [
+        1000,
+        800
+      ],
+      "transform": {
+        "cropBoxPx": [
+          0,
+          50,
+          1000,
+          800
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 43152,
+      "sha256": "d6562de03e32fb4896aa1dbb4d50bdbf8c01c74a24d3b7ce2ac67eb61359f0d8",
+      "contextNote": "A real indoor-football photograph of a sole resting on the ball. Sole-contact setup for a controlled roll; the player’s foot dominance and the full sole path are not established by this still.",
+      "rightsReview": "Primary photo page identifies the free Unsplash License; copyright license permits commercial reuse and distribution. Incidental clothing/equipment marks do not imply endorsement; no model or trademark release is claimed.",
+      "photographic": true,
+      "photographIdentity": "unsplash-O8p7DUgZ1KA",
+      "credit": "Alfonso Scarpa"
+    },
+    {
+      "file": "partner-first.webp",
+      "drillId": "partner-first",
+      "sourceId": "8813013",
+      "sourcePage": "https://www.pexels.com/video/children-passing-around-a-soccer-ball-8813013/",
+      "author": "Kampus Production",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "termsUrl": "https://www.pexels.com/terms-of-service/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://videos.pexels.com/video-files/8813013/8813013-uhd_2560_1440_25fps.mp4",
+      "downloadSha256": "c493a1e8bc506b0cf29953727770ea9bc25e1cc1f87cd4c5b1de83fe8677d9cf",
+      "downloadDimensions": [
+        2560,
+        1440
+      ],
+      "sourceFrameTimestampSeconds": 9.2,
+      "transform": {
+        "cropBoxPx": [
+          700,
+          0,
+          2300,
+          1200
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resizedMaxWidth": 900
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 33838,
+      "sha256": "67526e2b584a4e1e734ae29354b5adb735bf3bcfe6e7a9d5c6e435030751ef0a",
+      "contextNote": "A genuine filmed first touch: player receives a ground pass and redirects it to the side. Other participants are outside this camera crop; source is group passing practice rather than a staged one-partner drill.",
+      "rightsReview": "Pexels source page marks license Free. Current license and terms verified. No readable brands identified in selected frame; final review required. Must use inside authored instruction UI without endorsement claim.",
+      "photographic": true,
+      "sourceReview": "Integrator visually reviewed the prepared full-size contact sheet. Real first-touch/contact phase for partner-first; face-height two-handed ball handling for keeper-hold. Still images are component references, not complete filmed drill demonstrations.",
+      "photographIdentity": "8813013",
+      "credit": "Kampus Production"
+    },
+    {
+      "file": "keeper-hold.webp",
+      "drillId": "keeper-hold",
+      "sourceId": "8813016",
+      "sourcePage": "https://www.pexels.com/video/a-boy-catching-a-football-8813016/",
+      "author": "Kampus Production",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "termsUrl": "https://www.pexels.com/terms-of-service/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://videos.pexels.com/video-files/8813016/8813016-uhd_2560_1440_25fps.mp4",
+      "downloadSha256": "7d2ff0c179ad3246a74f28a48a78ba9bf5ab5b7090d6b3db38c795c970f2dc2a",
+      "downloadDimensions": [
+        2560,
+        1440
+      ],
+      "sourceFrameTimestampSeconds": 4.4,
+      "transform": {
+        "cropBoxPx": [
+          240,
+          0,
+          2160,
+          1440
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resizedMaxWidth": 900
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 59684,
+      "sha256": "3c0de2f61230f1227f9eed56ea0faabf6759fae119541975e318053207a0616a",
+      "contextNote": "Real filmed ball handling at face height on grass in front of a small goal, both hands on ball. Source action is lifting ball after collecting a low incoming pass; not a self-toss demonstration. Feet are outside source camera frame at this moment.",
+      "rightsReview": "Pexels source page marks license Free. Current license and terms verified. No readable brands identified in selected frame; final review required. Must use inside authored instruction UI without endorsement claim.",
+      "photographic": true,
+      "sourceReview": "Integrator visually reviewed the prepared full-size contact sheet. Real first-touch/contact phase for partner-first; face-height two-handed ball handling for keeper-hold. Still images are component references, not complete filmed drill demonstrations.",
+      "photographIdentity": "8813016",
+      "credit": "Kampus Production"
+    },
+    {
+      "file": "v-pull.webp",
+      "drillId": "v-pull",
+      "sourceId": "unsplash-QCQHKvUNvl0",
+      "sourcePage": "https://unsplash.com/photos/soccer-players-foot-on-a-dirty-ball-in-green-grass-QCQHKvUNvl0",
+      "author": "Olumide Adekunle",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://images.unsplash.com/photo-1783434423796-0c5401ee02ef?auto=format&fit=max&fm=jpg&q=80&w=1000",
+      "downloadSha256": "466bdd658cf60013d4c6da8112d4fa0370023a449ffd52148b3588f1b3111519",
+      "downloadDimensions": [
+        1000,
+        750
+      ],
+      "transform": {
+        "cropBoxPx": [
+          0,
+          0,
+          1000,
+          750
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 94868,
+      "sha256": "06dabc40235981be8fd151f59e36e37808c409d2788237d0f1d0c85e991fdbd8",
+      "contextNote": "Real sole-to-ball contact: the boot rests diagonally across the front/top of the ball, the contact used to begin a pull-back. Follow the written steps for the diagonal inside-foot push that completes the V; one photograph does not show the full V movement.",
+      "rightsReview": "Primary free photo page and Unsplash License verified. Copyright license permits copying, adaptation, distribution and commercial use. Incidental kit/equipment marks are not used to imply endorsement; no model or trademark release is claimed.",
+      "photographic": true,
+      "photographIdentity": "unsplash-QCQHKvUNvl0",
+      "credit": "Olumide Adekunle"
+    },
+    {
+      "file": "weak-v.webp",
+      "drillId": "weak-v",
+      "sourceId": "unsplash-TNac8WmZgpI",
+      "sourcePage": "https://unsplash.com/photos/child-in-neon-jersey-playing-soccer-TNac8WmZgpI",
+      "author": "KaroGraphix Photography",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://images.unsplash.com/photo-1790604657614-2bc6922359a7?auto=format&fit=max&fm=jpg&q=80&w=1000",
+      "downloadSha256": "667917a5e256b972106386dfbd9183ce1e1a7a26271b10c00f3353fb0b137ea6",
+      "downloadDimensions": [
+        1000,
+        1500
+      ],
+      "transform": {
+        "cropBoxPx": [
+          150,
+          850,
+          950,
+          1450
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "resizedMaxWidth": 900,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        800,
+        600
+      ],
+      "bytes": 38158,
+      "sha256": "660bbd174c8d1b8851063f25ad2058b76ad500130f141243d0627dd8ff44521b",
+      "contextNote": "Real sole-on-ball setup on grass, with the standing foot grounded beside the ball. Use your own less comfortable foot to pull back and push diagonally; the photographed player’s foot dominance and the completed V are not inferred.",
+      "rightsReview": "Primary free photo page and Unsplash License verified. Copyright license permits copying, adaptation, distribution and commercial use. Incidental kit/equipment marks are not used to imply endorsement; no model or trademark release is claimed.",
+      "photographic": true,
+      "photographIdentity": "unsplash-TNac8WmZgpI",
+      "credit": "KaroGraphix Photography"
+    },
+    {
+      "file": "keeper-roll.webp",
+      "drillId": "keeper-roll",
+      "sourceId": "8xojQnoGHQQ-frame-18.2",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Train_like_a_Real_Madrid_goalkeeper!_-_Courtois,_Lunin_%26_Altube.webm",
+      "originalSourcePage": "https://www.youtube.com/watch?v=8xojQnoGHQQ",
+      "author": "Real Madrid",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/cc/Train_like_a_Real_Madrid_goalkeeper%21_-_Courtois%2C_Lunin_%26_Altube.webm/Train_like_a_Real_Madrid_goalkeeper%21_-_Courtois%2C_Lunin_%26_Altube.webm.480p.vp9.webm",
+      "downloadSha256": "1c9dcb63bd89d96d7df80ffc04837e71b524183f6b9b64ce3972b1f47984db47",
+      "downloadDimensions": [
+        854,
+        480
+      ],
+      "sourceFrameTimestampSeconds": 18.2,
+      "transform": {
+        "cropBoxPx": [
+          40,
+          0,
+          680,
+          480
+        ],
+        "format": "WebP",
+        "quality": 82,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false
+      },
+      "dimensions": [
+        640,
+        480
+      ],
+      "bytes": 29864,
+      "sha256": "919177332cf941ce1a04e1910f0369320631fc96cae905dab8f006ffb4318ce1",
+      "contextNote": "Low ball-handling reference: goalkeeper crouches with gloved hand controlling a football at grass level as he rises after a save. This shows low grip/collection position, not a completed rolling distribution.",
+      "rightsReview": "Commons CC BY3.0 claim independently checked against official Real Madrid YouTube metadata: Creative Commons Attribution license (reuse allowed). Attribution required: Real Madrid, source title/link, CC BY3.0 link, extracted frame and crop. Depicted club/product marks do not imply endorsement. No Pexels license restrictions apply.",
+      "attribution": "Real Madrid — Train like a Real Madrid goalkeeper! | Courtois, Lunin & Altube (2021), CC BY 3.0. Frame extracted at00:18.20, cropped and encoded WebP.",
+      "credit": "Real Madrid — Train like a Real Madrid goalkeeper! | Courtois, Lunin & Altube (2021), CC BY 3.0. Frame extracted at00:18.20, cropped and encoded WebP.",
+      "photographic": true,
+      "photographIdentity": "8xojQnoGHQQ-frame-18.2",
+      "professionalAction": true,
+      "subjects": [
+        "Real Madrid goalkeepers (source does not identify the selected frame’s individual)"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Train_like_a_Real_Madrid_goalkeeper!_-_Courtois,_Lunin_%26_Altube.webm",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      }
+    },
+    {
+      "file": "l-turn.webp",
+      "drillId": "l-turn",
+      "sourceId": "4785486",
+      "sourcePage": "https://www.pexels.com/photo/unrecognizable-player-standing-with-leg-on-soccer-ball-4785486/",
+      "author": "Kafeel Ahmed",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/",
+      "termsUrl": "https://www.pexels.com/terms-of-service/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://images.pexels.com/photos/4785486/pexels-photo-4785486.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "downloadSha256": "5d42122e81115121b24081b011dd4a568681662c4503fa35ad97601a5e2a6f4d",
+      "downloadDimensions": [
+        1800,
+        2250
+      ],
+      "transform": {
+        "cropBoxPx": [
+          160,
+          1070,
+          600,
+          1400
+        ],
+        "format": "WebP",
+        "quality": 82,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resizedMaxWidth": 440
+      },
+      "dimensions": [
+        440,
+        330
+      ],
+      "bytes": 24734,
+      "sha256": "488d99ae9e4cde146673eef571a67f16f9e96ff8d1d7819d4877fb52a5c93bd2",
+      "contextNote": "Real macro photograph of the front outsole contacting the top of the ball. This is the sole-contact component before a pull; the behind-the-standing-leg tap and completed L turn are described in the written steps, not shown by this close-up.",
+      "rightsReview": "Primary Pexels source/license/terms verified. The contact-preserving macro crop excludes visible Nike marks from the original shoe; no retouching or fabricated content. Used in authored instruction UI without endorsement.",
+      "photographic": true,
+      "photographIdentity": "4785486",
+      "credit": "Kafeel Ahmed"
+    },
+    {
+      "file": "receive-across.webp",
+      "drillId": "receive-across",
+      "sourceId": "commons-180594102",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Marko_Divkovic_dribbling_against_Copenhagen.jpg",
+      "author": "https://vilfortpark.dk",
+      "credit": "https://vilfortpark.dk · CC BY-SA 4.0 · cropped/resized",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Marko_Divkovic_dribbling_against_Copenhagen.jpg/960px-Marko_Divkovic_dribbling_against_Copenhagen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "downloadSha256": "475069eecf5fda43bc0c7d0dd22d97760f169ff078b6c2dabd46a8a1b82b2222",
+      "downloadDimensions": [
+        960,
+        640
+      ],
+      "transform": {
+        "cropBoxPx": [
+          150,
+          160,
+          790,
+          640
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resizedMaxWidth": 900
+      },
+      "dimensions": [
+        640,
+        480
+      ],
+      "bytes": 33336,
+      "sha256": "c2475864b9547626a024d838fa23b2505bd45a4b856599d43224bb3d3d13dfd4",
+      "contextNote": "Real match photograph with open hips and the inside foot beside a grounded ball. Foot-orientation/contact setup for an across-body touch; this still does not establish an incoming pass or the full across-body trajectory.",
+      "rightsReview": "Primary Wikimedia file-specific CC BY-SA4.0 metadata verified. Cropped derivative is offered under the same license with attribution and changes disclosed. Incidental club/equipment marks and players do not imply endorsement; no model release claimed.",
+      "photographic": true,
+      "photographIdentity": "commons-180594102",
+      "professionalAction": true,
+      "subjects": [
+        "Marko Divkovic"
+      ],
+      "subjectEvidence": {
+        "primaryPhotoPage": "https://commons.wikimedia.org/wiki/File:Marko_Divkovic_dribbling_against_Copenhagen.jpg",
+        "sourceDescription": "Primary file page identifies the named player/match, or the official Real Madrid training video identifies its professional-club goalkeeper session."
+      }
+    },
+    {
+      "file": "step-over.webp",
+      "drillId": "step-over",
+      "sourceId": "unsplash-_0z5SDOStsE",
+      "sourcePage": "https://unsplash.com/photos/_0z5SDOStsE",
+      "author": "Aryan K",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://images.unsplash.com/photo-1785528469322-5ff4f8e38f5f?auto=format&fit=max&w=1800&q=85",
+      "downloadSha256": "b35124dc2f66b387a51bb3bc52eb3f2f0c18e771e43f9884fd8617cf4ab9c83f",
+      "downloadDimensions": [
+        1800,
+        2700
+      ],
+      "transform": {
+        "cropBoxPx": [
+          500,
+          1810,
+          1500,
+          2560
+        ],
+        "format": "WebP",
+        "quality": 78,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resizedMaxWidth": 900
+      },
+      "dimensions": [
+        900,
+        675
+      ],
+      "bytes": 48960,
+      "sha256": "48e6a581a0c79b7e7ccbfbfd63596eaf0eaacb4181890371988bf462e35debe0",
+      "contextNote": "Real footwork photograph: one boot is beside a grounded ball and the other is lifted behind. Balanced foot-position setup for beginning a step-over; this still does not establish the complete circling action or exit.",
+      "rightsReview": "Primary free Unsplash photo page and copyright license verified. Copyright reuse permits copying, adaptation, distribution and commercial use. Incidental equipment marks are not endorsements; no independent model or trademark release is claimed.",
+      "photographic": true,
+      "photographIdentity": "unsplash-_0z5SDOStsE",
+      "credit": "Aryan K"
+    },
+    {
+      "file": "wall.webp",
+      "drillId": "wall",
+      "sourceId": "DBvVBIyV7Ck-storyboard-frame-1",
+      "sourcePage": "https://www.youtube.com/watch?v=DBvVBIyV7Ck",
+      "author": "Yael Averbuch West",
+      "title": "Soccer Wall Work Combo | YFutbol",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://i.ytimg.com/sb/DBvVBIyV7Ck/storyboard3_L3/M0.jpg?sqp=-oaymwGhAUg48quKqQOYAYgBAZUBAAAEQpgBMqABPKgBBLIBQBANDBAVHyYtDg4PEhcrLCkPDhAVHyoyKQ8RFBgmPTgtERQeKjFLRzYVHCkuOUdNPyUuNz1HUlFFM0BCQ0xERkO6AUARERUjRENDQxETFi9DQ0NDFRYpQ0NDQ0MjL0NDQ0NDQ0RDQ0NDQ0JCQ0NDQ0NCQkJDQ0NDQkJCQkNDQ0JCQkJCovOX_wMGCOSXyrEG&sigh=rs$AOn4CLBQxC68acu9XkVfIdFQMvPLZa06XA",
+      "downloadSha256": "beef7f9a9e8a868ebb2512bdd905542b8572f9de589baccc14f4fd50bcf40fc3",
+      "downloadDimensions": [
+        960,
+        540
+      ],
+      "sourceFrame": {
+        "type": "YouTube automatic player storyboard (actual video excerpt, not custom thumbnail)",
+        "formatId": "sb0",
+        "sheetIndex": 0,
+        "tileIndexZeroBased": 1,
+        "globalFrameIndexZeroBased": 1,
+        "frameDimensions": [
+          320,
+          180
+        ],
+        "approximateTimestampSeconds": 0.96,
+        "timestampNote": "Approximate index/FPS from provider storyboard metadata; exact source timestamp is not supplied."
+      },
+      "transform": {
+        "cropBoxPx": [
+          360,
+          0,
+          600,
+          180
+        ],
+        "format": "WebP",
+        "quality": 88,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resized": false
+      },
+      "dimensions": [
+        240,
+        180
+      ],
+      "bytes": 9828,
+      "sha256": "1c6e58fd7bd31c828e64c3f15532b3a679d3febbd5fda543c7dc5f6b799483c0",
+      "contextNote": "Actual filmed inside-foot wall passing reference: player and grounded ball face the rebound wall; wall, ball and feet are visible.",
+      "rightsReview": "Official creator YouTube page metadata explicitly reports Creative Commons Attribution license (reuse allowed). Upload predates2025-08-01; CC BY3.0. Asset extracted from actual provider player-storyboard sprite observed in yt-dlp formats metadata, not creator custom thumbnail artwork. Provide author/title/source/license and crop/frame-extraction credit; no endorsement claim.",
+      "attribution": "Yael Averbuch West — Soccer Wall Work Combo | YFutbol (2015), CC BY3.0. Automatic video preview frame extracted and cropped; encoded WebP.",
+      "licenseEvidenceFile": "DBvVBIyV7Ck-youtube.json",
+      "photographic": true,
+      "credit": "Yael Averbuch West — Soccer Wall Work Combo | YFutbol (2015), CC BY3.0. Automatic video preview frame extracted and cropped; encoded WebP.",
+      "qualityLimit": "Native240×180 crop from320×180 actual video preview frame. No upscaling, retouching or generated content; larger detail presentation will be softer than900px stills.",
+      "photographIdentity": "DBvVBIyV7Ck-storyboard-frame-1"
+    },
+    {
+      "file": "wall-open.webp",
+      "drillId": "wall-open",
+      "sourceId": "TC9PN9zf_60-storyboard-frame-13",
+      "sourcePage": "https://www.youtube.com/watch?v=TC9PN9zf_60",
+      "author": "Yael Averbuch West",
+      "title": "Wall Work Soccer Challenge | YFutbol",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "verifiedOn": "2026-11-14",
+      "downloadUrl": "https://i.ytimg.com/sb/TC9PN9zf_60/storyboard3_L3/M1.jpg?sqp=-oaymwGhAUg48quKqQOYAYgBAZUBAAAEQpgBMqABPKgBBLIBQBANDBAVHyYtDg4PEhcrLCkPDhAVHyoyKQ8RFBgmPTgtERQeKjFLRzYVHCkuOUdNPyUuNz1HUlFFM0BCQ0xERkO6AUARERUjRENDQxETFi9DQ0NDFRYpQ0NDQ0MjL0NDQ0NDQ0RDQ0NDQ0JCQ0NDQ0NCQkJDQ0NDQkJCQkNDQ0JCQkJCovOX_wMGCJeLqLcG&sigh=rs$AOn4CLAYR3d4Egv271UtzEqDusd1REJ6Ww",
+      "downloadSha256": "46097a7f2528dc52ee50960cc24a10e37a0f9211af967e7860ee5af8dcb37baf",
+      "downloadDimensions": [
+        960,
+        540
+      ],
+      "sourceFrame": {
+        "type": "YouTube automatic player storyboard (actual video excerpt, not custom thumbnail)",
+        "formatId": "sb0",
+        "sheetIndex": 1,
+        "tileIndexZeroBased": 4,
+        "globalFrameIndexZeroBased": 13,
+        "frameDimensions": [
+          320,
+          180
+        ],
+        "approximateTimestampSeconds": 12.51,
+        "timestampNote": "Approximate index/FPS from provider storyboard metadata; exact source timestamp is not supplied."
+      },
+      "transform": {
+        "cropBoxPx": [
+          320,
+          180,
+          560,
+          360
+        ],
+        "format": "WebP",
+        "quality": 88,
+        "method": 6,
+        "metadata": "stripped",
+        "generativeEdits": false,
+        "resized": false
+      },
+      "dimensions": [
+        240,
+        180
+      ],
+      "bytes": 10206,
+      "sha256": "be6a6007e5294908388ff530f91634e06d7d4b451ca024f288bd8fb46849ed7d",
+      "contextNote": "Actual filmed wall-work first-touch reference: player opens body and controls grounded ball beside a low brick rebound wall. Single moment illustrates receiving/turning position; the full alternating-foot sequence remains in authored steps.",
+      "rightsReview": "Official creator YouTube page metadata explicitly reports Creative Commons Attribution license (reuse allowed). Upload predates2025-08-01; CC BY3.0. Asset extracted from actual provider player-storyboard sprite observed in yt-dlp formats metadata, not creator custom thumbnail artwork. Provide author/title/source/license and crop/frame-extraction credit; no endorsement claim.",
+      "attribution": "Yael Averbuch West — Wall Work Soccer Challenge | YFutbol (2014), CC BY3.0. Automatic video preview frame extracted and cropped; encoded WebP.",
+      "licenseEvidenceFile": "TC9PN9zf_60-youtube.json",
+      "photographic": true,
+      "credit": "Yael Averbuch West — Wall Work Soccer Challenge | YFutbol (2014), CC BY3.0. Automatic video preview frame extracted and cropped; encoded WebP.",
+      "qualityLimit": "Native240×180 crop from320×180 actual video preview frame. No upscaling, retouching or generated content; larger detail presentation will be softer than900px stills.",
+      "photographIdentity": "TC9PN9zf_60-storyboard-frame-13"
     }
   ],
-  "diagramOrIconDrillIds": [
-    "inside",
-    "wall",
-    "wall-open",
-    "weak",
-    "v-pull",
-    "l-turn",
-    "receive-across",
-    "shield-turn",
-    "weak-roll",
-    "weak-v",
-    "weak-cut",
-    "partner-first",
-    "step-over",
-    "pass-brake",
-    "pass-angle",
-    "keeper-hold",
-    "keeper-roll",
-    "turn"
-  ]
+  "coverage": {
+    "photoDrillIds": [
+      "foundation-stop",
+      "push",
+      "carry-scan",
+      "gates",
+      "toe-taps",
+      "inside-out",
+      "inside-cut",
+      "outside-cut",
+      "partner",
+      "gate-pass",
+      "inside",
+      "turn",
+      "weak",
+      "weak-cut",
+      "shield-turn",
+      "pass-brake",
+      "pass-angle",
+      "weak-roll",
+      "partner-first",
+      "keeper-hold",
+      "v-pull",
+      "weak-v",
+      "keeper-roll",
+      "l-turn",
+      "receive-across",
+      "step-over",
+      "wall",
+      "wall-open"
+    ],
+    "filmedPosterDrillIds": [
+      "sole",
+      "slalom"
+    ],
+    "uncoveredBuiltinDrillIds": [],
+    "policy": "Every built-in drill has its own genuine photograph or authentic film poster. No alternate crops of a shared still, generated human visuals, schematic thumbnails or inferred weaker-foot dominance. A still may illustrate a relevant contact/setup phase without claiming to demonstrate the complete drill."
+  },
+  "professionalActionCoverage": {
+    "upgradedDrillIds": [
+      "carry-scan",
+      "inside-out",
+      "inside-cut",
+      "outside-cut",
+      "partner",
+      "weak-cut"
+    ],
+    "allVerifiedProfessionalActionDrillIds": [
+      "carry-scan",
+      "inside-out",
+      "inside-cut",
+      "outside-cut",
+      "partner",
+      "inside",
+      "turn",
+      "weak",
+      "weak-cut",
+      "shield-turn",
+      "pass-angle",
+      "keeper-roll",
+      "receive-across"
+    ],
+    "reservedHeroSource": "Kevin De Bruyne / Steffen Prößdorf source is reserved for Train hero, not repeated in drill photos.",
+    "policy": "Prefer recognizable professional match action for suitable carry, control, cuts and passing references. Keep precise real wall/sole/V/L/gates/handling references where a pro match image would obscure the setup. No endorsement or exact-drill-demo claims."
+  }
 }

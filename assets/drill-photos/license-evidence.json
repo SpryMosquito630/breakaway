@@ -1,0 +1,36 @@
+{
+  "verifiedOn": "2026-11-14",
+  "method": "Selected official creator metadata fields retained from primary YouTube pages; footage/storyboard source URLs and hashes are in provenance.json.",
+  "officialCreatorVideoMetadata": [
+    {
+      "id": "DBvVBIyV7Ck",
+      "title": "Soccer Wall Work Combo | YFutbol",
+      "uploader": "Yael Averbuch West",
+      "channel": "Yael Averbuch West",
+      "channel_url": "https://www.youtube.com/channel/UCE6t0SCtOq65dDTtfptRHHw",
+      "webpage_url": "https://www.youtube.com/watch?v=DBvVBIyV7Ck",
+      "upload_date": "20150915",
+      "license": "Creative Commons Attribution license (reuse allowed)"
+    },
+    {
+      "id": "TC9PN9zf_60",
+      "title": "Wall Work Soccer Challenge | YFutbol",
+      "uploader": "Yael Averbuch West",
+      "channel": "Yael Averbuch West",
+      "channel_url": "https://www.youtube.com/channel/UCE6t0SCtOq65dDTtfptRHHw",
+      "webpage_url": "https://www.youtube.com/watch?v=TC9PN9zf_60",
+      "upload_date": "20140812",
+      "license": "Creative Commons Attribution license (reuse allowed)"
+    },
+    {
+      "id": "8xojQnoGHQQ",
+      "title": "Train like a Real Madrid goalkeeper! | Courtois, Lunin & Altube",
+      "uploader": "Real Madrid",
+      "channel": "Real Madrid",
+      "channel_url": "https://www.youtube.com/channel/UCWV3obpZVGgJ3j9FVhEjF2Q",
+      "webpage_url": "https://www.youtube.com/watch?v=8xojQnoGHQQ",
+      "upload_date": "20210211",
+      "license": "Creative Commons Attribution license (reuse allowed)"
+    }
+  ]
+}
