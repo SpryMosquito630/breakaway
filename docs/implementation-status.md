@@ -1,8 +1,11 @@
 # Breakaway release scope
 
-The shipping app is an account-free soccer practice tool: Train, Drills, Progress, Analyze and optional local reminders. Analyze supports account-free local shot replay and optional 13+ consented MediaPipe body tracking; pose results are temporary, no technique ratings/speed are generated, and the current analysis service is developer-hosted (see docs/shot-analysis.md).
+The shipping app is an account-free soccer practice tool: Train, Drills, Progress, Analyze, Coach and optional local reminders. Analyze supports account-free local shot replay and optional 13+ consented MediaPipe body tracking; pose results are temporary, no technique ratings/speed are generated, and the current analysis service is developer-hosted (see docs/shot-analysis.md).
 
 ## Shipping
+
+- Coach has a dedicated tab with a clearly labeled offline catalog guide and real drill recommendations. Live AI is prepared behind a separate Coach flag, but needs provider credentials, authenticated account UI/session and protected chat-route hosting before activation; see docs/coach-chat.md.
+- Onboarding includes two illustrated comparison interludes: bottom-up bars after equipment and a drawn training journey after height/weight. They keep manual Continue, reduced-motion support and qualitative labels; no score growth or guaranteed result is claimed.
 
 - Constraint-aware plans, visible session drills, custom drills/playlists, practice history and six self-reported test scores.
 - Per-minute drill pacing scaled to the frozen block length; revised difficulty set/reset constraints.

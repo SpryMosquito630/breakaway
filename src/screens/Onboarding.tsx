@@ -31,6 +31,7 @@ import { StatusBar } from "expo-status-bar";
 import { useIsFocused } from "@react-navigation/native";
 import { DrillArtwork } from "../components/DrillArtwork";
 import { OnboardingHeading } from "../components/OnboardingHeading";
+import { OnboardingComparison } from "../components/OnboardingComparison";
 import { OnboardingFeedbackToast } from "../components/OnboardingFeedbackToast";
 import {
   barLabelStyle,
@@ -709,9 +710,9 @@ export function Onboarding({
   const footerRevealDelay = {
     assessment: 3500,
     strengths: 2000,
-    growth: 2500,
+
     fuel: 1500,
-  }[step as "assessment" | "strengths" | "growth" | "fuel"];
+  }[step as "assessment" | "strengths" | "fuel"];
   const footerReady =
     footerRevealDelay === undefined ||
     reducedMotionEnabled ||
@@ -914,7 +915,6 @@ export function Onboarding({
     "positionConfirm",
     "assessment",
     "strengths",
-    "growth",
     "fuel",
   ].includes(step);
   const purpleScreen = false;
@@ -1674,81 +1674,12 @@ export function Onboarding({
         break;
       case "planComparison":
         content = (
-          <View style={{ gap: 20, paddingTop: 12 }}>
-            <Animated.View style={entranceStyle(entrance[0])}>
-              <Heading>Random sessions don’t know your goal. A plan does.</Heading>
-            </Animated.View>
-            <View style={styles.comparisonColumns}>
-              {[
-                {
-                  id: "routine-random",
-                  top: "#FA4765",
-                  bottom: "#EB254A",
-                  short: true,
-                  label: "Without a routine",
-                  detail: "Training at random",
-                  items: ["Guesswork"],
-                },
-                {
-                  id: "routine-plan",
-                  top: "#A6FF35",
-                  bottom: "#14B84D",
-                  short: false,
-                  label: "Your Breakaway plan",
-                  detail: "Built from your answers",
-                  items: ["A clear focus", "Chosen days", "Track practice"],
-                },
-              ].map((column, i) => (
-                <View key={column.id} style={styles.comparisonColumn}>
-                  <View style={styles.comparisonStage}>
-                    <View
-                      style={[
-                        styles.comparisonBar,
-                        { minHeight: column.short ? 124 : 228, gap: 10 },
-                      ]}
-                    >
-                      <Animated.View
-                        pointerEvents="none"
-                        style={[
-                          StyleSheet.absoluteFill,
-                          growingBarStyle(entrance[i + 1]),
-                        ]}
-                      >
-                        <BarFill id={column.id} top={column.top} bottom={column.bottom} />
-                      </Animated.View>
-                      {column.items.map((label) => (
-                        <Animated.View
-                          key={label}
-                          style={[
-                            styles.comparisonItem,
-                            barLabelStyle(entrance[i + 1], column.short ? 124 : 228),
-                          ]}
-                        >
-                          {!column.short ? (
-                            <Check
-                              size={13}
-                              color={colors.background}
-                              style={{ marginTop: 2 }}
-                            />
-                          ) : null}
-                          <Copy style={styles.comparisonItemText}>{label}</Copy>
-                        </Animated.View>
-                      ))}
-                    </View>
-                  </View>
-                  <Animated.View style={{ opacity: entrance[3] }}>
-                    <Copy style={styles.comparisonLabel}>{column.label}</Copy>
-                    <Copy muted style={styles.comparisonDetail}>
-                      {column.detail}
-                    </Copy>
-                  </Animated.View>
-                </View>
-              ))}
-            </View>
-            <Copy muted style={{ textAlign: "center", fontSize: 13, lineHeight: 20 }}>
-              Your focus, setup and available time shape your starting session.
-            </Copy>
-          </View>
+          <OnboardingComparison
+            key="bars"
+            kind="bars"
+            focused={focused}
+            reducedMotion={reducedMotionEnabled}
+          />
         );
         break;
       case "notifications":
@@ -2515,64 +2446,12 @@ export function Onboarding({
         break;
       case "growth":
         content = (
-          <View style={{ gap: 16, paddingTop: 6 }}>
-            <Tag>Your next step</Tag>
-            <Heading>Give your progress a starting line.</Heading>
-            <Copy muted style={{ fontSize: 13, lineHeight: 20 }}>
-              Record real tests in Skill profile, whenever you’re ready.
-            </Copy>
-            {[
-              ["pace", "physical"],
-              ["passing", "dribbling"],
-              ["shooting", "defending"],
-            ].map((group, groupIndex) => (
-              <View
-                key={group[0]}
-                style={[styles.assessmentPanel, { gap: 10, borderColor: "#74816C33" }]}
-              >
-                {group.map((id) => {
-                  const skill = ratings.skills.find((item) => item.id === id)!;
-                  return (
-                    <View key={id} style={{ gap: 6 }}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "baseline",
-                        }}
-                      >
-                        <Copy style={{ fontSize: 13, lineHeight: 18 }}>{skill.name}</Copy>
-                        <Copy muted style={{ fontSize: 12, lineHeight: 18 }}>
-                          {skill.rating === null ? "Not assessed" : `${skill.rating}`}
-                        </Copy>
-                      </View>
-                      <View
-                        style={{
-                          height: 4,
-                          borderRadius: 2,
-                          backgroundColor: "#FFFFFF0A",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {skill.rating !== null ? (
-                          <Animated.View
-                            style={{
-                              height: 4,
-                              width: `${skill.rating}%`,
-                              borderRadius: 2,
-                              backgroundColor: colors.muted,
-                              transformOrigin: "left center",
-                              transform: [{ scaleX: entrance[groupIndex + 1] }],
-                            }}
-                          />
-                        ) : null}
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
-          </View>
+          <OnboardingComparison
+            key="journey"
+            kind="journey"
+            focused={focused}
+            reducedMotion={reducedMotionEnabled}
+          />
         );
         break;
       case "snapshot":
@@ -2776,9 +2655,9 @@ export function Onboarding({
   const editorialStages = {
     assessment: [0, 0, 0, 8],
     strengths: [0, 0, 0, 1, 2, 3],
-    growth: [0, 0, 0, 1, 2, 3],
+
     fuel: [0, 0, 1, 2, 3, 4, 5],
-  }[step as "assessment" | "strengths" | "growth" | "fuel"];
+  }[step as "assessment" | "strengths" | "fuel"];
   if (editorialStages && isValidElement<{ children?: React.ReactNode }>(content)) {
     content = cloneElement(
       content,
@@ -2806,7 +2685,7 @@ export function Onboarding({
         : step === "strengths"
           ? "Now the harder part"
           : step === "growth"
-            ? "Set my starting line"
+            ? "Continue"
             : step === "fuel"
               ? "Let’s build it"
               : step === "welcome"
