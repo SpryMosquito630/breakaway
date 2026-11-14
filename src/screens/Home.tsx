@@ -16,6 +16,7 @@ import {
 } from "../domain/sessionTime";
 import { useLocalDay } from "../hooks/useLocalDay";
 import { WeeklyCalendar } from "../components/WeeklyCalendar";
+import { trainHero } from "../data/train-hero";
 import {
   Page,
   Note,
@@ -180,11 +181,11 @@ export function Today({ navigation }: { navigation: any }) {
           </Pressable>
         </View>
         <Image
-          source={require("../../assets/training-editorial.webp")}
+          source={trainHero.source}
           contentFit="cover"
-          contentPosition={{ left: "52%", top: "82%" }}
+          contentPosition="center"
           style={{ width: 116, alignSelf: "stretch", minHeight: 180 }}
-          accessibilityLabel="Ball and boots on the pitch"
+          accessibilityLabel={trainHero.description}
         />
       </View>
       {!data.active ? (

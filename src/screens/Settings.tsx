@@ -1,4 +1,5 @@
 import { DEVELOPER_FEATURES } from "../config/features";
+import { trainHero } from "../data/train-hero";
 import { replays } from "../replays/storage";
 import { resetFeatureStores } from "../features/localStore";
 import { haptic } from "../utils/haptics";
@@ -168,6 +169,12 @@ export function Settings({ navigation }: { navigation: any }) {
           clears this device’s saved training.
         </Text>
         <Disclaimer />
+        <Text style={s.small}>{trainHero.credit}</Text>
+        <Link label="Train photo source" onPress={() => openLink(trainHero.page)} />
+        <Link
+          label="CC BY-SA 4.0 photo license"
+          onPress={() => openLink(trainHero.license)}
+        />
       </Disclosure>
       <View style={s.group}>
         <SettingRow icon={Trash2} label="Reset all data" danger onPress={confirmReset} />
