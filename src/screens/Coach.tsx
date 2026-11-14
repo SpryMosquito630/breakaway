@@ -33,13 +33,11 @@ import {
   coachContext,
   offlineCoach,
   remoteCoachAllowed,
-  saveMissingCoachAge,
   validateCoachReply,
   type CoachReply,
 } from "../coachAi/recommendations";
 import { haptic } from "../utils/haptics";
-import { Button, Choice } from "../components/ui";
-import type { AgeBand } from "../domain/model";
+import { Button } from "../components/ui";
 import { CoachSendFlow } from "../coachAi/sendFlow";
 
 type CoachService = ServiceState & { coachIdentity?: string };
@@ -51,7 +49,7 @@ type Turn = CoachReply & { question: string; id: number };
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
 export function Coach({ navigation }: { navigation: any }) {
   const { C, s } = useTheme();
-  const { data, catalog, update } = useApp();
+  const { data, catalog } = useApp();
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [mode, setMode] = useState<"auto" | "offline" | "ai">(
@@ -65,8 +63,6 @@ export function Coach({ navigation }: { navigation: any }) {
   const [pairing, setPairing] = useState(false);
   const [pairCode, setPairCode] = useState("");
   const [error, setError] = useState("");
-  const [askingAge, setAskingAge] = useState(false);
-  const [ageChoice, setAgeChoice] = useState<AgeBand | undefined>();
   const request = useRef<AbortController | null>(null);
   const flow = useRef(new CoachSendFlow());
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -86,9 +82,7 @@ export function Coach({ navigation }: { navigation: any }) {
   useEffect(() => {
     if (!allowed) {
       request.current?.abort();
-      setMode(
-        COACH_REMOTE_ENABLED && data.profile.ageBand === undefined ? "auto" : "offline",
-      );
+      setMode("offline");
       setService(null);
       flow.current.reset();
       setDisclosure(false);
@@ -96,10 +90,7 @@ export function Coach({ navigation }: { navigation: any }) {
       setPairCode("");
       void forgetCoachPair();
     }
-  }, [allowed, data.profile.ageBand]);
-  useEffect(() => {
-    if (allowed && flow.current.question && !askingAge) void checkConnection();
-  }, [data.profile.ageBand]);
+  }, [allowed]);
   function answerOffline(text: string) {
     setTurns((previous) => [
       ...previous.slice(-19),
@@ -114,8 +105,6 @@ export function Coach({ navigation }: { navigation: any }) {
     setDisclosure(false);
     setPairing(false);
     setPairCode("");
-    setAskingAge(false);
-    setAgeChoice(undefined);
     setConnection("");
     setError("");
     if (question) answerOffline(question);
@@ -124,7 +113,6 @@ export function Coach({ navigation }: { navigation: any }) {
     if (!mounted.current || !remoteAllowed.current || !flow.current.question) return;
     const next = flow.current.next({
       enabled: COACH_REMOTE_ENABLED,
-      age: data.profile.ageBand,
       connected: active.chatAvailable,
       pairRequired: active.chatPairRequired,
       paired: Boolean(active.chatPairToken),
@@ -241,28 +229,16 @@ export function Coach({ navigation }: { navigation: any }) {
   }
   async function send(question = message) {
     const text = question.trim();
-    if (!text || busy || checking || disclosure || pairing || askingAge) return;
+    if (!text || busy || checking || disclosure || pairing) return;
     haptic("light");
     setError("");
     setConnection("");
-    if (
-      mode === "offline" ||
-      !COACH_REMOTE_ENABLED ||
-      data.profile.ageBand === "under13"
-    ) {
+    if (mode === "offline" || !COACH_REMOTE_ENABLED) {
       answerOffline(text);
       return;
     }
     setMessage(text);
     flow.current.queue(text);
-    if (
-      flow.current.next({ enabled: COACH_REMOTE_ENABLED, age: data.profile.ageBand }) ===
-      "age"
-    ) {
-      setAgeChoice(undefined);
-      setAskingAge(true);
-      return;
-    }
     await checkConnection();
   }
   async function sendAI(text: string, active: CoachService) {
@@ -372,7 +348,7 @@ export function Coach({ navigation }: { navigation: any }) {
       );
     });
   }
-  const paused = busy || checking || disclosure || pairing || askingAge;
+  const paused = busy || checking || disclosure || pairing;
   return (
     <KeyboardAvoidingView
       style={[styles.page, { backgroundColor: C.bg }]}
@@ -461,58 +437,12 @@ export function Coach({ navigation }: { navigation: any }) {
             </View>
           ))
         )}
-        {COACH_REMOTE_ENABLED && data.profile.ageBand !== "under13" && !paused ? (
+        {COACH_REMOTE_ENABLED && !paused ? (
           <Button
             label={mode === "offline" ? "Use AI coach" : "Use offline guide"}
             kind="secondary"
             onPress={() => (mode === "offline" ? setMode("auto") : chooseOffline())}
           />
-        ) : null}
-        {COACH_REMOTE_ENABLED && data.profile.ageBand === "under13" ? (
-          <Text style={s.small}>
-            AI coach is unavailable for under-13 profiles. You can keep using the offline
-            training guide.
-          </Text>
-        ) : null}
-        {askingAge && COACH_REMOTE_ENABLED && data.profile.ageBand === undefined ? (
-          <View style={[styles.consent, { backgroundColor: C.soft }]}>
-            <Text style={s.h3}>What is your age range?</Text>
-            <Text style={s.small}>
-              Choose your age range before connecting AI. It stays on this device and is
-              not sent with your questions.
-            </Text>
-            {(
-              [
-                ["under13", "Under 13"],
-                ["13to17", "13–17"],
-                ["adult", "18 or older"],
-              ] as const
-            ).map(([value, label]) => (
-              <Choice
-                key={value}
-                label={label}
-                selected={ageChoice === value}
-                onPress={() => setAgeChoice(value)}
-              />
-            ))}
-            <Button
-              label="Save age range"
-              disabled={!ageChoice}
-              kind="lime"
-              onPress={() => {
-                if (!ageChoice) return;
-                update((current) => saveMissingCoachAge(current, ageChoice));
-                if (ageChoice === "under13") {
-                  chooseOffline();
-                  return;
-                }
-                setAskingAge(false);
-                setAgeChoice(undefined);
-                setConnection("");
-              }}
-            />
-            <Button label="Keep offline guide" kind="secondary" onPress={chooseOffline} />
-          </View>
         ) : null}
         {pairing && allowed && COACH_DEV_ENABLED ? (
           <View style={[styles.consent, { backgroundColor: C.soft }]}>

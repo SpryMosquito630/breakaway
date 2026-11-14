@@ -19,6 +19,7 @@ class GeminiTests(unittest.TestCase):
             self.assertNotIn('test-key', request.full_url)
             self.assertEqual(request.get_header('X-goog-api-key'), 'test-key')
             payload = json.loads(request.data)
+            self.assertIn('Do not ask for names, contact details, exact age', payload['systemInstruction']['parts'][0]['text'])
             self.assertEqual(payload['generationConfig']['responseJsonSchema'], coaching.CHAT_SCHEMA)
             self.assertEqual(payload['generationConfig']['responseMimeType'], 'application/json')
             self.assertEqual(payload['contents'][0]['parts'][-1]['text'], 'practice?')

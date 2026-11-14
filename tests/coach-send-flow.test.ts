@@ -18,10 +18,10 @@ test("Opening Coach cannot initiate a send, even with an existing consent grant"
   assert.equal(flow.take(ready.consentKey), null);
 });
 
-test("One explicit question survives age, connection, pairing and consent, then sends once", () => {
+test("One explicit question survives connection, pairing and consent, then sends once", () => {
   const flow = new CoachSendFlow();
   flow.queue("  How can I practice passing?  ");
-  assert.equal(flow.next({ enabled: true }), "age");
+  assert.equal(flow.next({ enabled: true }), "connect");
   assert.equal(flow.next({ enabled: true, age: "adult" }), "connect");
   const dev = { ...ready, pairRequired: true, paired: false };
   assert.equal(flow.next(dev), "pair");
@@ -35,16 +35,32 @@ test("One explicit question survives age, connection, pairing and consent, then 
   assert.equal(flow.next({ ...dev, paired: true }), "idle");
 });
 
-test("Under-13 and disabled builds use the offline route even with prior consent", () => {
+test("Every age range and an unknown age use the same explicit pairing and consent flow", () => {
+  for (const age of [undefined, "under13", "13to17", "adult"] as const) {
+    const flow = new CoachSendFlow();
+    assert.equal(flow.next({ ...ready, age }), "idle");
+    flow.queue("First touch?");
+    assert.equal(flow.next({ enabled: true, age }), "connect");
+    assert.equal(flow.next({ ...ready, age, pairRequired: true, paired: false }), "pair");
+    assert.equal(
+      flow.next({ ...ready, age, pairRequired: true, paired: true }),
+      "consent",
+    );
+    assert.equal(flow.take(ready.consentKey), null);
+    flow.approve(ready.consentKey);
+    assert.equal(flow.next({ ...ready, age, pairRequired: true, paired: true }), "send");
+    assert.equal(flow.take(ready.consentKey), "First touch?");
+    assert.equal(flow.take(ready.consentKey), null);
+  }
+});
+
+test("Disabled remote builds use the offline route even with prior consent", () => {
   const flow = new CoachSendFlow();
   flow.queue("First touch?");
   flow.approve(ready.consentKey);
-  assert.equal(flow.next({ ...ready, age: "under13" }), "offline");
   assert.equal(flow.next({ ...ready, enabled: false }), "offline");
   flow.reset();
   assert.equal(flow.next(ready), "idle");
-  flow.queue("A new eligible question");
-  assert.equal(flow.next(ready), "consent");
 });
 
 test("A failed or canceled request never replays automatically", () => {

@@ -18,8 +18,7 @@ export class CoachSendFlow {
   }
   next(gate: Gate) {
     if (!this.question) return "idle";
-    if (!gate.enabled || gate.age === "under13") return "offline";
-    if (!gate.age) return "age";
+    if (!gate.enabled) return "offline";
     if (!gate.connected) return "connect";
     if (gate.pairRequired && !gate.paired) return "pair";
     if (!gate.consentKey || this.approvedKey !== gate.consentKey) return "consent";

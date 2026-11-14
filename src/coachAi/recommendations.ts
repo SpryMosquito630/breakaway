@@ -5,7 +5,6 @@ import {
   type AppData,
   type Drill,
   type Goal,
-  type AgeBand,
 } from "../domain/model";
 import { localGuide } from "./guide";
 
@@ -14,14 +13,12 @@ export type CoachReply = {
   drillIds: string[];
   source: "offline" | "openai" | "gemini";
 };
-export function remoteCoachAllowed(age: AppData["profile"]["ageBand"], enabled: boolean) {
-  return enabled && (age === "adult" || age === "13to17");
-}
-/** This recovery prompt can fill legacy profiles, never replace a saved age range. */
-export function saveMissingCoachAge(data: AppData, ageBand: AgeBand): AppData {
-  return data.profile.ageBand === undefined
-    ? { ...data, profile: { ...data.profile, ageBand } }
-    : data;
+/** Coach availability is independent of the saved age range. Other features keep their own gates. */
+export function remoteCoachAllowed(
+  _age: AppData["profile"]["ageBand"],
+  enabled: boolean,
+) {
+  return enabled;
 }
 function requestedGoal(message: string): Goal | undefined {
   const query = message.toLowerCase();
