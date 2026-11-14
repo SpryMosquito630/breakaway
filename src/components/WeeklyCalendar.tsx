@@ -71,13 +71,7 @@ export function WeeklyCalendar({
               style={[
                 styles.date,
                 {
-                  borderColor: today
-                    ? C.lime
-                    : complete || planned
-                      ? C.green
-                      : past
-                        ? C.line
-                        : "transparent",
+                  borderColor: today ? C.lime : "transparent",
                   backgroundColor: today ? C.pitchSoft : "transparent",
                 },
               ]}
@@ -92,8 +86,8 @@ export function WeeklyCalendar({
                 {date.getDate()}
               </Text>
               {complete ? (
-                <View style={[styles.completed, { backgroundColor: C.lime }]}>
-                  <Check size={10} strokeWidth={3} color={C.onLime} />
+                <View style={styles.completed}>
+                  <Check size={10} strokeWidth={3} color={C.green} />
                 </View>
               ) : null}
             </View>
@@ -131,7 +125,6 @@ const styles = StyleSheet.create({
     right: -2,
     width: 14,
     height: 14,
-    borderRadius: 7,
     alignItems: "center",
     justifyContent: "center",
   },
