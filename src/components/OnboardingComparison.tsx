@@ -168,7 +168,7 @@ export function OnboardingComparison({
               opacity={reveal}
             />
             <AnimatedPath
-              d="M16 204 C55 199 76 181 105 164 S166 130 198 104 S260 68 304 30"
+              d="M16 204 C52 204 59 180 103 180 C143 180 151 121 196 121 C247 121 262 40 304 30"
               stroke={lime}
               strokeWidth={4}
               strokeLinecap="round"
@@ -180,8 +180,8 @@ export function OnboardingComparison({
               })}
             />
             {[
-              [105, 164],
-              [198, 104],
+              [103, 180],
+              [196, 121],
               [304, 30],
             ].map(([cx, cy]) => (
               <AnimatedCircle
