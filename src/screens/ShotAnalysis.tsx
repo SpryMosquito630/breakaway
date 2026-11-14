@@ -8,12 +8,23 @@ import {
   Switch,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { createVideoPlayer, VideoView } from "expo-video";
 import { useIsFocused } from "@react-navigation/native";
-import { Camera, Film, Pause, Play, RotateCcw, Upload } from "lucide-react-native";
-import { Button, Disclosure, Page, useTheme } from "../components/ui";
+import {
+  Bookmark,
+  Camera,
+  Film,
+  Pause,
+  Play,
+  RotateCcw,
+  StepBack,
+  StepForward,
+  Upload,
+} from "lucide-react-native";
+import { Button, Chip, Disclosure, Page, useTheme } from "../components/ui";
 import { ReplayAnalysis } from "../domain/replay";
 import { replays } from "../replays/storage";
 import { useApp } from "../state/AppState";
@@ -209,24 +220,45 @@ export function ShotAnalysis() {
   }
   const pickerActions = (
     <View style={{ gap: 10 }}>
-      <Button
-        label="Record shot"
-        icon={Camera}
-        disabled={picking}
-        onPress={() => void pick(true)}
-      />
-      <Button
-        label="Choose video"
-        icon={Upload}
-        kind="secondary"
-        disabled={picking}
-        onPress={() => void pick(false)}
-      />
-      <Text style={s.small}>Up to 30 seconds · 50 MB. Videos stay on this device.</Text>
+      <View style={styles.captureActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Record shot"
+          disabled={picking}
+          onPress={() => void pick(true)}
+          style={({ pressed }) => [
+            styles.captureChoice,
+            { opacity: picking ? 0.4 : pressed ? 0.7 : 1 },
+          ]}
+        >
+          <View style={[styles.captureCircle, { backgroundColor: C.lime }]}>
+            <Camera size={25} color={C.onLime} />
+          </View>
+          <Text style={[s.small, { color: C.ink }]}>Record shot</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Choose video"
+          disabled={picking}
+          onPress={() => void pick(false)}
+          style={({ pressed }) => [
+            styles.captureChoice,
+            { opacity: picking ? 0.4 : pressed ? 0.7 : 1 },
+          ]}
+        >
+          <View style={[styles.captureCircle, { backgroundColor: C.soft }]}>
+            <Upload size={23} color={C.ink} />
+          </View>
+          <Text style={[s.small, { color: C.ink }]}>Choose video</Text>
+        </Pressable>
+      </View>
+      <Text style={[s.small, { textAlign: "center" }]}>
+        Up to 30 seconds · 50 MB. Videos stay on this device.
+      </Text>
     </View>
   );
   return (
-    <Page contentStyle={{ gap: 24, paddingTop: 4 }}>
+    <Page contentStyle={{ gap: clip ? 16 : 20, paddingTop: 4 }}>
       {clip ? (
         <ShotReview
           key={clip.id}
@@ -240,18 +272,67 @@ export function ShotAnalysis() {
         />
       ) : (
         <>
-          <View style={{ gap: 8 }}>
-            <Text accessibilityRole="header" style={s.h2}>
-              Review your shot in slow motion.
+          <View style={{ gap: 6 }}>
+            <Text accessibilityRole="header" style={s.h1}>
+              Film your shot
             </Text>
             <Text style={s.small}>Slow-motion review · optional body tracking.</Text>
           </View>
-          {pickerActions}
-          <View style={[styles.empty, { backgroundColor: C.soft }]}>
-            <Film color={C.green} size={28} />
-            <Text style={s.h3}>Your shot, frame by frame</Text>
-            <Text style={s.body}>Pause at contact to take a closer look.</Text>
+          <View style={[styles.captureStage, { backgroundColor: C.soft }]}>
+            <View
+              style={[
+                styles.corner,
+                {
+                  top: 16,
+                  left: 16,
+                  borderTopWidth: 2,
+                  borderLeftWidth: 2,
+                  borderColor: C.lineStrong,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.corner,
+                {
+                  top: 16,
+                  right: 16,
+                  borderTopWidth: 2,
+                  borderRightWidth: 2,
+                  borderColor: C.lineStrong,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.corner,
+                {
+                  bottom: 16,
+                  left: 16,
+                  borderBottomWidth: 2,
+                  borderLeftWidth: 2,
+                  borderColor: C.lineStrong,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.corner,
+                {
+                  bottom: 16,
+                  right: 16,
+                  borderBottomWidth: 2,
+                  borderRightWidth: 2,
+                  borderColor: C.lineStrong,
+                },
+              ]}
+            />
+            <Film color={C.muted} size={38} strokeWidth={1.25} />
+            <Text style={[s.body, { textAlign: "center" }]}>
+              Keep your whole body and ball in frame.
+            </Text>
           </View>
+          {pickerActions}
         </>
       )}
       {error ? (
@@ -342,7 +423,8 @@ function ShotReview({
   const [kickingFoot, setKickingFoot] = useState<"left" | "right" | null>(null);
   const poseAbort = useRef<AbortController | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [slow, setSlow] = useState(true);
+  const [speed, setSpeed] = useState(0.5);
+  const { height: windowHeight } = useWindowDimensions();
   const [time, setTime] = useState(0);
   // The mounted player is authoritative; picker duration units differ by platform.
   const [duration, setDuration] = useState(0);
@@ -518,15 +600,29 @@ function ShotReview({
     }
   }
   const usable = loaded && duration > 0 && duration <= 30.05;
+  const togglePlayback = () => {
+    if (playing) player.pause();
+    else {
+      if (duration > 0 && time >= duration - 0.1) player.seekBy(-player.currentTime);
+      player.play();
+    }
+  };
+  const playbackLabel = playing
+    ? "Pause"
+    : duration > 0 && time >= duration - 0.1
+      ? "Replay"
+      : "Play";
   return (
     <View style={{ gap: 12 }}>
-      <View style={{ gap: 4 }}>
-        <Text accessibilityRole="header" style={s.h3}>
-          Review your shot
-        </Text>
-        <Text style={s.small}>Video review · optional body tracking</Text>
-      </View>
-      <View style={[styles.video, { aspectRatio: dimensions.width / dimensions.height }]}>
+      <View
+        style={[
+          styles.video,
+          {
+            aspectRatio: dimensions.width / dimensions.height,
+            maxHeight: Math.max(360, Math.min(620, windowHeight * 0.66)),
+          },
+        ]}
+      >
         <VideoView
           player={player}
           nativeControls={false}
@@ -610,135 +706,182 @@ function ShotReview({
             }}
           />
         </View>
-        <Text pointerEvents="none" style={s.small}>
+        <Text
+          pointerEvents="none"
+          style={[s.small, { textAlign: "right", fontVariant: ["tabular-nums"] }]}
+        >
           {duration > 0
-            ? `${time.toFixed(1)}s / ${duration.toFixed(1)}s · Tap to seek`
+            ? `${time.toFixed(1)}s / ${duration.toFixed(1)}s`
             : "Loading video position…"}
         </Text>
       </Pressable>
-      <View style={styles.controls}>
-        <View style={{ flex: 1 }}>
-          <Button
-            label={
-              playing
-                ? "Pause"
-                : duration > 0 && time >= duration - 0.1
-                  ? "Replay"
-                  : "Play"
-            }
-            icon={playing ? Pause : Play}
-            disabled={!usable}
-            onPress={() => {
-              if (playing) player.pause();
-              else {
-                if (duration > 0 && time >= duration - 0.1)
-                  player.seekBy(-player.currentTime);
-                player.play();
-              }
-            }}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button
-            label={slow ? "Speed: 0.5×" : "Speed: 1×"}
-            kind="secondary"
-            disabled={!usable}
-            onPress={() => {
-              player.playbackRate = slow ? 1 : 0.5;
-              setSlow(!slow);
-            }}
-          />
-        </View>
-      </View>
-      <View style={styles.controls}>
-        <View style={{ flex: 1 }}>
-          <Button
-            label="−0.04s"
+      <View style={styles.transportRow}>
+        <View style={styles.transportGroup}>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Step back 0.04 seconds"
-            kind="secondary"
             disabled={!usable}
             onPress={() => seek(time - 0.04)}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button
-            label="Start"
-            icon={RotateCcw}
-            kind="secondary"
+            style={({ pressed }) => [
+              styles.iconControl,
+              { opacity: !usable ? 0.35 : pressed ? 0.65 : 1 },
+            ]}
+          >
+            <StepBack size={21} color={C.ink} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={playbackLabel}
             disabled={!usable}
-            onPress={() => seek(0)}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button
-            label="+0.04s"
+            onPress={togglePlayback}
+            style={({ pressed }) => [
+              styles.playControl,
+              { backgroundColor: C.lime, opacity: !usable ? 0.35 : pressed ? 0.7 : 1 },
+            ]}
+          >
+            {playing ? (
+              <Pause size={23} color={C.onLime} fill={C.onLime} />
+            ) : (
+              <Play size={23} color={C.onLime} fill={C.onLime} />
+            )}
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Step forward 0.04 seconds"
-            kind="secondary"
             disabled={!usable}
             onPress={() => seek(time + 0.04)}
-          />
+            style={({ pressed }) => [
+              styles.iconControl,
+              { opacity: !usable ? 0.35 : pressed ? 0.65 : 1 },
+            ]}
+          >
+            <StepForward size={21} color={C.ink} />
+          </Pressable>
+        </View>
+        <View style={[styles.speedGroup, { backgroundColor: C.soft }]}>
+          {[0.5, 1, 2].map((value) => (
+            <Pressable
+              key={value}
+              accessibilityRole="radio"
+              accessibilityLabel={`Playback speed ${value} times`}
+              accessibilityState={{ checked: speed === value }}
+              disabled={!usable}
+              onPress={() => {
+                player.playbackRate = value;
+                setSpeed(value);
+              }}
+              style={({ pressed }) => [
+                styles.speedControl,
+                {
+                  backgroundColor: speed === value ? C.ink : "transparent",
+                  opacity: !usable ? 0.35 : pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  s.small,
+                  {
+                    fontFamily: "Archivo_600SemiBold",
+                    color: speed === value ? C.bg : C.muted,
+                  },
+                ]}
+              >
+                {value}×
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
-      <View style={{ gap: 12 }}>
-        <Text style={s.h3}>Body tracking</Text>
-        {pose ? (
-          <>
-            <View style={styles.toggleRow}>
-              <Text style={[s.body, { flex: 1 }]}>Show body lines</Text>
-              <Switch
-                accessibilityLabel="Show body lines"
-                value={showPose}
-                onValueChange={setShowPose}
-                trackColor={{ true: C.green }}
-              />
-            </View>
-            <View style={styles.toggleRow}>
-              <Text style={[s.body, { flex: 1 }]}>Show movement labels</Text>
-              <Switch
-                accessibilityLabel="Show movement labels"
-                value={showLabels}
-                onValueChange={setShowLabels}
-                trackColor={{ true: C.green }}
-              />
-            </View>
-            {showLabels ? (
-              <>
-                <Text style={s.small}>
-                  Which foot are you kicking with? This labels the legs; it does not
-                  detect contact or judge technique.
-                </Text>
-                <View style={styles.controls}>
-                  <View style={{ flex: 1 }}>
-                    <Button
-                      label={kickingFoot === "left" ? "Left foot ✓" : "Left foot"}
-                      kind="secondary"
-                      onPress={() => setKickingFoot("left")}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Button
-                      label={kickingFoot === "right" ? "Right foot ✓" : "Right foot"}
-                      kind="secondary"
-                      onPress={() => setKickingFoot("right")}
-                    />
-                  </View>
-                </View>
-              </>
-            ) : null}
-            <Text style={s.small}>
-              {showPose && !shotPoseAt(pose, time)
-                ? "No nearby body sample at this moment."
-                : "Estimated 2D landmarks · gaps hide uncertain joints."}{" "}
-              Body lines are not a technique score. Saved replays keep the video only.
-            </Text>
-          </>
-        ) : null}
-        {!pose ? (
-          <Text style={s.small}>
-            See estimated body lines on your movement. Keep your whole body and the ball
-            in view.
+      <View style={[styles.summaryRow, { borderBottomColor: C.line }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Return to start of video"
+          disabled={!usable}
+          onPress={() => seek(0)}
+          style={styles.quietAction}
+        >
+          <RotateCcw size={16} color={C.muted} />
+          <Text style={s.small}>Restart</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={clip.saved ? "Saved on this device" : "Save replay"}
+          accessibilityState={{ disabled: clip.saved || saving || !usable }}
+          disabled={clip.saved || saving || !usable}
+          onPress={() => void save()}
+          style={({ pressed }) => [styles.quietAction, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Bookmark
+            size={17}
+            color={clip.saved ? C.green : C.ink}
+            fill={clip.saved ? C.green : "transparent"}
+          />
+          <Text style={[s.small, { color: C.ink }]}>
+            {clip.saved ? "Saved" : saving ? "Saving…" : "Save replay"}
           </Text>
-        ) : null}
+        </Pressable>
+      </View>
+      {saveError ? (
+        <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+          {saveError}
+        </Text>
+      ) : null}
+      {pose ? (
+        <View style={{ gap: 10 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            <Chip
+              label="Body lines"
+              selected={showPose}
+              onPress={() => setShowPose(!showPose)}
+            />
+            <Chip
+              label="Labels"
+              selected={showLabels}
+              onPress={() => setShowLabels(!showLabels)}
+            />
+          </View>
+          {showLabels ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              <Text style={s.small}>Kicking foot</Text>
+              <Chip
+                label="Left"
+                selected={kickingFoot === "left"}
+                onPress={() => setKickingFoot("left")}
+              />
+              <Chip
+                label="Right"
+                selected={kickingFoot === "right"}
+                onPress={() => setKickingFoot("right")}
+              />
+            </View>
+          ) : null}
+          {showPose && !shotPoseAt(pose, time) ? (
+            <Text style={s.small}>No nearby body sample at this moment.</Text>
+          ) : null}
+        </View>
+      ) : null}
+      {poseBusy ? (
+        <View style={styles.transportRow}>
+          <Text style={s.small}>Tracking movement…</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel body tracking"
+            onPress={() => poseAbort.current?.abort()}
+            style={styles.quietAction}
+          >
+            <Text style={[s.small, { color: C.ink }]}>Cancel</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <Disclosure label={pose ? "Tracking options" : "Add body tracking"}>
         {eligible ? (
           <>
             <Text style={s.small}>
@@ -765,6 +908,7 @@ function ShotReview({
                     ? "Track again"
                     : "Analyze movement"
               }
+              kind="secondary"
               disabled={!consent || !usable || poseBusy}
               onPress={() => void analyzeBody()}
             />
@@ -783,13 +927,21 @@ function ShotReview({
               : "Add an age range in training preferences to check body tracking availability. Local review stays available."}
           </Text>
         )}
-        {poseError ? (
-          <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
-            {poseError}
-          </Text>
-        ) : null}
-      </View>
-      <Disclosure label="What to look for">
+        <Text style={s.small}>
+          Estimated 2D landmarks · gaps hide uncertain joints. Body lines are not a
+          technique score. Saved replays keep the video only.
+        </Text>
+        <Text style={s.small}>
+          Which foot are you kicking with? This labels the legs; it does not detect
+          contact or judge technique.
+        </Text>
+      </Disclosure>
+      {poseError ? (
+        <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+          {poseError}
+        </Text>
+      ) : null}
+      <Disclosure label="Review notes">
         <Text style={s.body}>Approach: is your run-up controlled?</Text>
         <Text style={s.body}>
           Contact: pause as your foot meets the ball. Where is your plant foot, and which
@@ -803,31 +955,35 @@ function ShotReview({
           Use these prompts to observe your movement. They are not an assessment or a
           technique score.
         </Text>
-      </Disclosure>
-      <Button
-        label={
-          clip.saved ? "Saved on this device" : saving ? "Saving replay…" : "Save replay"
-        }
-        disabled={clip.saved || saving || !usable}
-        onPress={() => void save()}
-      />
-      {!clip.saved ? (
         <Text style={s.small}>
           Save keeps the video only; body tracking is not saved. Unsaved clips are
           temporary.
         </Text>
-      ) : null}
-      {saveError ? (
-        <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
-          {saveError}
-        </Text>
-      ) : null}
+      </Disclosure>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  empty: { padding: 20, borderRadius: 16, gap: 12 },
+  captureStage: {
+    height: 280,
+    width: "100%",
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 44,
+    gap: 16,
+  },
+  corner: { position: "absolute", width: 24, height: 24 },
+  captureActions: { flexDirection: "row", justifyContent: "center", gap: 40 },
+  captureChoice: { alignItems: "center", gap: 8, paddingVertical: 4, minWidth: 88 },
+  captureCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   historyRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: 1 },
   historyOpen: {
     flex: 1,
@@ -838,13 +994,55 @@ const styles = StyleSheet.create({
   },
   delete: { minWidth: 56, minHeight: 48, alignItems: "center", justifyContent: "center" },
   video: {
-    maxHeight: 420,
     width: "100%",
     backgroundColor: "#10271D",
     borderRadius: 12,
     overflow: "hidden",
   },
   controls: { flexDirection: "row", gap: 8 },
+  transportRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  transportGroup: { flexDirection: "row", alignItems: "center", gap: 4 },
+  iconControl: { width: 44, height: 48, alignItems: "center", justifyContent: "center" },
+  playControl: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  speedGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 24,
+    padding: 3,
+  },
+  speedControl: {
+    minWidth: 44,
+    minHeight: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    paddingBottom: 12,
+  },
+  quietAction: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 4,
+  },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
