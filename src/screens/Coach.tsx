@@ -40,6 +40,12 @@ import {
 import { haptic } from "../utils/haptics";
 import { Button, Choice } from "../components/ui";
 import type { AgeBand } from "../domain/model";
+import { CoachSendFlow } from "../coachAi/sendFlow";
+
+type CoachService = ServiceState & { coachIdentity?: string };
+function consentKey(service: CoachService) {
+  return `${service.base}|${service.chatProvider}|${service.coachIdentity ?? service.chatPairToken ?? ""}`;
+}
 
 type Turn = CoachReply & { question: string; id: number };
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
@@ -48,8 +54,10 @@ export function Coach({ navigation }: { navigation: any }) {
   const { data, catalog, update } = useApp();
   const [message, setMessage] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
-  const [mode, setMode] = useState<"offline" | "ai">("offline");
-  const [service, setService] = useState<ServiceState | null>(null);
+  const [mode, setMode] = useState<"auto" | "offline" | "ai">(
+    COACH_REMOTE_ENABLED ? "auto" : "offline",
+  );
+  const [service, setService] = useState<CoachService | null>(null);
   const [connection, setConnection] = useState("");
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -60,6 +68,7 @@ export function Coach({ navigation }: { navigation: any }) {
   const [askingAge, setAskingAge] = useState(false);
   const [ageChoice, setAgeChoice] = useState<AgeBand | undefined>();
   const request = useRef<AbortController | null>(null);
+  const flow = useRef(new CoachSendFlow());
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const nextId = useRef(0);
   const allowed = remoteCoachAllowed(data.profile.ageBand, COACH_REMOTE_ENABLED);
@@ -77,16 +86,61 @@ export function Coach({ navigation }: { navigation: any }) {
   useEffect(() => {
     if (!allowed) {
       request.current?.abort();
-      setMode("offline");
+      setMode(
+        COACH_REMOTE_ENABLED && data.profile.ageBand === undefined ? "auto" : "offline",
+      );
       setService(null);
+      flow.current.reset();
       setDisclosure(false);
       setPairing(false);
       setPairCode("");
       void forgetCoachPair();
     }
-  }, [allowed]);
+  }, [allowed, data.profile.ageBand]);
+  useEffect(() => {
+    if (allowed && flow.current.question && !askingAge) void checkConnection();
+  }, [data.profile.ageBand]);
+  function answerOffline(text: string) {
+    setTurns((previous) => [
+      ...previous.slice(-19),
+      { ...offlineCoach(text, data, catalog), question: text, id: ++nextId.current },
+    ]);
+    setMessage("");
+  }
+  function chooseOffline() {
+    const question = flow.current.question;
+    flow.current.cancel();
+    setMode("offline");
+    setDisclosure(false);
+    setPairing(false);
+    setPairCode("");
+    setAskingAge(false);
+    setAgeChoice(undefined);
+    setConnection("");
+    setError("");
+    if (question) answerOffline(question);
+  }
+  async function continueQuestion(active: CoachService) {
+    if (!mounted.current || !remoteAllowed.current || !flow.current.question) return;
+    const next = flow.current.next({
+      enabled: COACH_REMOTE_ENABLED,
+      age: data.profile.ageBand,
+      connected: active.chatAvailable,
+      pairRequired: active.chatPairRequired,
+      paired: Boolean(active.chatPairToken),
+      consentKey: consentKey(active),
+    });
+    if (next === "pair") {
+      setPairCode("");
+      setPairing(true);
+    } else if (next === "consent") setDisclosure(true);
+    else if (next === "send") {
+      const question = flow.current.take(consentKey(active));
+      if (question) await sendAI(question, active);
+    }
+  }
   async function checkConnection() {
-    if (!allowed || checking || busy) return;
+    if (!allowed || checking || busy || !flow.current.question) return;
     const controller = new AbortController();
     request.current = controller;
     setChecking(true);
@@ -100,7 +154,10 @@ export function Coach({ navigation }: { navigation: any }) {
       if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
       setService(discovered);
       if (!discovered?.chatAvailable) {
-        setConnection("AI is not connected. The offline guide is ready.");
+        flow.current.cancel();
+        setConnection(
+          "AI is unavailable. Your question is still here. Try again or use the offline guide.",
+        );
         return;
       }
       const session = await connectedClient?.auth.getSession();
@@ -109,26 +166,31 @@ export function Coach({ navigation }: { navigation: any }) {
         (!session?.data.session || session.error) &&
         !(COACH_DEV_ENABLED && discovered.chatDevAllowed)
       ) {
+        flow.current.cancel();
         setConnection(
-          "AI needs a signed-in account. Account setup is not available in this build. Continue with the offline guide.",
+          "AI is not available in this build yet. Your question is still here, or you can use the offline guide.",
         );
         return;
       }
-      if (COACH_DEV_ENABLED && discovered.chatPairRequired) {
-        const paired = await restoreCoachPair(discovered);
-        if (!mounted.current || !remoteAllowed.current || controller.signal.aborted)
-          return;
-        setService(paired);
-        if (!paired.chatPairToken) {
-          setPairCode("");
-          setPairing(true);
-          return;
-        }
-      }
-      setDisclosure(true);
+      let active: CoachService = {
+        ...discovered,
+        coachIdentity: session?.data.session?.user.id,
+      };
+      if (COACH_DEV_ENABLED && discovered.chatDevAllowed && discovered.chatPairRequired)
+        active = {
+          ...(await restoreCoachPair(active)),
+          coachIdentity: active.coachIdentity,
+        };
+      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      setService(active);
+      clearTimeout(timer);
+      await continueQuestion(active);
     } catch {
+      flow.current.cancel();
       if (mounted.current && remoteAllowed.current)
-        setConnection("Could not reach AI. The offline guide is ready.");
+        setConnection(
+          "Could not reach AI. Your question is still here. Try again or use the offline guide.",
+        );
     } finally {
       clearTimeout(timer);
       if (mounted.current) setChecking(false);
@@ -138,8 +200,7 @@ export function Coach({ navigation }: { navigation: any }) {
     if (
       !allowed ||
       !COACH_DEV_ENABLED ||
-      !service ||
-      !service.chatDevAllowed ||
+      !service?.chatDevAllowed ||
       !service.chatPairRequired ||
       checking ||
       busy ||
@@ -160,7 +221,9 @@ export function Coach({ navigation }: { navigation: any }) {
       setService(paired);
       setPairCode("");
       setPairing(false);
-      setDisclosure(true);
+      clearTimeout(timer);
+      if (flow.current.question) await continueQuestion(paired);
+      else setConnection("Phone paired. Send your question when you’re ready.");
       haptic("success");
     } catch (e) {
       if (mounted.current && remoteAllowed.current) {
@@ -168,7 +231,7 @@ export function Coach({ navigation }: { navigation: any }) {
         setConnection(
           e instanceof Error && e.name !== "AbortError"
             ? e.message
-            : "Pairing timed out. Try again.",
+            : "Pairing timed out. Your question is still here. Try again.",
         );
       }
     } finally {
@@ -178,20 +241,35 @@ export function Coach({ navigation }: { navigation: any }) {
   }
   async function send(question = message) {
     const text = question.trim();
-    if (!text || busy || checking) return;
+    if (!text || busy || checking || disclosure || pairing || askingAge) return;
     haptic("light");
     setError("");
-    if (mode === "offline") {
-      setTurns((previous) => [
-        ...previous.slice(-19),
-        { ...offlineCoach(text, data, catalog), question: text, id: ++nextId.current },
-      ]);
-      setMessage("");
+    setConnection("");
+    if (
+      mode === "offline" ||
+      !COACH_REMOTE_ENABLED ||
+      data.profile.ageBand === "under13"
+    ) {
+      answerOffline(text);
       return;
     }
-    if (!allowed || !service?.chatAvailable) return;
+    setMessage(text);
+    flow.current.queue(text);
+    if (
+      flow.current.next({ enabled: COACH_REMOTE_ENABLED, age: data.profile.ageBand }) ===
+      "age"
+    ) {
+      setAgeChoice(undefined);
+      setAskingAge(true);
+      return;
+    }
+    await checkConnection();
+  }
+  async function sendAI(text: string, active: CoachService) {
+    if (!allowed || !active.chatAvailable) return;
     const controller = new AbortController();
     request.current = controller;
+    setMode("ai");
     setBusy(true);
     const timer = setTimeout(() => controller.abort(), 70000);
     try {
@@ -199,15 +277,21 @@ export function Coach({ navigation }: { navigation: any }) {
       if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
       if (
         (!session?.data.session || session.error) &&
-        !(COACH_DEV_ENABLED && service.chatDevAllowed)
+        !(COACH_DEV_ENABLED && active.chatDevAllowed)
       )
         throw Error(
-          "Sign in before sending to AI. You can continue with the offline guide.",
+          "AI is unavailable for this session. Your question is still here; you can use the offline guide.",
         );
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      const identity = session?.data.session?.user.id;
+      if (identity !== active.coachIdentity) {
+        flow.current.reset();
+        throw Error(
+          "Your account changed. Send again to review sharing before using AI.",
+        );
+      }
       const context = coachContext(data, catalog);
       const value = await requestService<unknown>(
-        service,
+        active,
         "chat",
         JSON.stringify({ message: text, context }),
         controller.signal,
@@ -217,7 +301,7 @@ export function Coach({ navigation }: { navigation: any }) {
       const reply = validateCoachReply(
         value,
         context.allowedDrillIds,
-        service.chatProvider,
+        active.chatProvider,
       );
       setTurns((previous) => [
         ...previous.slice(-19),
@@ -225,30 +309,30 @@ export function Coach({ navigation }: { navigation: any }) {
       ]);
       setMessage("");
     } catch (e) {
+      flow.current.cancel();
       if (e instanceof ServiceError && e.code === "pair_required") {
         await forgetCoachPair();
         if (mounted.current && remoteAllowed.current) {
-          setMode("offline");
+          // The server rejected this before a provider call. Resume only this
+          // explicit question after the owner repairs the development pairing.
+          flow.current.queue(text);
+          setMode("auto");
           setDisclosure(false);
           setPairing(true);
           setPairCode("");
-          setService((previous) =>
-            previous
-              ? {
-                  ...previous,
-                  chatPairRequired: true,
-                  chatPairToken: undefined,
-                  chatPairExpiresAt: undefined,
-                }
-              : null,
-          );
+          setService({
+            ...active,
+            chatPairRequired: true,
+            chatPairToken: undefined,
+            chatPairExpiresAt: undefined,
+          });
         }
       }
       if (mounted.current && remoteAllowed.current)
         setError(
           e instanceof Error && e.name !== "AbortError"
             ? e.message
-            : "AI took too long. Try again or choose Offline guide.",
+            : "AI took too long. Your question is still here. Try again or choose the offline guide.",
         );
     } finally {
       clearTimeout(timer);
@@ -288,6 +372,7 @@ export function Coach({ navigation }: { navigation: any }) {
       );
     });
   }
+  const paused = busy || checking || disclosure || pairing || askingAge;
   return (
     <KeyboardAvoidingView
       style={[styles.page, { backgroundColor: C.bg }]}
@@ -310,7 +395,11 @@ export function Coach({ navigation }: { navigation: any }) {
           <View style={styles.grow}>
             <Text style={s.h2}>Your training corner</Text>
             <Text style={s.small}>
-              {mode === "offline" ? "Offline guide · no AI" : `AI coach · ${provider}`}
+              {mode === "offline"
+                ? "Offline guide · no AI"
+                : mode === "ai"
+                  ? `AI coach · ${provider}`
+                  : "Coach · football training"}
             </Text>
           </View>
         </View>
@@ -338,7 +427,7 @@ export function Coach({ navigation }: { navigation: any }) {
               <Pressable
                 key={text}
                 accessibilityRole="button"
-                disabled={busy || checking}
+                disabled={paused}
                 onPress={() => void send(text)}
                 style={({ pressed }) => [
                   styles.starter,
@@ -372,27 +461,11 @@ export function Coach({ navigation }: { navigation: any }) {
             </View>
           ))
         )}
-        {COACH_REMOTE_ENABLED &&
-        data.profile.ageBand !== "under13" &&
-        !pairing &&
-        !askingAge ? (
+        {COACH_REMOTE_ENABLED && data.profile.ageBand !== "under13" && !paused ? (
           <Button
-            label={
-              checking
-                ? "Checking connection…"
-                : mode === "ai"
-                  ? "Use offline guide"
-                  : "Connect AI coach"
-            }
-            disabled={checking || busy}
+            label={mode === "offline" ? "Use AI coach" : "Use offline guide"}
             kind="secondary"
-            onPress={() => {
-              if (data.profile.ageBand === undefined) {
-                setAgeChoice(undefined);
-                setAskingAge(true);
-              } else if (mode === "ai") setMode("offline");
-              else void checkConnection();
-            }}
+            onPress={() => (mode === "offline" ? setMode("auto") : chooseOffline())}
           />
         ) : null}
         {COACH_REMOTE_ENABLED && data.profile.ageBand === "under13" ? (
@@ -429,26 +502,24 @@ export function Coach({ navigation }: { navigation: any }) {
               onPress={() => {
                 if (!ageChoice) return;
                 update((current) => saveMissingCoachAge(current, ageChoice));
+                if (ageChoice === "under13") {
+                  chooseOffline();
+                  return;
+                }
                 setAskingAge(false);
                 setAgeChoice(undefined);
                 setConnection("");
               }}
             />
-            <Button
-              label="Keep offline guide"
-              kind="secondary"
-              onPress={() => {
-                setAskingAge(false);
-                setAgeChoice(undefined);
-              }}
-            />
+            <Button label="Keep offline guide" kind="secondary" onPress={chooseOffline} />
           </View>
         ) : null}
         {pairing && allowed && COACH_DEV_ENABLED ? (
           <View style={[styles.consent, { backgroundColor: C.soft }]}>
-            <Text style={s.h3}>Pair this phone</Text>
+            <Text style={s.h3}>Pair this development test</Text>
             <Text style={s.small}>
-              Enter the one-time code provided with your Expo link.
+              This private preview needs the one-time code provided with your Expo link.
+              Released apps will not use this test code.
             </Text>
             <TextInput
               accessibilityLabel="Coach pairing code"
@@ -476,10 +547,7 @@ export function Coach({ navigation }: { navigation: any }) {
             />
             <Button
               label="Keep offline guide"
-              onPress={() => {
-                setPairing(false);
-                setPairCode("");
-              }}
+              onPress={chooseOffline}
               kind="secondary"
               disabled={checking || busy}
             />
@@ -494,25 +562,27 @@ export function Coach({ navigation }: { navigation: any }) {
           <View style={[styles.consent, { backgroundColor: C.soft }]}>
             <Text style={s.h3}>Before you use AI</Text>
             <Text style={s.body}>
-              Each send shares your message, saved position, training focus and compatible
-              drill names and cues with {provider} through the coaching server. Do not
-              include private details. Videos, body measurements, practice history and
-              test results are not included. Earlier chat messages are not sent.
+              {provider} receives your question and training preferences to generate a
+              reply. This chat does not send videos, measurements or practice history.
             </Text>
             <Button
-              label="Enable AI chat"
+              label="Send question"
               kind="lime"
               onPress={() => {
-                setMode("ai");
+                if (!service || !flow.current.question) return;
+                flow.current.approve(consentKey(service));
                 setDisclosure(false);
+                const question = flow.current.take(consentKey(service));
+                if (question) void sendAI(question, service);
               }}
             />
-            <Button
-              label="Keep offline guide"
-              kind="secondary"
-              onPress={() => setDisclosure(false)}
-            />
+            <Button label="Keep offline guide" kind="secondary" onPress={chooseOffline} />
           </View>
+        ) : null}
+        {checking ? (
+          <Text accessibilityLiveRegion="polite" style={s.small}>
+            Preparing your question…
+          </Text>
         ) : null}
         {busy ? (
           <View style={styles.notice}>
@@ -533,7 +603,7 @@ export function Coach({ navigation }: { navigation: any }) {
           accessibilityLabel={
             mode === "offline"
               ? "Question for offline training guide"
-              : "Message to AI coach"
+              : "Message to coach"
           }
           value={message}
           onChangeText={setMessage}
@@ -541,7 +611,7 @@ export function Coach({ navigation }: { navigation: any }) {
           multiline
           placeholder="What do you want to work on?"
           placeholderTextColor={C.muted}
-          editable={!busy}
+          editable={!paused}
           style={[
             s.body,
             styles.input,
@@ -550,17 +620,15 @@ export function Coach({ navigation }: { navigation: any }) {
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            mode === "offline" ? "Ask offline guide" : "Send to AI coach"
-          }
-          accessibilityState={{ disabled: !message.trim() || busy || checking }}
-          disabled={!message.trim() || busy || checking}
+          accessibilityLabel={mode === "offline" ? "Ask offline guide" : "Send question"}
+          accessibilityState={{ disabled: !message.trim() || paused }}
+          disabled={!message.trim() || paused}
           onPress={() => void send()}
           style={({ pressed }) => [
             styles.send,
             {
               backgroundColor: C.lime,
-              opacity: !message.trim() || busy || checking ? 0.45 : pressed ? 0.8 : 1,
+              opacity: !message.trim() || paused ? 0.45 : pressed ? 0.8 : 1,
             },
           ]}
         >
