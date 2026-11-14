@@ -102,7 +102,7 @@ export const aspirations = [
   "Build confidence on the ball",
   "Play at a higher level",
 ];
-export const flowSteps = [
+const legacyFlowSteps = [
   "welcome",
   "intro",
   "frequency",
@@ -143,31 +143,25 @@ export const flowSteps = [
   "fuel",
   "plan",
 ] as const;
-export type FlowStep = (typeof flowSteps)[number];
-/** Recorded numbered single-choice questions/pitch advance on an explicit choice. */
-export const autoAdvanceSteps: readonly FlowStep[] = [
-  "frequency",
-  "club",
-  "ambition",
-  "tracking",
-  "blocker",
-  "motivation",
+// Legacy identifiers remain readable for persisted reflections and old replay data.
+export type FlowStep = (typeof legacyFlowSteps)[number];
+export const flowSteps: readonly FlowStep[] = [
+  "welcome",
   "focus",
   "position",
   "experience",
-  "bodyGoal",
-  "consistency",
-  "foodSource",
+  "equipment",
+  "days",
+  "identity",
+  "measurements",
+  "playstyle",
+  "plan",
 ];
+/** Simple single choices advance; merged forms retain an explicit Continue action. */
+export const autoAdvanceSteps: readonly FlowStep[] = ["focus", "position", "experience"];
 
-/** Only these secondary actions are visible in the supplied recording. */
-export const referenceSecondaryActions: Partial<Record<FlowStep, string>> = {
-  measurements: "Skip quiz",
-  bodyGoal: "Skip quiz",
-  planComparison: "Skip quiz",
-  brief: "Skip",
-  notifications: "Not right now",
-};
+/** Required training setup has no broad skip; reminders/card styling stay optional inline. */
+export const referenceSecondaryActions: Partial<Record<FlowStep, string>> = {};
 export function secondaryActionForStep(step: FlowStep): string | null {
   return referenceSecondaryActions[step] ?? null;
 }
@@ -278,13 +272,15 @@ export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
     case "experience":
       return ["New to training", "Some experience"].includes(d.experience ?? "");
     case "days":
-      return !!d.days?.length;
+      return !!d.days?.length && [15, 20, 30].includes(d.minutes ?? 0);
     case "duration":
       return [15, 20, 30].includes(d.minutes ?? 0);
     case "space":
       return ["Small space", "Open space"].includes(d.space ?? "");
     case "equipment":
-      return Array.isArray(d.gear);
+      return (
+        Array.isArray(d.gear) && ["Small space", "Open space"].includes(d.space ?? "")
+      );
     case "plan":
       return profileFromDraft(d) !== null;
     default: {
@@ -307,6 +303,8 @@ export function finishOnboardingDraft(
   if (!profile) return null;
   return {
     ...completeOnboarding(data, profile, matchPlan(catalog, profile), replay),
-    onboardingAnswers: sanitizeOnboardingAnswers(draft.answers),
+    onboardingAnswers: sanitizeOnboardingAnswers(
+      replay ? { ...data.onboardingAnswers, ...draft.answers } : draft.answers,
+    ),
   };
 }

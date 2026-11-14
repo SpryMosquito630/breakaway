@@ -1,3 +1,19 @@
+# Current onboarding scope — November 14, 2026
+
+The required first-use/replay route is now ten screens: Welcome → Focus → Position pitch → Experience → Equipment + space → Days + minutes → Age + optional nickname → Optional height/weight → Player inspiration → Actual first-session preview. The historical 39-step audits below describe previous versions, not the current required route.
+
+The current change keeps licensed football welcome footage, detailed pitch selection, player action photos, explicit training choices, existing age/recovery protections and a real plan preview. Club/food forms, comparison/editorial detours, separate reminder/card screens and mandatory fuel slides are removed from navigation. Their persisted data remains readable; replay preserves old notes. Card reveal and reminders are optional inline on the final screen. The final action honestly finishes setup and opens Train, rather than claiming to begin a timer.
+
+Current ten-screen code checks: TypeScript, Prettier, whitespace checks and all 206 tests passed. The production iOS export passed with 61 assets (`work/short-onboarding-10-final-export`). No App Store submission was changed.
+
+Browser review covered a fresh isolated profile at 390×844 and the final/question layouts at 320×740. Initial setup completed into Train with the same three drills shown in the preview. Equipment without space and days without session length remained blocked. The optional player card opened with unassessed ratings shown as dashes. Replay cancellation preserved the original saved training focus. The final ten-screen route was walked through replay and saved back to Settings successfully.
+
+The Skillers reference at 1.6–2.3 and 7.4–8.2 seconds reveals heading words sequentially in place. `OnboardingHeading` uses overlapping 220 ms opacity fades, capped at 580 ms total, without delaying inputs. Browser inspection captured successive word opacities of 1, 1, 0.99, 0.90, 0.53 and 0; Back replayed the reveal cleanly. Words use independent native Text views rather than inline virtual text, so native-driver opacity has a valid view target. Reduce Motion settles the title immediately. Device motion, native screen-reader output and large accessibility font sizes remain unverified. Evidence: `work/short-onboarding-qa/`.
+
+Height & weight appears between age/name and player inspiration, with nine progress segments across the ten-screen route. The existing Metric 175 cm / 70 kg entry initialization and wheel interaction fixes remain. Browser checks selected 176 cm and 71 kg, switched to 5′9″ and 157 lbs, and switched back without changing the metric values. The measurement layout and Continue action fit at 320×740. The heading uses the same word reveal; values remain optional and Continue does not require touching a wheel.
+
+---
+
 # Onboarding visual refinement
 
 The supplied screen recording guided a 39-step review of spacing, typography, question rows, selected states, photo crops, purple surfaces, feedback cards and player-card materials. The implementation keeps Breakaway branding, explicit answers, optional private measurements and real test ratings.

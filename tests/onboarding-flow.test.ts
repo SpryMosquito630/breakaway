@@ -267,3 +267,36 @@ test("private onboarding answers cannot enter training cloud backup, restore or 
       assert.equal(serialized.includes(secret), false, secret);
   }
 });
+
+test("short replay retains legacy private notes while saving only the newly chosen setup", () => {
+  const current = {
+    ...finishOnboardingDraft(
+      initialData(),
+      { ...draft(), answers: privateAnswers() },
+      drills,
+    )!,
+    onboarded: true,
+  };
+  const priorNotes = { ...current.onboardingAnswers };
+  const completed = finishOnboardingDraft(
+    current,
+    {
+      ...draft(),
+      answers: { name: "New nickname", positionDetail: "CM", playstyle: "Pedri" },
+    },
+    drills,
+    true,
+  )!;
+  assert.equal(completed.onboardingAnswers?.name, "New nickname");
+  assert.equal(completed.onboardingAnswers?.playstyle, "Pedri");
+  assert.equal(completed.onboardingAnswers?.diet, priorNotes.diet);
+  assert.equal(completed.onboardingAnswers?.clubName, priorNotes.clubName);
+  assert.equal(completed.onboardingAnswers?.heightCm, priorNotes.heightCm);
+  assert.equal(completed.onboardingAnswers?.weightKg, priorNotes.weightKg);
+  assert.deepEqual(
+    current.onboardingAnswers,
+    priorNotes,
+    "replay draft cannot mutate the current saved notes",
+  );
+  assert.deepEqual(completed.history, current.history);
+});

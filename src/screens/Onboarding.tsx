@@ -29,6 +29,8 @@ import {
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { useIsFocused } from "@react-navigation/native";
+import { DrillArtwork } from "../components/DrillArtwork";
+import { OnboardingHeading } from "../components/OnboardingHeading";
 import { OnboardingFeedbackToast } from "../components/OnboardingFeedbackToast";
 import {
   barLabelStyle,
@@ -113,6 +115,7 @@ import {
   isFlowStepReady,
   type FlowDraft,
   type OnboardingAnswers,
+  type FlowStep,
 } from "../domain/onboardingFlow";
 import {
   centeredPlayerStyleIndex,
@@ -158,10 +161,13 @@ const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string
   tracking: ["Question #4", "Do you currently track your matches or training sessions?"],
   blocker: ["Question #5", "What usually stops you from tracking consistently?"],
   motivation: ["Question #6", "What’s your main goal right now?"],
-  focus: ["Your first focus", "What do you want to train first?"],
-  equipment: ["Your equipment", "What do you have to train with?"],
-  position: ["Question #8", "What position do you play?"],
-  experience: ["Question #9", "How long have you been playing?"],
+  focus: ["What do you want to improve?", "Your first session starts with this focus."],
+  equipment: ["What’s your setup?", "Your drills will fit your space and equipment."],
+  position: ["Where do you play?", "Choose the role you play most."],
+  experience: [
+    "How long have you been playing?",
+    "We’ll match the drills to your experience.",
+  ],
   bodyGoal: ["Your training goal", "What feels right for you?"],
   consistency: ["Question #11", "How would you describe your current consistency?"],
   duration: ["Your session", "How much time can you protect?"],
@@ -508,6 +514,7 @@ export function Onboarding({
     null,
   );
   const [showPhotoCredits, setShowPhotoCredits] = useState(false);
+  const [showPlanCard, setShowPlanCard] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<OnboardingFeedback | null>(null);
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(true);
@@ -696,7 +703,7 @@ export function Onboarding({
     });
     return () => subscription.remove();
   }, [index]);
-  const step = flowSteps[index];
+  const step: FlowStep = flowSteps[index];
   const entrance = useOnboardingEntrance(step, focused, reducedMotionEnabled);
   // Reference editorial beats reveal their manual action after the content arrives.
   const footerRevealDelay = {
@@ -910,14 +917,7 @@ export function Onboarding({
     "growth",
     "fuel",
   ].includes(step);
-  const purpleScreen = [
-    "brief",
-    "identity",
-    "days",
-    "schedule",
-    "aspirations",
-    "snapshot",
-  ].includes(step);
+  const purpleScreen = false;
   const name = answers.name?.trim();
   const greeting = name ? `, ${name}` : "";
   const title = questionTitles[step];
@@ -1139,6 +1139,20 @@ export function Onboarding({
             <Copy muted style={styles.footnote}>
               Every session assumes you have a ball.
             </Copy>
+            <Text style={[styles.smallLabel, { marginTop: 12 }]}>YOUR SPACE</Text>
+            {["Small space", "Open space"].map((space) => (
+              <Option
+                key={space}
+                label={space === "Small space" ? "A small space" : "An open space"}
+                sub={
+                  space === "Small space"
+                    ? "Close control, without a long run-up."
+                    : "Room to move and change direction."
+                }
+                selected={draft.space === space}
+                onPress={() => patch({ space })}
+              />
+            ))}
           </View>
         );
         break;
@@ -1527,12 +1541,16 @@ export function Onboarding({
         }
         content = (
           <View>
-            <Text accessibilityRole="header" style={styles.measurementTitle}>
-              Height & weight
-            </Text>
+            <OnboardingHeading
+              text="Height & weight"
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
             <Copy
               muted
-              style={{ textAlign: "center", fontSize: 13, lineHeight: 18, marginTop: 8 }}
+              style={{ textAlign: "left", fontSize: 13, lineHeight: 18, marginTop: 8 }}
             >
               Optional · Saved only on this device.
             </Copy>
@@ -1958,9 +1976,15 @@ export function Onboarding({
       case "identity":
         content = (
           <View style={{ gap: 20 }}>
-            <Heading center>Tell us more about you</Heading>
+            <OnboardingHeading
+              text="A little about you."
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
             <Copy muted style={{ textAlign: "center" }}>
-              A name for your plan. An age range for privacy.
+              Your age range keeps the experience appropriate.
             </Copy>
             <View style={{ gap: 8 }}>
               <Text style={styles.smallLabel}>YOUR NAME · OPTIONAL</Text>
@@ -2002,14 +2026,16 @@ export function Onboarding({
         break;
       case "days":
         content = (
-          <View style={{ gap: 16 }}>
-            <View style={{ alignItems: "center" }}>
-              <Tag center>Your week</Tag>
-            </View>
-            <Heading center>Which days are yours{greeting}?</Heading>
-            <Copy muted style={{ textAlign: "center" }}>
-              Pick the days you can actually protect.
-            </Copy>
+          <View style={{ gap: 20 }}>
+            <OnboardingHeading
+              text="Make room for practice."
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
+            <Copy muted>Choose the days and time you can protect.</Copy>
+            <Text style={styles.smallLabel}>YOUR DAYS</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -2049,59 +2075,20 @@ export function Onboarding({
                 </Pressable>
               ))}
             </ScrollView>
-            <View style={[styles.panel, styles.purplePanel]}>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-                <Text style={[styles.bigNumber, { color: colors.lime }]}>
-                  {draft.days?.length ?? "–"}
-                </Text>
-                <Copy muted>days a week</Copy>
-              </View>
-              <View style={{ flexDirection: "row", gap: 4, marginVertical: 16 }}>
-                {days.map((day) => (
-                  <View
-                    key={day}
-                    style={{
-                      height: 4,
-                      flex: 1,
-                      borderRadius: 2,
-                      backgroundColor: draft.days?.includes(day)
-                        ? colors.lime
-                        : colors.line,
-                    }}
-                  />
-                ))}
-              </View>
-              <View
-                style={{
-                  gap: 6,
-                  borderTopWidth: 1,
-                  borderTopColor: "#FFFFFF08",
-                  paddingTop: 12,
-                }}
-              >
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <Footprints size={14} color={colors.lime} />
-                  <Copy muted style={{ fontSize: 12, lineHeight: 18, width: 60 }}>
-                    Training
-                  </Copy>
-                  <Copy style={{ flex: 1, fontSize: 12, lineHeight: 18 }}>
-                    {draft.days?.length ? draft.days.join(" · ") : "Choose your days"}
-                  </Copy>
-                </View>
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <CalendarDays size={14} color={colors.muted} />
-                  <Copy muted style={{ fontSize: 12, lineHeight: 18, width: 60 }}>
-                    Recovery
-                  </Copy>
-                  <Copy style={{ flex: 1, fontSize: 12, lineHeight: 18 }}>
-                    {draft.days?.length
-                      ? days.filter((day) => !draft.days?.includes(day)).join(" · ") ||
-                        "No days selected"
-                      : "—"}
-                  </Copy>
-                </View>
-              </View>
-            </View>
+            <Text style={[styles.smallLabel, { marginTop: 8 }]}>TIME PER SESSION</Text>
+            {[15, 20, 30].map((minutes) => (
+              <Option
+                key={minutes}
+                label={`${minutes} minutes`}
+                selected={draft.minutes === minutes}
+                onPress={() => patch({ minutes })}
+              />
+            ))}
+            <Copy muted style={{ fontSize: 13 }}>
+              {draft.days?.length
+                ? `${draft.days.length} ${draft.days.length === 1 ? "day" : "days"} a week${draft.minutes ? ` · ${draft.minutes} minutes each` : ""}.`
+                : "Pick at least one day to begin."}
+            </Copy>
           </View>
         );
         break;
@@ -2675,26 +2662,112 @@ export function Onboarding({
       case "plan":
         content = (
           <View style={{ gap: 20 }}>
-            <Tag>Your session</Tag>
-            <Heading>Ready when you are{greeting}.</Heading>
+            <OnboardingHeading
+              text={`Your first session${greeting}.`}
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
             <Copy muted>
-              {draft.minutes} minutes · {draft.goal}
+              {draft.minutes} minutes · {draft.goal} · {draft.days?.join(" / ")}
             </Copy>
-            <View style={styles.panel}>
-              <SummaryRow label="Warm-up" value="2:00" />
-              {ids.map((id) => (
-                <SummaryRow
-                  key={id}
-                  label={drills.find((d) => d.id === id)?.name ?? id}
-                  value={time(getDrillDuration(draft.minutes ?? 15, ids.length))}
-                />
-              ))}
+            <View style={{ gap: 12 }}>
+              <Copy style={styles.smallLabel}>WARM-UP · 2 MINUTES</Copy>
+              {ids.map((id) => {
+                const drill = drills.find((item) => item.id === id);
+                return drill ? (
+                  <View
+                    key={id}
+                    style={[
+                      styles.panel,
+                      {
+                        flexDirection: "row",
+                        gap: 14,
+                        padding: 12,
+                        alignItems: "center",
+                      },
+                    ]}
+                  >
+                    <DrillArtwork drill={drill} />
+                    <View style={{ flex: 1, gap: 5 }}>
+                      <Copy style={{ fontFamily: "Archivo_600SemiBold" }}>
+                        {drill.name}
+                      </Copy>
+                      <Copy muted style={{ fontSize: 12, lineHeight: 18 }}>
+                        {time(getDrillDuration(draft.minutes ?? 15, ids.length))} ·{" "}
+                        {drill.cue}
+                      </Copy>
+                    </View>
+                  </View>
+                ) : null;
+              })}
             </View>
+            {reminders.supported ? (
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityLabel="Remind me on my training days"
+                accessibilityState={{ checked: remindersRequested }}
+                aria-checked={remindersRequested}
+                onPress={() => {
+                  haptic("selection");
+                  setRemindersRequested((value) => !value);
+                }}
+                style={styles.reminderToggle}
+              >
+                <Bell size={18} color={colors.lime} />
+                <Copy style={{ flex: 1, fontSize: 13 }}>
+                  Remind me on my training days
+                </Copy>
+                <View
+                  style={[
+                    styles.radio,
+                    remindersRequested && {
+                      backgroundColor: colors.lime,
+                      borderColor: colors.lime,
+                    },
+                  ]}
+                >
+                  {remindersRequested ? (
+                    <Check size={12} color={colors.background} />
+                  ) : null}
+                </View>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
+                showPlanCard ? "Hide my player card" : "See my player card"
+              }
+              aria-expanded={showPlanCard}
+              accessibilityState={{ expanded: showPlanCard }}
+              onPress={() => setShowPlanCard((value) => !value)}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Copy style={{ color: colors.lime }}>
+                {showPlanCard ? "Hide my player card" : "See my player card"}
+              </Copy>
+            </Pressable>
+            {showPlanCard ? (
+              <View style={{ alignItems: "center", gap: 12 }}>
+                <OnboardingPlayerCard
+                  name={name}
+                  position={answers.positionDetail ?? draft.position ?? "—"}
+                  look={answers.snapshotStyle}
+                  ratings={ratings}
+                  active={focused && step === "plan"}
+                />
+                <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
+                  Saved test ratings. Unassessed skills show a dash.
+                </Copy>
+              </View>
+            ) : null}
             <Copy muted style={styles.footnote}>
               {nextData?.planCustomized
                 ? "Your custom drill choices stay in place. "
                 : ""}
-              You can change your plan any time.
+              Finish setup, then open your session from Train. You can change your plan
+              any time.
             </Copy>
           </View>
         );
@@ -2741,7 +2814,9 @@ export function Onboarding({
                 : step === "intro"
                   ? "I’m ready"
                   : step === "plan"
-                    ? "Start my plan"
+                    ? replay
+                      ? "Save changes"
+                      : "Finish setup"
                     : step === "brief"
                       ? "Yes, let’s go!"
                       : step === "aspirations"
@@ -2758,31 +2833,26 @@ export function Onboarding({
         <View
           style={{
             paddingHorizontal: 24,
-            paddingTop: Math.max(12, 84 * playerReferenceScale - inset.top),
+            paddingTop: 12,
           }}
         >
-          <Text
-            accessibilityRole="header"
-            style={[
-              styles.playstyleHeading,
-              {
-                fontSize: 26 * playerReferenceScale,
-                lineHeight: 30 * playerReferenceScale,
-              },
-            ]}
-          >
-            Which playstyle fits you best?
-          </Text>
+          <OnboardingHeading
+            text="Who inspires your game?"
+            animationKey={step}
+            focused={focused}
+            reducedMotion={reducedMotionEnabled}
+            style={styles.heading}
+          />
           <Copy
             muted
             style={{
-              textAlign: "center",
+              textAlign: "left",
               marginTop: 8 * playerReferenceScale,
               fontSize: 14 * playerReferenceScale,
               lineHeight: 20 * playerReferenceScale,
             }}
           >
-            Pick the player profile that matches how you want to play.
+            A style to inspire your practice.
           </Copy>
         </View>
       ) : null}
@@ -2808,26 +2878,14 @@ export function Onboarding({
       >
         {showTitle ? (
           <View style={{ gap: 10, marginBottom: 24, paddingTop: 6 }}>
-            <Text
-              accessibilityRole="header"
-              style={[
-                styles.question,
-                !title![0].startsWith("Question #") && { fontSize: 24, lineHeight: 30 },
-              ]}
-            >
-              {title![0]}
-            </Text>
-            <Copy
-              style={{
-                textAlign:
-                  title![0].startsWith("Question #") && title![1].length > 48
-                    ? "left"
-                    : "center",
-                fontSize: title![0].startsWith("Question #") ? 18 : 13,
-                lineHeight: title![0].startsWith("Question #") ? 24 : 19,
-                color: title![0].startsWith("Question #") ? colors.white : colors.muted,
-              }}
-            >
+            <OnboardingHeading
+              text={title![0]}
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
+            <Copy muted style={{ fontSize: 13, lineHeight: 19 }}>
               {title![1]}
             </Copy>
           </View>
@@ -3011,58 +3069,55 @@ export function Onboarding({
         </Animated.View>
       ) : null}
       <View
-        style={[
-          styles.header,
-          {
-            paddingTop:
-              purpleScreen || step === "notifications" || step === "comparison"
-                ? inset.top + 4
-                : inset.top + 8,
-          },
-          (step === "playstyle" || step === "positionConfirm") && {
-            paddingTop: inset.top,
-            paddingHorizontal: 12,
-            paddingBottom: 0,
-            minHeight: inset.top,
-          },
-        ]}
+        style={{
+          paddingTop: inset.top + 8,
+          paddingHorizontal: 12,
+          paddingBottom: 8,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          minHeight: inset.top + 56,
+        }}
       >
-        {step === "playstyle" || step === "positionConfirm" ? null : purpleScreen ||
-          step === "notifications" ||
-          step === "comparison" ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            onPress={goBack}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={23} color={colors.white} />
-          </Pressable>
+        {step === "welcome" ? (
+          <Text style={[styles.brand, { flex: 1, paddingLeft: 12 }]}>
+            break<Text style={{ color: colors.lime }}>away</Text>
+          </Text>
         ) : (
-          <Text style={styles.brand}>
-            break<Text style={{ color: colors.lime }}>away</Text>
-          </Text>
+          <>
+            {step === "playstyle" ? (
+              <View style={{ width: 48 }} />
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                onPress={goBack}
+                style={styles.iconButton}
+              >
+                <ArrowLeft size={23} color={colors.white} />
+              </Pressable>
+            )}
+            <View
+              accessibilityRole="progressbar"
+              accessibilityLabel={`Setup step ${index} of ${flowSteps.length - 1}`}
+              accessibilityValue={{ min: 0, max: flowSteps.length - 1, now: index }}
+              style={{ flex: 1, flexDirection: "row", gap: 5 }}
+            >
+              {flowSteps.slice(1).map((item, segment) => (
+                <View
+                  key={item}
+                  style={{
+                    flex: 1,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: segment < index ? colors.lime : "#35432F",
+                  }}
+                />
+              ))}
+            </View>
+          </>
         )}
-        {step === "notifications" ? (
-          <Text
-            pointerEvents="none"
-            style={[
-              styles.brand,
-              {
-                position: "absolute",
-                left: 70,
-                right: 70,
-                textAlign: "center",
-                bottom: 10,
-                fontSize: 19,
-                lineHeight: 28,
-              },
-            ]}
-          >
-            break<Text style={{ color: colors.lime }}>away</Text>
-          </Text>
-        ) : null}
-        {replay && step !== "welcome" ? (
+        {replay ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Cancel onboarding"
@@ -3079,39 +3134,6 @@ export function Onboarding({
           </Pressable>
         ) : null}
       </View>
-      {index > 0 &&
-      !purpleScreen &&
-      step !== "playstyle" &&
-      step !== "positionConfirm" &&
-      step !== "notifications" &&
-      step !== "comparison" ? (
-        <View style={styles.progressRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            onPress={goBack}
-            style={styles.iconButton}
-          >
-            <ArrowLeft size={23} color={colors.white} />
-          </Pressable>
-          <View
-            accessibilityRole="progressbar"
-            accessibilityLabel="Onboarding progress"
-            aria-valuemin={0}
-            aria-valuemax={flowSteps.length - 1}
-            aria-valuenow={index}
-            accessibilityValue={{ min: 0, max: flowSteps.length - 1, now: index }}
-            style={styles.progressTrack}
-          >
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${(index / (flowSteps.length - 1)) * 100}%` },
-              ]}
-            />
-          </View>
-        </View>
-      ) : null}
       <View style={{ flex: 1, overflow: "hidden" }}>
         {(outgoing
           ? [

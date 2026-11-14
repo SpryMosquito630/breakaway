@@ -1,3 +1,36 @@
+# Breakaway short onboarding — November 14, 2026
+
+The current required route has **10 screens**, replacing the historical 39-screen reference recreation below. No account, paywall, fake analysis or food questionnaire blocks the first useful session.
+
+| # | Screen | Useful input / action |
+| --- | --- | --- |
+| 1 | Welcome | Existing licensed football video; Get started. |
+| 2 | What do you want to improve? | Choose the actual training focus; tap advances. |
+| 3 | Where do you play? | Detailed position pitch or Still exploring; tap advances. |
+| 4 | Experience | Explicit year-range choice maps to supported drill difficulty; tap advances. |
+| 5 | What’s your setup? | Equipment multi-select plus small/open space; explicit Continue/Next requires both. |
+| 6 | Make room for practice | Days plus 15/20/30 minutes; explicit Continue requires at least one day and a duration. |
+| 7 | A little about you | Required neutral age range; optional first name/nickname. |
+| 8 | Height & weight | Optional local notes; Metric starts at 175 cm / 70 kg. Existing metric/imperial wheels remain editable; Continue never requires a new selection. |
+| 9 | Who inspires your game? | Position-specific licensed player photos; centered card selects automatically per the user's earlier preference. Continue stays manual. |
+| 10 | Your first session | Actual matched drill artwork, durations and cues; optional inline training reminders and a collapsed real-rating player-card reveal. Finish setup saves and opens Train through the existing app boundary. Replay says Save changes. |
+
+Height/weight are restored at the user’s request as a single screen after age/name. They do not enter drill eligibility, produce calorie prescriptions or generate ability claims. Their first-mount initialization and controlled wheel gesture behavior are unchanged. No legacy Skip quiz row is needed because the values remain optional and Continue is available.
+
+All eight existing profile fields remain authoritative: age band, broad position, training goal, experience, days, minutes, space and equipment. No actual training choice is preselected. Detailed pitch and player inspiration are optional local metadata; the required inspiration slide keeps its already-approved automatic centered-card selection. Equipment/space and days/minutes merge forms without changing eligibility rules.
+
+Reminder opt-in is placed after the completed schedule, beside the actual session preview, and native permission is requested only after the explicit final save. Card reveal is optional and never invents OVR or skill results. Existing test ratings or dashes remain authoritative. Neither preview nor Finish setup automatically logs or starts practice; the normal Train destination offers the session action.
+
+The compact header has nine setup segments, with Back for editable setup and replay Cancel available throughout. The prior no-Back player-carousel presentation remains. Questions are the primary heading with one concise reason below, consistent gutters and a pinned action. The competitor-inspired heading component reveals words while preserving readable wrapping, reduced-motion behavior and the existing scene transition.
+
+The profile validator, under-13 restrictions, recovery fences, custom-plan and active-session/replay semantics remain unchanged. Removed questions are absent from required navigation, while their parser/types remain compatible with persisted notes. Completing a short replay preserves old private reflections not edited by this route. No new Settings feature is introduced.
+
+Validation before final UI review: TypeScript, formatting and all 206 tests passed, including the ten-step route, merged-form readiness, explicit actual choices, legacy-note retention and existing privacy/recovery/age behavior. Final browser/native interaction checks are recorded separately.
+
+---
+
+## Historical 39-screen implementation (superseded)
+
 # Breakaway onboarding, November 8, 2026
 
 39 screens, adapted from the user-supplied Footly recording. The recording ends during a fuel-plan reveal; it does not show the next screen or completed onboarding. The implemented final action opens Breakaway’s existing Train destination.
