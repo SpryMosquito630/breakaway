@@ -235,6 +235,7 @@ export function Preferences({
           p.space !== undefined
         )
           onChange({
+            ...profile,
             ...(p.position !== undefined ? { position: p.position } : {}),
             goal: p.goal,
             experience: p.experience,

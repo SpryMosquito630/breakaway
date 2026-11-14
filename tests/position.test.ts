@@ -7,6 +7,7 @@ import {
   allowed,
   updateTrainingProfile,
   completeOnboarding,
+  correctSavedAgeRange,
 } from "../src/domain/model";
 import { isOnboardingStepReady, profileFromDraft } from "../src/domain/onboarding";
 import { planForDate } from "../src/domain/planning";
@@ -148,4 +149,35 @@ test("replaying onboarding or editing training cannot upgrade a saved under-13 r
     "under13",
   );
   assert.equal(updateTrainingProfile(state, incoming, drills).profile.ageBand, "under13");
+});
+
+test("Explicit age correction changes only the selected age range and preserves training data", () => {
+  const state = initialData();
+  state.profile = { ...state.profile, ageBand: "under13", position: "Midfielder" };
+  state.plan = ["wall", "sole"];
+  state.history = [
+    {
+      id: "saved",
+      date: "2026-11-14",
+      seconds: 120,
+      done: 1,
+      skipped: 0,
+      total: 1,
+      completed: true,
+    },
+  ];
+  assert.equal(correctSavedAgeRange(state, "under13"), state);
+  assert.equal(state.profile.ageBand, "under13");
+  for (const selected of ["13to17", "adult"] as const) {
+    const corrected = correctSavedAgeRange(state, selected);
+    assert.equal(corrected.profile.ageBand, selected);
+    assert.equal(state.profile.ageBand, "under13");
+    assert.deepEqual({ ...corrected.profile, ageBand: "under13" }, state.profile);
+    assert.equal(corrected.plan, state.plan);
+    assert.equal(corrected.history, state.history);
+    assert.equal(corrected.active, state.active);
+    assert.equal(corrected.assessments, state.assessments);
+    assert.equal(corrected.benchmarks, state.benchmarks);
+  }
+  assert.equal(correctSavedAgeRange(state, "invalid" as never), state);
 });

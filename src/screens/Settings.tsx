@@ -24,10 +24,16 @@ import {
   Compass,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { updateTrainingProfile, pause } from "../domain/model";
+import {
+  updateTrainingProfile,
+  correctSavedAgeRange,
+  pause,
+  type AgeBand,
+} from "../domain/model";
 import { Preferences } from "../components/Preferences";
 import {
   Button,
+  Choice,
   Disclaimer,
   Disclosure,
   Link,
@@ -80,6 +86,20 @@ export function Settings({ navigation }: { navigation: any }) {
           label="Training preferences"
           value={`${data.profile.goal} · ${data.profile.position ?? "Position not set"}`}
           onPress={() => navigation.navigate("Preferences", { section: "all" })}
+        />
+        <SettingRow
+          icon={SlidersHorizontal}
+          label="Age range"
+          value={
+            data.profile.ageBand === "under13"
+              ? "Under 13"
+              : data.profile.ageBand === "13to17"
+                ? "13–17"
+                : data.profile.ageBand === "adult"
+                  ? "18 or older"
+                  : "Not set"
+          }
+          onPress={() => navigation.navigate("Preferences", { section: "age" })}
         />
         <SettingRow
           icon={ListChecks}
@@ -191,16 +211,24 @@ export function EditPreferences({ navigation, route }: { navigation: any; route:
   const { data, update, catalog } = useApp();
   const { s } = useTheme();
   const [profile, setProfile] = useState(data.profile);
+  const [ageChoice, setAgeChoice] = useState<AgeBand | undefined>(data.profile.ageBand);
   const section = route.params?.section || "all";
   return (
     <Page
       footer={
         <Button
-          disabled={!profile.days.length}
-          label="Save changes"
+          disabled={
+            section === "age"
+              ? !ageChoice || ageChoice === data.profile.ageBand
+              : !profile.days.length
+          }
+          label={section === "age" ? "Save age range" : "Save changes"}
           feedback="success"
           onPress={() => {
-            update((st) => updateTrainingProfile(st, profile, catalog));
+            if (section === "age") {
+              if (!ageChoice) return;
+              update((st) => correctSavedAgeRange(st, ageChoice));
+            } else update((st) => updateTrainingProfile(st, profile, catalog));
             navigation.goBack();
           }}
         />
@@ -209,16 +237,38 @@ export function EditPreferences({ navigation, route }: { navigation: any; route:
       {section !== "all" ? (
         <Title
           title={
-            section === "schedule"
-              ? "Your schedule"
-              : section === "position"
-                ? "Your position"
-                : "Training focus"
+            section === "age"
+              ? "Age range"
+              : section === "schedule"
+                ? "Your schedule"
+                : section === "position"
+                  ? "Your position"
+                  : "Training focus"
           }
         />
       ) : null}
-      <Preferences profile={profile} onChange={setProfile} section={section} />
-      {data.active ? (
+      {section === "age" ? (
+        <View style={s.stack}>
+          <Text style={s.body}>Review and correct your saved age range.</Text>
+          {(
+            [
+              ["under13", "Under 13"],
+              ["13to17", "13–17"],
+              ["adult", "18 or older"],
+            ] as const
+          ).map(([value, label]) => (
+            <Choice
+              key={value}
+              label={label}
+              selected={ageChoice === value}
+              onPress={() => setAgeChoice(value)}
+            />
+          ))}
+        </View>
+      ) : (
+        <Preferences profile={profile} onChange={setProfile} section={section} />
+      )}
+      {data.active && section !== "age" ? (
         <Text style={s.small}>Changes apply after your current session.</Text>
       ) : null}
     </Page>
