@@ -1,7 +1,7 @@
 import { DEVELOPER_FEATURES } from "../config/features";
 import { trainingPlanToday, profileForToday } from "../domain/training";
 import { haptic } from "../utils/haptics";
-import { Text, View, Pressable } from "react-native";
+import { Text, View, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { ArrowRight, ArrowLeftRight, CalendarDays } from "lucide-react-native";
 import { useApp } from "../state/AppState";
@@ -71,7 +71,7 @@ export function Today({ navigation }: { navigation: any }) {
   };
   const duration = time(data.active?.duration ?? getDrillDuration(minutes, ids.length));
   return (
-    <Page contentStyle={{ gap: 16, paddingTop: 8, paddingBottom: 16 }}>
+    <Page contentStyle={styles.todayContent}>
       {data.trainingRecoveryNotice ? (
         <View style={{ gap: 8 }}>
           <Note>{data.trainingRecoveryNotice}</Note>
@@ -82,34 +82,10 @@ export function Today({ navigation }: { navigation: any }) {
           />
         </View>
       ) : null}
-      <View
-        style={{
-          flexDirection: "row",
-          minHeight: 180,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: C.line,
-          overflow: "hidden",
-          backgroundColor: C.deep,
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            padding: 16,
-            justifyContent: "space-between",
-            gap: 16,
-          }}
-        >
-          <View style={{ gap: 8 }}>
-            <Text
-              style={{
-                fontFamily: "Archivo_500Medium",
-                fontSize: 12,
-                lineHeight: 18,
-                color: C.onDeep,
-              }}
-            >
+      <View style={[styles.session, { backgroundColor: C.deep }]}>
+        <View style={styles.sessionSummary}>
+          <View style={styles.sessionCopy}>
+            <Text style={[styles.sessionStatus, { color: C.onDeep }]}>
               {data.active
                 ? "Paused session"
                 : progress.doneToday
@@ -119,13 +95,8 @@ export function Today({ navigation }: { navigation: any }) {
                     : `Next session · ${nextLabel}`}
             </Text>
             <Text
-              style={{
-                fontFamily: "Archivo_700Bold",
-                fontSize: 27,
-                lineHeight: 33,
-                letterSpacing: -0.8,
-                color: C.onDeep,
-              }}
+              accessibilityRole="header"
+              style={[styles.sessionTitle, { color: C.onDeep }]}
             >
               {data.active
                 ? "Continue practice"
@@ -133,24 +104,26 @@ export function Today({ navigation }: { navigation: any }) {
                   ? "Done for today"
                   : profile.goal}
             </Text>
-            <Text
-              style={{
-                fontFamily: "Archivo_400Regular",
-                fontSize: 13,
-                lineHeight: 19,
-                color: C.onDeep,
-              }}
-            >
+            <Text style={[styles.sessionMetadata, { color: C.onDeep }]}>
               {data.active
                 ? `${time(data.active.elapsed)} · drill ${data.active.index + 1}/${data.active.ids.length}`
                 : `${minutes} min · ${ids.length} drills`}
             </Text>
           </View>
+          <Image
+            source={trainHero.source}
+            contentFit="cover"
+            contentPosition="center"
+            style={styles.sessionImage}
+            accessibilityLabel={trainHero.description}
+          />
+        </View>
+        <View style={styles.sessionAction}>
           <Pressable
             accessibilityRole="button"
             onPress={start}
             style={({ pressed }) => ({
-              minHeight: 48,
+              minHeight: 52,
               alignSelf: "stretch",
               justifyContent: "space-between",
               backgroundColor: C.lime,
@@ -166,7 +139,7 @@ export function Today({ navigation }: { navigation: any }) {
             <Text
               style={{
                 fontFamily: "Archivo_600SemiBold",
-                fontSize: 14,
+                fontSize: 15,
                 color: C.onLime,
               }}
             >
@@ -183,16 +156,11 @@ export function Today({ navigation }: { navigation: any }) {
             <ArrowRight size={17} color={C.onLime} />
           </Pressable>
         </View>
-        <Image
-          source={trainHero.source}
-          contentFit="cover"
-          contentPosition="center"
-          style={{ width: 116, alignSelf: "stretch", minHeight: 180 }}
-          accessibilityLabel={trainHero.description}
-        />
       </View>
       <View style={{ gap: 8 }}>
-        <Text style={s.h2}>This week</Text>
+        <Text accessibilityRole="header" style={s.h2}>
+          This week
+        </Text>
         <WeeklyCalendar
           now={now}
           scheduledDays={profile.days}
@@ -205,29 +173,29 @@ export function Today({ navigation }: { navigation: any }) {
           }}
         />
       </View>
-      <View style={{ gap: 12 }}>
-        <Text
-          style={s.h2}
-        >{`${restDay ? "Next session’s drills" : "Today’s drills"} · ${ids.length}`}</Text>
-        <Text style={s.small}>
-          Ball{profile.gear.length ? " + " + profile.gear.join(" + ") : " only"}
-        </Text>
+      <View>
+        <View style={styles.drillHeading}>
+          <Text
+            accessibilityRole="header"
+            style={s.h2}
+          >{`${restDay ? "Next session’s drills" : "Today’s drills"} · ${ids.length}`}</Text>
+        </View>
         {!ids.length ? (
           <Text style={s.body}>
-            Update today’s check-in or choose another playlist to use the equipment you
-            have.
+            Update today’s check-in or choose a playlist for your equipment.
           </Text>
         ) : null}
         {ids.map((id) => (
           <DrillRow
             key={id}
+            showArtworkPlayBadge={false}
             duration={duration}
             drill={catalog.find((d) => d.id === id)!}
             onPress={() => navigation.navigate("Detail", { id })}
           />
         ))}
       </View>
-      <View style={s.group}>
+      <View>
         <SettingRow
           label="My plan"
           value={profile.goal}
@@ -338,3 +306,21 @@ export function Plan({ navigation }: { navigation: any }) {
     </Page>
   );
 }
+
+const styles = StyleSheet.create({
+  todayContent: { gap: 24, paddingTop: 8, paddingBottom: 24 },
+  session: { borderRadius: 16, overflow: "hidden" },
+  sessionSummary: { flexDirection: "row", minHeight: 128 },
+  sessionCopy: { flex: 1, minWidth: 0, padding: 16, gap: 8, justifyContent: "center" },
+  sessionStatus: { fontFamily: "Archivo_500Medium", fontSize: 12, lineHeight: 18 },
+  sessionTitle: {
+    fontFamily: "Archivo_700Bold",
+    fontSize: 27,
+    lineHeight: 33,
+    letterSpacing: -0.8,
+  },
+  sessionMetadata: { fontFamily: "Archivo_400Regular", fontSize: 14, lineHeight: 20 },
+  sessionImage: { width: "30%", alignSelf: "stretch", minHeight: 128 },
+  sessionAction: { padding: 16, paddingTop: 0 },
+  drillHeading: { paddingBottom: 4 },
+});

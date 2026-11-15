@@ -19,6 +19,8 @@ import {
   Bookmark,
   Camera,
   ArrowLeftRight,
+  Maximize,
+  Minimize,
   Pause,
   Play,
   RotateCcw,
@@ -81,6 +83,7 @@ type Clip = {
 export function ShotAnalysis() {
   const { C, s } = useTheme();
   const maxPickedMegabytes = HOSTED_ANALYSIS_CONFIG ? 25 : 50;
+  const { fontScale } = useWindowDimensions();
   const [clip, setClip] = useState<Clip | null>(null);
   const [history, setHistory] = useState<SavedReplay[]>([]);
   const [error, setError] = useState("");
@@ -260,25 +263,46 @@ export function ShotAnalysis() {
   }
   const pickerActions = (
     <View style={styles.captureActions}>
-      <Text style={[s.small, { color: clip ? C.muted : C.onDeep }]}>
+      <Text style={s.small}>
         {HOSTED_ANALYSIS_CONFIG
-          ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
-          : "Your selected video is processed for body tracking. When AI review is connected, video frames are also sent to Google Gemini for a technique estimate."}
+          ? "Clips upload to Google Cloud; frames go to Gemini for AI review."
+          : "Clips are processed for tracking; frames go to Gemini when AI review is connected."}
       </Text>
-      <Button
-        label={picking ? "Opening…" : "Record & analyze"}
-        icon={Camera}
-        kind="lime"
-        disabled={picking}
-        onPress={() => void pick(true)}
-      />
-      <Button
-        label="Choose & analyze video"
-        icon={Upload}
-        kind="secondary"
-        disabled={picking}
-        onPress={() => void pick(false)}
-      />
+      <View
+        style={[styles.captureButtons, fontScale > 1.25 && styles.captureButtonsStacked]}
+      >
+        {[
+          { label: "Upload video", icon: Upload, camera: false },
+          { label: "Record", icon: Camera, camera: true },
+        ].map(({ label, icon: Icon, camera }) => (
+          <Pressable
+            key={label}
+            accessibilityRole="button"
+            accessibilityLabel={`${label} and analyze`}
+            accessibilityState={{ disabled: picking, busy: picking }}
+            disabled={picking}
+            onPress={() => {
+              haptic(camera ? "medium" : "light");
+              void pick(camera);
+            }}
+            style={({ pressed }) => [
+              styles.captureButton,
+              {
+                backgroundColor: camera ? C.lime : C.soft,
+                borderColor: camera ? C.lime : C.lineStrong,
+                opacity: picking ? 0.4 : pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Icon size={18} color={camera ? C.onLime : C.ink} aria-hidden={true} />
+            <Text
+              style={[styles.captureButtonLabel, { color: camera ? C.onLime : C.ink }]}
+            >
+              {picking ? "Opening…" : label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
   return (
@@ -297,18 +321,22 @@ export function ShotAnalysis() {
         />
       ) : (
         <>
-          <View style={[styles.captureStage, { backgroundColor: C.deep }]}>
-            <Text accessibilityRole="header" style={[s.h1, { color: C.onDeep }]}>
-              Review your shot
+          <View style={[styles.captureStage, { backgroundColor: C.soft }]}>
+            {(["topLeft", "topRight", "bottomLeft", "bottomRight"] as const).map(
+              (corner) => (
+                <View
+                  key={corner}
+                  pointerEvents="none"
+                  style={[styles.frameCorner, styles[corner], { borderColor: C.muted }]}
+                />
+              ),
+            )}
+            <Camera size={40} strokeWidth={1.5} color={C.muted} aria-hidden={true} />
+            <Text style={[s.small, { textAlign: "center" }]}>
+              Keep your body and ball in frame.
             </Text>
-            <Text style={[s.body, { color: C.onDeep }]}>
-              Film from the side, with your whole body and ball in frame.
-            </Text>
-            {pickerActions}
           </View>
-          <Text style={s.small}>
-            Up to 30 seconds · Body tracking starts automatically.
-          </Text>
+          {pickerActions}
         </>
       )}
       {error ? (
@@ -743,97 +771,16 @@ function ShotReview({
             }
             style={({ pressed }) => [styles.previewFit, { opacity: pressed ? 0.75 : 1 }]}
           >
+            {previewFit === "cover" ? (
+              <Maximize size={16} color="#FFFFFF" aria-hidden={true} />
+            ) : (
+              <Minimize size={16} color="#FFFFFF" aria-hidden={true} />
+            )}
             <Text style={styles.previewFitLabel}>
               {previewFit === "cover" ? "Fit" : "Fill"}
             </Text>
           </Pressable>
         </View>
-      </View>
-      <View
-        style={[
-          styles.metrics,
-          { borderColor: C.line },
-          stackedMetrics && styles.metricsStacked,
-        ]}
-      >
-        <ShotSpeed
-          key={clip.id}
-          duration={duration}
-          usable={usable}
-          kickingFoot={kickingFoot}
-          markTime={() => {
-            player.pause();
-            return player.currentTime;
-          }}
-        />
-        <View
-          style={[
-            styles.techniqueInline,
-            { borderColor: C.line },
-            stackedMetrics && styles.techniqueStacked,
-          ]}
-        >
-          <ShotTechnique
-            review={technique}
-            busy={techniqueBusy}
-            error={techniqueError}
-            connectionRequired={techniqueConnectionRequired}
-            retryDisabled={clipBlocked || poseBusy || !usable || picking || !focused}
-            onRetry={() => void analyzeBody()}
-            onSeek={seek}
-          />
-        </View>
-      </View>
-      <View style={{ gap: 10 }}>
-        {poseBusy ? (
-          <View style={styles.transportRow}>
-            <Text accessibilityLiveRegion="polite" style={s.h3}>
-              Tracking movement…
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Cancel body tracking"
-              onPress={() => poseAbort.current?.abort()}
-              style={styles.quietAction}
-            >
-              <Text style={[s.small, { color: C.ink }]}>Cancel</Text>
-            </Pressable>
-          </View>
-        ) : poseError ? (
-          <>
-            <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
-              {poseError}
-            </Text>
-            {!clipBlocked && (
-              <Button
-                label="Retry body tracking"
-                kind="secondary"
-                disabled={!usable}
-                onPress={() => void analyzeBody()}
-              />
-            )}
-          </>
-        ) : !pose && clip.analyzeOnLoad ? (
-          <Text accessibilityLiveRegion="polite" style={s.small}>
-            Preparing body tracking…
-          </Text>
-        ) : !pose ? (
-          <>
-            <Text style={s.small}>
-              {HOSTED_ANALYSIS_CONFIG
-                ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
-                : "Analyze processes this saved clip for body tracking and, when connected, sends video frames to Google Gemini for a technique estimate."}
-            </Text>
-            <Button
-              label="Analyze movement"
-              kind="lime"
-              disabled={!usable}
-              onPress={() => void analyzeBody()}
-            />
-          </>
-        ) : (
-          <Text style={s.small}>Body tracking ready</Text>
-        )}
       </View>
       {videoError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
@@ -905,7 +852,7 @@ function ShotReview({
                 duration,
             );
         }}
-        style={{ minHeight: 48, justifyContent: "center", gap: 8 }}
+        style={styles.timeline}
       >
         <View
           pointerEvents="none"
@@ -913,7 +860,6 @@ function ShotReview({
             height: 6,
             borderRadius: 3,
             backgroundColor: C.lineStrong,
-            overflow: "hidden",
           }}
         >
           <View
@@ -921,9 +867,18 @@ function ShotReview({
               height: 6,
               width: `${duration > 0 ? Math.max(0, Math.min(100, (time / duration) * 100)) : 0}%`,
               backgroundColor: NEON,
-              borderWidth: 1,
-              borderColor: C.green,
+              borderRadius: 3,
             }}
+          />
+          <View
+            style={[
+              styles.timelineThumb,
+              {
+                left: `${duration > 0 ? Math.max(0, Math.min(100, (time / duration) * 100)) : 0}%`,
+                backgroundColor: C.green,
+                borderColor: C.bg,
+              },
+            ]}
           />
         </View>
         <Text
@@ -1041,6 +996,92 @@ function ShotReview({
           <Text style={s.small}>Replace</Text>
         </Pressable>
       </View>
+      <View
+        style={[
+          styles.metrics,
+          { borderColor: C.line },
+          stackedMetrics && styles.metricsStacked,
+        ]}
+      >
+        <ShotSpeed
+          key={clip.id}
+          duration={duration}
+          usable={usable}
+          kickingFoot={kickingFoot}
+          markTime={() => {
+            player.pause();
+            return player.currentTime;
+          }}
+        />
+        <View
+          style={[
+            styles.techniqueInline,
+            { borderColor: C.line },
+            stackedMetrics && styles.techniqueStacked,
+          ]}
+        >
+          <ShotTechnique
+            review={technique}
+            busy={techniqueBusy}
+            error={techniqueError}
+            connectionRequired={techniqueConnectionRequired}
+            retryDisabled={clipBlocked || poseBusy || !usable || picking || !focused}
+            onRetry={() => void analyzeBody()}
+            onSeek={seek}
+          />
+        </View>
+      </View>
+      <View style={{ gap: 10 }}>
+        {poseBusy ? (
+          <View style={styles.transportRow}>
+            <Text accessibilityLiveRegion="polite" style={s.h3}>
+              Tracking movement…
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel body tracking"
+              onPress={() => poseAbort.current?.abort()}
+              style={styles.quietAction}
+            >
+              <Text style={[s.small, { color: C.ink }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        ) : poseError ? (
+          <>
+            <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+              {poseError}
+            </Text>
+            {!clipBlocked && (
+              <Button
+                label="Retry body tracking"
+                kind="secondary"
+                disabled={!usable}
+                onPress={() => void analyzeBody()}
+              />
+            )}
+          </>
+        ) : !pose && clip.analyzeOnLoad ? (
+          <Text accessibilityLiveRegion="polite" style={s.small}>
+            Preparing body tracking…
+          </Text>
+        ) : !pose ? (
+          <>
+            <Text style={s.small}>
+              {HOSTED_ANALYSIS_CONFIG
+                ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
+                : "Analyze processes this saved clip for body tracking and, when connected, sends video frames to Google Gemini for a technique estimate."}
+            </Text>
+            <Button
+              label="Analyze movement"
+              kind="lime"
+              disabled={!usable}
+              onPress={() => void analyzeBody()}
+            />
+          </>
+        ) : (
+          <Text style={s.small}>Body tracking ready</Text>
+        )}
+      </View>
       {replacing ? replacementActions : null}
       {saveError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
@@ -1147,8 +1188,8 @@ function TrackingChip({
 
 const styles = StyleSheet.create({
   metrics: {
-    marginTop: 14,
-    marginBottom: 2,
+    marginTop: 0,
+    marginBottom: 0,
     flexDirection: "row",
     alignItems: "stretch",
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -1168,11 +1209,42 @@ const styles = StyleSheet.create({
   },
   captureStage: {
     width: "100%",
-    borderRadius: 24,
-    padding: 24,
+    aspectRatio: 1.25,
+    maxHeight: 320,
+    minHeight: 200,
+    borderRadius: 16,
+    padding: 32,
     gap: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  frameCorner: { position: "absolute", width: 24, height: 24 },
+  topLeft: { top: 16, left: 16, borderTopWidth: 2, borderLeftWidth: 2 },
+  topRight: { top: 16, right: 16, borderTopWidth: 2, borderRightWidth: 2 },
+  bottomLeft: { bottom: 16, left: 16, borderBottomWidth: 2, borderLeftWidth: 2 },
+  bottomRight: { bottom: 16, right: 16, borderBottomWidth: 2, borderRightWidth: 2 },
   captureActions: { gap: 12 },
+  captureButtons: { flexDirection: "row", gap: 12 },
+  captureButtonsStacked: { flexDirection: "column" },
+  captureButton: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 52,
+    paddingHorizontal: 8,
+    paddingVertical: 14,
+    borderRadius: 28,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  captureButtonLabel: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 14,
+    lineHeight: 22,
+    flexShrink: 1,
+  },
   historyRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: 1 },
   historyOpen: {
     flex: 1,
@@ -1197,13 +1269,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 24,
+    borderRadius: 12,
+    flexDirection: "row",
+    gap: 6,
     backgroundColor: "rgba(0, 0, 0, 0.78)",
   },
   previewFitLabel: {
     fontFamily: "Archivo_600SemiBold",
     fontSize: 14,
     color: "#FFFFFF",
+  },
+  timeline: { minHeight: 48, justifyContent: "center", gap: 10 },
+  timelineThumb: {
+    position: "absolute",
+    top: -5,
+    width: 16,
+    height: 16,
+    marginLeft: -8,
+    borderRadius: 8,
+    borderWidth: 2,
   },
   transportRow: {
     flexDirection: "row",

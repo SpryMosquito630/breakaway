@@ -66,10 +66,10 @@ export function ShotTechnique({
           ) : null}
         </View>
         <View style={styles.action}>
-          <Text style={[styles.caption, { color: C.green }]}>
+          <Text style={[styles.caption, { color: C.muted }]}>
             {score !== null && busy ? "AI estimate · Reviewing…" : "AI estimate"}
           </Text>
-          <ChevronRight size={14} color={C.green} aria-hidden={true} />
+          <ChevronRight size={14} color={C.muted} aria-hidden={true} />
         </View>
       </Pressable>
       <Modal
