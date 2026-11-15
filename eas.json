@@ -9,10 +9,17 @@
       "environment": "preview",
       "distribution": "store",
       "autoIncrement": true,
+      "cache": {
+        "key": "analysis-swiftpm-rnfb27-firebase13-v1",
+        "paths": ["ios/.swiftpm-cache"]
+      },
       "ios": {
         "image": "macos-tahoe-26.5-xcode-26.6"
       },
       "env": {
+        "GYM_USE_SYSTEM_SCM": "true",
+        "GYM_CLONED_SOURCE_PACKAGES_PATH": ".swiftpm-cache/source-packages",
+        "GYM_PACKAGE_CACHE_PATH": ".swiftpm-cache/package-cache",
         "EXPO_PUBLIC_HOSTED_ANALYSIS_ENABLED": "true",
         "EXPO_PUBLIC_HOSTED_ANALYSIS_URL": "https://breakaway-analysis-467843664681.us-west1.run.app"
       }
