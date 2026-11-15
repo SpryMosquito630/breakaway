@@ -1,3 +1,4 @@
+import { useCoachInviteCapture } from "./src/coachAi/useCoachInviteCapture";
 import { haptic } from "./src/utils/haptics";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { DEVELOPER_FEATURES, LOCAL_SERVICE_PREVIEW } from "./src/config/features";
@@ -575,6 +576,7 @@ function AppContent() {
 }
 
 export default function App() {
+  useCoachInviteCapture();
   return (
     <ThemeProvider>
       <AppContent />

@@ -56,3 +56,72 @@ class DevPairing:
     def verify(self, token):
         with self.lock:
             return bool(isinstance(token, str) and 32 <= len(token) <= 100 and self.token_hash and self.clock() < self.session_expires and hmac.compare_digest(hashlib.sha256(token.encode()).digest(), self.token_hash))
+
+
+class PreviewInvite:
+    """Owner-issued preview capability. The running service reads only its hash."""
+    SECONDS = 7 * 24 * 60 * 60
+
+    def __init__(self, grant, clock=time.time):
+        self.grant, self.clock = grant, clock
+
+    @classmethod
+    def load(cls, path, clock=time.time):
+        try:
+            grant = json.loads(path.read_text())
+            if not isinstance(grant, dict) or not re.fullmatch(r'[A-Za-z0-9_-]{16,64}', grant.get('id', '')):
+                return None
+            if not re.fullmatch(r'[a-f0-9]{64}', grant.get('tokenHash', '')):
+                return None
+            expiry = grant.get('expiresAt')
+            if isinstance(expiry, bool) or not isinstance(expiry, (int, float)) or not clock() < expiry <= clock() + cls.SECONDS + 300:
+                return None
+            return cls(grant, clock)
+        except (OSError, ValueError, TypeError):
+            return None
+
+    @property
+    def available(self):
+        return self.clock() < self.grant['expiresAt']
+
+    def verify(self, token):
+        return bool(self.available and isinstance(token, str) and re.fullmatch(r'[A-Za-z0-9_-]{40,128}', token)
+                    and hmac.compare_digest(hashlib.sha256(token.encode()).hexdigest(), self.grant['tokenHash']))
+
+
+def _private_json(path, value):
+    """Atomic, owner-only writes. Raw invite values must never be logged."""
+    import tempfile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix='.preview-', dir=path.parent)
+    try:
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, 'w') as stream:
+            json.dump(value, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        os.chmod(path, 0o600)
+    finally:
+        if os.path.exists(temporary): os.unlink(temporary)
+
+
+def prepare_preview_invite(owner_path, grant_path, clock=time.time):
+    """Owner-local operation only; no HTTP endpoint can create a grant."""
+    invite = None
+    try:
+        candidate = json.loads(owner_path.read_text())
+        expiry = candidate.get('expiresAt')
+        if (isinstance(expiry, (int, float)) and not isinstance(expiry, bool)
+                and clock() < expiry <= clock() + PreviewInvite.SECONDS + 300
+                and re.fullmatch(r'[A-Za-z0-9_-]{16,64}', candidate.get('id', ''))
+                and re.fullmatch(r'[A-Za-z0-9_-]{40,128}', candidate.get('token', ''))):
+            invite = candidate
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    if invite is None:
+        invite = {'id': secrets.token_urlsafe(18), 'token': secrets.token_urlsafe(32), 'expiresAt': clock() + PreviewInvite.SECONDS}
+    grant = {'id': invite['id'], 'tokenHash': hashlib.sha256(invite['token'].encode()).hexdigest(), 'expiresAt': invite['expiresAt']}
+    _private_json(owner_path, invite)
+    _private_json(grant_path, grant)
+    return invite

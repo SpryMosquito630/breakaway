@@ -53,3 +53,6 @@ yarn-error.*
 /work/export-sdk58/
 
 /work/redesign-export/
+
+# Private development Coach QR capabilities (never publish)
+/output/screenshots/breakaway-coach-private-*.png
