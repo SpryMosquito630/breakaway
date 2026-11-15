@@ -393,7 +393,8 @@ function ShotReview({
   const poseAbort = useRef<AbortController | null>(null);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.5);
-  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth, fontScale } = useWindowDimensions();
+  const stackedMetrics = fontScale > 1.3 || windowWidth < 340;
   const [videoWidth, setVideoWidth] = useState(0);
   const [time, setTime] = useState(0);
   // The mounted player is authoritative; picker duration units differ by platform.
@@ -660,23 +661,27 @@ function ShotReview({
           />
         ) : null}
       </View>
-      <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-        <ShotTechnique
-          review={technique}
-          busy={techniqueBusy}
-          error={techniqueError}
-          onRetry={() => void analyzeBody()}
-          onSeek={seek}
-        />
+      <View style={[styles.metrics, stackedMetrics && styles.metricsStacked]}>
         <ShotSpeed
           key={clip.id}
           duration={duration}
           usable={usable}
+          kickingFoot={kickingFoot}
+          insetBadge={!stackedMetrics}
           markTime={() => {
             player.pause();
             return player.currentTime;
           }}
         />
+        <View style={stackedMetrics ? styles.techniqueStacked : styles.techniqueBadge}>
+          <ShotTechnique
+            review={technique}
+            busy={techniqueBusy}
+            error={techniqueError}
+            onRetry={() => void analyzeBody()}
+            onSeek={seek}
+          />
+        </View>
       </View>
       <View style={{ gap: 10 }}>
         {poseBusy ? (
@@ -1037,6 +1042,10 @@ function TrackingChip({
 }
 
 const styles = StyleSheet.create({
+  metrics: { marginTop: 14, marginBottom: 2 },
+  metricsStacked: { gap: 12 },
+  techniqueBadge: { position: "absolute", top: -14, right: 10, width: 120 },
+  techniqueStacked: { alignSelf: "flex-end", width: "100%" },
   captureStage: {
     width: "100%",
     borderRadius: 24,

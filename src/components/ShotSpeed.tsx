@@ -16,7 +16,11 @@ export function ShotSpeed({
   duration,
   usable,
   markTime,
+  kickingFoot,
+  insetBadge = true,
 }: {
+  kickingFoot?: "left" | "right" | null;
+  insetBadge?: boolean;
   duration: number;
   usable: boolean;
   /** Pause and read the player clock at the instant the user marks a point. */
@@ -38,15 +42,24 @@ export function ShotSpeed({
         }}
         style={({ pressed }) => [
           styles.tile,
-          { backgroundColor: C.soft, opacity: pressed ? 0.7 : 1 },
+          insetBadge && styles.insetBadge,
+          { opacity: pressed ? 0.78 : 1 },
         ]}
       >
-        <Text style={s.h3}>Shot speed</Text>
-        <Text accessibilityLiveRegion="polite" style={[s.h2, styles.value]}>
-          {result.kmh === null ? "—" : result.kmh.toFixed(0)} km/h
-        </Text>
-        <Text style={s.small}>
-          {result.kmh === null ? "Set distance & timing" : "Estimated average"}
+        <Text style={styles.label}>SHOT SPEED</Text>
+        <View style={styles.reading}>
+          <Text accessibilityLiveRegion="polite" style={styles.value}>
+            {result.kmh === null ? "—" : result.kmh.toFixed(0)}
+          </Text>
+          <Text style={styles.unit}>km/h</Text>
+        </View>
+        {kickingFoot ? (
+          <Text style={styles.foot}>
+            {kickingFoot === "left" ? "Left foot" : "Right foot"}
+          </Text>
+        ) : null}
+        <Text style={styles.caption}>
+          {result.kmh === null ? "Set distance & timing ↗" : "Estimated average ↗"}
         </Text>
       </Pressable>
       <Modal
@@ -164,8 +177,50 @@ export function ShotSpeed({
 }
 
 const styles = StyleSheet.create({
-  tile: { flex: 1, minWidth: 0, gap: 4, padding: 14, borderRadius: 12 },
-  value: { fontFamily: "IBMPlexMono_500Medium" },
+  tile: {
+    minHeight: 136,
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: "#F6F8F5",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.12)",
+  },
+  insetBadge: { paddingRight: 142 },
+  label: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 11,
+    lineHeight: 16,
+    letterSpacing: 1.1,
+    color: "#52604F",
+  },
+  reading: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", gap: 6 },
+  value: {
+    fontFamily: "IBMPlexMono_500Medium",
+    fontSize: 40,
+    lineHeight: 48,
+    letterSpacing: -1.2,
+    color: "#142018",
+  },
+  unit: {
+    fontFamily: "Archivo_500Medium",
+    fontSize: 16,
+    lineHeight: 22,
+    color: "#52604F",
+  },
+  foot: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#142018",
+  },
+  caption: {
+    fontFamily: "Archivo_400Regular",
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#52604F",
+  },
   shade: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
