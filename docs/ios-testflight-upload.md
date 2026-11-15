@@ -52,6 +52,8 @@ The `production` profile in `eas.json` creates a store-signed build with experim
 
 ## Build and upload
 
+**Explicit owner approval is required before every new native EAS build and every TestFlight upload.** This instruction was given on November 15, 2026. Prepare the code, tests, configuration and exact commit or signed artifact first, then ask. Prior approval of one build or upload does not authorize another attempt. Do not purchase a plan, add testers or publish an App Store release as part of this workflow.
+
 Confirm available build quota and any cost before starting a remote build. Do not purchase or change plans automatically.
 
 ```sh
