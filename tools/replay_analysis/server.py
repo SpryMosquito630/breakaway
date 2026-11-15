@@ -8,7 +8,7 @@ from detector import MODEL_SHA256
 from coaching import CoachingError, configured, chat_configured, chat_provider, auth_config, context_value, history_value, authorize_attempt, respond as coach_respond
 from coaching_worker import pose_available
 from food_image import food_context, MAX_PHOTO_BYTES
-from pairing import DevPairing, PairingError
+from pairing import DevPairing, PairingError, PreviewInvite
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME = ROOT / 'work/replay-service'
@@ -48,6 +48,7 @@ class Service(ThreadingHTTPServer):
     def __init__(self, address, token, model, temp_root):
         self.token, self.model, self.temp_root = token, model, temp_root
         self.pairing = DevPairing() if os.environ.get('COACH_DEV_PAIRING') == '1' and os.environ.get('ALLOW_DEV_AI') == '1' and not auth_config() else None
+        self.preview_invite = PreviewInvite.load(RUNTIME / 'coach-preview-grant.json') if self.pairing and os.environ.get('COACH_PREVIEW_INVITE_ENABLED') == '1' else None
         super().__init__(address, Handler)
 
 class Handler(BaseHTTPRequestHandler):
@@ -71,7 +72,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/health':
             return self.error(404, 'not_found', 'This endpoint does not exist.')
         chat_available = chat_configured() and (bool(auth_config()) or self.server.pairing is not None)
-        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatMemoryAvailable': True, 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
+        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatMemoryAvailable': True, 'chatInviteAvailable': bool(self.server.preview_invite and self.server.preview_invite.available), 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
                            'limits': {'maxBytes': MAX_BYTES, 'maxSeconds': 30, 'sampleFps': 15}, 'authentication': 'dev_session_token'})
     def read_body(self):
         max_bytes = min(MAX_BYTES, MAX_PHOTO_BYTES) if self.path == '/food' else MAX_BYTES
@@ -127,7 +128,8 @@ class Handler(BaseHTTPRequestHandler):
         # The development bundle bearer is public configuration. A separately
         # paired phone credential is required before reading a dev chat or quota.
         if self.path == '/chat' and not auth_config() and chat_provider() and os.environ.get('ALLOW_DEV_AI') == '1':
-            if not self.server.pairing or not self.server.pairing.verify(self.headers.get('X-Coach-Pair', '')):
+            credential = self.headers.get('X-Coach-Pair', '')
+            if not ((self.server.pairing and self.server.pairing.verify(credential)) or (self.server.preview_invite and self.server.preview_invite.verify(credential))):
                 return self.error(401, 'pair_required', 'Pair your phone before sending to AI. If pairing expired, ask for a fresh code from the computer.')
         if not GATE.acquire(blocking=False):
             return self.error(409, 'busy', 'Another video is being analyzed. Try again shortly.')

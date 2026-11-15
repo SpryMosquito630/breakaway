@@ -1,8 +1,8 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
-import * as SecureStore from "expo-secure-store";
 import { COACH_DEV_ENABLED } from "../config/coach";
-import { makeCoachPair, validCoachPair, type CoachPair } from "./pairing";
+import { makeCoachPair, validCoachPair } from "./pairing";
+import { readCoachPair, saveCoachPair, forgetStoredCoachPair } from "./pairStore";
 import { connectedClient } from "../connected/client";
 import type { ImagePickerAsset } from "expo-image-picker";
 export type ServiceState = {
@@ -118,31 +118,11 @@ export class ServiceError extends Error {
   }
 }
 
-const PAIR_KEY = "breakaway.coach.dev-pair";
-let memoryPair: CoachPair | null = null;
-export async function forgetCoachPair() {
-  memoryPair = null;
-  if (Platform.OS !== "web") {
-    try {
-      await SecureStore.deleteItemAsync(PAIR_KEY);
-    } catch {
-      /* Already cleared in memory. */
-    }
-  }
-}
+export const forgetCoachPair = forgetStoredCoachPair;
 export async function restoreCoachPair(service: ServiceState): Promise<ServiceState> {
   if (!COACH_DEV_ENABLED) return service;
-  let pair: unknown = memoryPair;
-  if (!pair && Platform.OS !== "web") {
-    try {
-      const raw = await SecureStore.getItemAsync(PAIR_KEY);
-      pair = raw ? JSON.parse(raw) : null;
-    } catch {
-      pair = null;
-    }
-  }
+  const pair = await readCoachPair();
   if (!validCoachPair(pair, service.base)) return service;
-  memoryPair = pair;
   return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
 }
 export async function pairCoachService(
@@ -165,16 +145,7 @@ export async function pairCoachService(
     true,
   );
   const pair = makeCoachPair(service.base, value);
-  memoryPair = pair;
-  if (Platform.OS !== "web") {
-    try {
-      await SecureStore.setItemAsync(PAIR_KEY, JSON.stringify(pair), {
-        keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-      });
-    } catch {
-      /* The current session remains paired. */
-    }
-  }
+  await saveCoachPair(pair);
   return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
 }
 export async function clipForm(asset: ImagePickerAsset, context?: unknown) {

@@ -1,4 +1,11 @@
-export type CoachPair = { base: string; token: string; expiresAt: number };
+export const PREVIEW_INVITE_MILLISECONDS = 7 * 24 * 60 * 60 * 1000;
+export type CoachPair = {
+  base: string;
+  token: string;
+  expiresAt: number;
+  kind?: "invite";
+  inviteId?: string;
+};
 
 export function validCoachPair(
   value: unknown,
@@ -14,7 +21,12 @@ export function validCoachPair(
     typeof pair.expiresAt === "number" &&
     Number.isFinite(pair.expiresAt) &&
     pair.expiresAt > now &&
-    pair.expiresAt <= now + 7200000,
+    pair.expiresAt <=
+      now + (pair.kind === "invite" ? PREVIEW_INVITE_MILLISECONDS + 300000 : 7200000) &&
+    (pair.kind === undefined ||
+      (pair.kind === "invite" &&
+        typeof pair.inviteId === "string" &&
+        /^[A-Za-z0-9_-]{16,64}$/.test(pair.inviteId))),
   );
 }
 
