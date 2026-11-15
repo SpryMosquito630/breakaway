@@ -9,7 +9,7 @@ The current required route has **12 screens**, replacing the historical 39-scree
 | 3 | Where do you play? | Detailed position pitch or Still exploring; tap advances. |
 | 4 | Who inspires your game? | Position-specific licensed player photos; centered card selects automatically. Horizontal carousel only, height-aware photo, pinned Continue. |
 | 5 | Experience | Explicit year-range choice maps to supported drill difficulty; tap advances. |
-| 6 | What’s your setup? | Equipment plus small/open space; explicit Continue/Next requires both. |
+| 6 | Where can you train? | Choose Backyard / small space, Park or field, I have access to a full pitch, or Indoor / garage; manual Continue. The first and last map to small space, the others to open space. |
 | 7 | Make room for practice | Days plus 15/20/30 minutes; explicit Continue requires both. |
 | 8 | What’s your name? | Dedicated optional first-name/nickname entry, retained for the final player card. Continue can leave it blank. |
 | 9 | What’s your age range? | Required neutral age choice on its own slide; no exact birth date. |
@@ -17,7 +17,7 @@ The current required route has **12 screens**, replacing the historical 39-scree
 | 11 | Your first session | Actual matched drill artwork, durations and cues; optional reminders. Continue opens the final card without saving yet. |
 | 12 | Your player card | Separate final slide showing the nickname and existing test ratings or dashes. Finish setup saves and opens Train; replay says Save changes. Back returns to the session preview. |
 
-All eight existing profile fields remain authoritative: age band, broad position, training goal, experience, days, minutes, space and equipment. No actual training choice is preselected. Detailed pitch and player inspiration are local metadata; the inspiration slide keeps its already-approved automatic centered-card selection. Equipment/space and days/minutes remain merged forms. The optional nickname and body measurements do not change drill eligibility or create ability claims.
+All eight existing profile fields remain authoritative: age band, broad position, training goal, experience, days, minutes, space and equipment. No actual training choice is preselected. Detailed pitch and player inspiration are local metadata; the inspiration slide keeps its already-approved automatic centered-card selection. The location choice supplies ball-only setup for a new player and preserves explicitly known equipment on replay; it never infers a wall, partner or markers. Equipment remains editable in Settings. The exact location is validated local metadata, while the existing broad space field controls eligibility. Legacy profiles remain valid without a location, with no guessed option on replay. Days/minutes remain a merged form. The optional nickname and body measurements do not change drill eligibility or create ability claims.
 
 The header has eleven setup segments and Back on every slide after welcome. There is no X/close action. Player-photo credits are preserved in a collapsed Settings section, outside the horizontal carousel. Heading words reveal successively at the user's requested slower pace; scenes are interruptible, and reduced motion remains immediate.
 

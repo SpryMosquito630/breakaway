@@ -103,6 +103,8 @@ import { days, goals, type Position, time, getDrillDuration } from "../domain/mo
 import { profileFromDraft } from "../domain/onboarding";
 import {
   answerOptions,
+  trainingLocations,
+  trainingSetupForLocation,
   patchFlowDraft,
   aspirations,
   allergyOptions,
@@ -156,7 +158,7 @@ const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string
   blocker: ["Question #5", "What usually stops you from tracking consistently?"],
   motivation: ["Question #6", "What’s your main goal right now?"],
   focus: ["What do you want to improve?", "Your first session starts with this focus."],
-  equipment: ["What’s your setup?", "Your drills will fit your space and equipment."],
+  equipment: ["Where can you train?", "Your drills will fit the space you have."],
   position: ["Where do you play?", "Choose the role you play most."],
   experience: [
     "How long have you been playing?",
@@ -904,7 +906,7 @@ export function Onboarding({
       if (remindersRequested) void reminders.setEnabled(true);
       onComplete?.();
     } else {
-      const message = feedbackAfterContinue(step, draft);
+      const message = step === "equipment" ? null : feedbackAfterContinue(step, draft);
       if (message) setFeedback(message);
       haptic("medium");
       goTo(Math.min(index + 1, flowSteps.length - 1));
@@ -1125,45 +1127,15 @@ export function Onboarding({
       case "equipment":
         content = (
           <View style={{ gap: 12 }}>
-            {[
-              ["Ball only", ""],
-              ["Markers", "markers"],
-              ["A wall", "wall"],
-              ["A partner", "partner"],
-            ].map(([label, value]) => (
+            {trainingLocations.map((location) => (
               <Option
-                key={label}
-                label={label}
-                multiple
-                selected={
-                  value ? !!draft.gear?.includes(value) : draft.gear?.length === 0
-                }
-                onPress={() =>
-                  patch({
-                    gear: value
-                      ? draft.gear?.includes(value)
-                        ? draft.gear.filter((g) => g !== value)
-                        : [...(draft.gear ?? []), value]
-                      : [],
-                  })
-                }
-              />
-            ))}
-            <Copy muted style={styles.footnote}>
-              Every session assumes you have a ball.
-            </Copy>
-            <Text style={[styles.smallLabel, { marginTop: 12 }]}>YOUR SPACE</Text>
-            {["Small space", "Open space"].map((space) => (
-              <Option
-                key={space}
-                label={space === "Small space" ? "A small space" : "An open space"}
-                sub={
-                  space === "Small space"
-                    ? "Close control, without a long run-up."
-                    : "Room to move and change direction."
-                }
-                selected={draft.space === space}
-                onPress={() => patch({ space })}
+                key={location.label}
+                label={location.label}
+                selected={answers.trainingLocation === location.label}
+                onPress={() => {
+                  const setup = trainingSetupForLocation(location.label, draft.gear);
+                  if (setup) patch(setup);
+                }}
               />
             ))}
           </View>
@@ -2537,15 +2509,17 @@ export function Onboarding({
               reducedMotion={reducedMotionEnabled}
               style={styles.heading}
             />
-            <View style={{ alignItems: "center", gap: 16 }}>
-              <OnboardingPlayerCard
-                name={name}
-                position={answers.positionDetail ?? draft.position ?? "—"}
-                look={answers.snapshotStyle}
-                ratings={ratings}
-                active={focused && step === "playerCard"}
-              />
-              <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
+            <View style={{ gap: 16 }}>
+              <View style={{ alignSelf: "flex-start" }}>
+                <OnboardingPlayerCard
+                  name={name}
+                  position={answers.positionDetail ?? draft.position ?? "—"}
+                  look={answers.snapshotStyle}
+                  ratings={ratings}
+                  active={focused && step === "playerCard"}
+                />
+              </View>
+              <Copy muted style={{ fontSize: 12 }}>
                 Saved test ratings. Unassessed skills show a dash.
               </Copy>
             </View>
@@ -2654,10 +2628,7 @@ export function Onboarding({
   const secondaryLabel = secondaryActionForStep(step);
   const canSkip = secondaryLabel !== null;
   const buttonLabel =
-    step === "diet" ||
-    step === "allergies" ||
-    step === "comparison" ||
-    step === "equipment"
+    step === "diet" || step === "allergies" || step === "comparison"
       ? "Next"
       : step === "assessment"
         ? "Show me"

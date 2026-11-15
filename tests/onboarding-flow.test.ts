@@ -4,6 +4,7 @@ import { drills } from "../src/data/drills";
 import { initialData, allowed, makeSession, type AppData } from "../src/domain/model";
 import {
   answerOptions,
+  trainingSetupForLocation,
   allergyOptions,
   aspirations,
   snapshotStyles,
@@ -322,4 +323,51 @@ test("dedicated optional name survives age selection and saves as a local card n
   )!;
   assert.equal(blank.onboardingAnswers?.name, undefined);
   assert.equal(blank.profile.ageBand, "13to17");
+});
+
+test("location choices map room honestly, persist the exact choice, and add no equipment", () => {
+  for (const [label, expectedSpace] of [
+    ["Backyard / small space", "Small space"],
+    ["Park or field", "Open space"],
+    ["I have access to a full pitch", "Open space"],
+    ["Indoor / garage", "Small space"],
+  ]) {
+    const setup = trainingSetupForLocation(label)!;
+    assert.equal(setup.space, expectedSpace);
+    assert.deepEqual(setup.gear, []);
+    const selected = patchFlowDraft(draft(), setup);
+    assert.equal(isFlowStepReady(selected, "equipment"), true);
+    const completed = finishOnboardingDraft(initialData(), selected, drills)!;
+    const restored = restoreAppData(JSON.stringify(completed), drills);
+    assert.equal(restored.onboardingAnswers?.trainingLocation, label);
+    assert.equal(restored.profile.space, expectedSpace);
+    assert.deepEqual(restored.profile.gear, []);
+    assert.ok(restored.plan.length > 0);
+    for (const id of restored.plan) {
+      const drill = drills.find((item) => item.id === id)!;
+      assert.equal(allowed(drill, restored.profile), true);
+      assert.deepEqual(drill.gear, [], "location never grants wall, markers or partner");
+    }
+  }
+});
+
+test("replay location retains known equipment, while invalid location metadata is discarded", () => {
+  const knownGear = ["wall", "markers"];
+  const setup = trainingSetupForLocation("Park or field", knownGear)!;
+  assert.deepEqual(setup.gear, knownGear);
+  assert.notEqual(setup.gear, knownGear);
+  assert.equal(trainingSetupForLocation("a guessed location", knownGear), null);
+  assert.deepEqual(
+    sanitizeOnboardingAnswers({ trainingLocation: "guess", name: "Alex" }),
+    { name: "Alex" },
+  );
+  const legacy = finishOnboardingDraft(initialData(), draft(), drills)!;
+  const restored = restoreAppData(JSON.stringify(legacy), drills);
+  assert.equal(restored.onboardingAnswers?.trainingLocation, undefined);
+  assert.deepEqual(restored.profile.gear, ["wall"]);
+  assert.equal(
+    isFlowStepReady({ ...draft(), answers: restored.onboardingAnswers }, "equipment"),
+    false,
+    "do not guess a location from legacy broad space",
+  );
 });

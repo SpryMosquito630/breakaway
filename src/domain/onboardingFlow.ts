@@ -19,6 +19,7 @@ export type OnboardingAnswers = {
   bodyGoal?: string;
   consistency?: string;
   name?: string;
+  trainingLocation?: string;
   heightCm?: number;
   weightKg?: number;
   aspirations?: string[];
@@ -30,6 +31,28 @@ export type OnboardingAnswers = {
   week?: Partial<Record<string, { activity: string; time?: string }>>;
 };
 export type FlowDraft = OnboardingDraft & { answers?: OnboardingAnswers };
+export const trainingLocations = [
+  { label: "Backyard / small space", space: "Small space" },
+  { label: "Park or field", space: "Open space" },
+  { label: "I have access to a full pitch", space: "Open space" },
+  { label: "Indoor / garage", space: "Small space" },
+] as const;
+
+/** A place describes room, never equipment. Retain only gear already known. */
+export function trainingSetupForLocation(
+  location: string,
+  knownGear?: OnboardingDraft["gear"],
+): Pick<FlowDraft, "space" | "gear" | "answers"> | null {
+  const choice = trainingLocations.find((item) => item.label === location);
+  return choice
+    ? {
+        space: choice.space,
+        gear: [...(knownGear ?? [])],
+        answers: { trainingLocation: choice.label },
+      }
+    : null;
+}
+
 export const answerOptions = {
   frequency: [
     "Daily",
@@ -201,6 +224,8 @@ export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | und
       value[key] <= max
     )
       result[key] = Math.round(value[key] * 10) / 10;
+  if (trainingLocations.some((location) => location.label === value.trainingLocation))
+    result.trainingLocation = value.trainingLocation;
   const chosenAspirations = value.aspirations;
   if (Array.isArray(chosenAspirations))
     result.aspirations = aspirations.filter((a) => chosenAspirations.includes(a));
@@ -283,7 +308,11 @@ export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
       return ["Small space", "Open space"].includes(d.space ?? "");
     case "equipment":
       return (
-        Array.isArray(d.gear) && ["Small space", "Open space"].includes(d.space ?? "")
+        Array.isArray(d.gear) &&
+        trainingLocations.some(
+          (location) =>
+            location.label === d.answers?.trainingLocation && location.space === d.space,
+        )
       );
     case "plan":
     case "playerCard":
