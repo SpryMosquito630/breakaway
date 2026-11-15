@@ -5,10 +5,12 @@
   },
   "build": {
     "production": {
+      "node": "24.12.0",
       "distribution": "store",
       "environment": "production",
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_HOSTED_ANALYSIS_ENABLED": "false",
         "EXPO_PUBLIC_DEVELOPER_FEATURES": "false",
         "EXPO_PUBLIC_COACH_REMOTE_ENABLED": "false",
         "EXPO_PUBLIC_COACH_DEV_ENABLED": "false",

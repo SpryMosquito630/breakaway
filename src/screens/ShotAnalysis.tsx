@@ -11,6 +11,8 @@ import {
   type PressableProps,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { randomUUID } from "expo-crypto";
+import { createHostedOperationIds } from "../coachAi/hostedOperations";
 import { createVideoPlayer, VideoView } from "expo-video";
 import { useIsFocused } from "@react-navigation/native";
 import {
@@ -395,6 +397,7 @@ function ShotReview({
   const [showLabels, setShowLabels] = useState(true);
   const [kickingFoot, setKickingFoot] = useState<"left" | "right" | null>(null);
   const poseAbort = useRef<AbortController | null>(null);
+  const operationId = useRef(createHostedOperationIds(randomUUID));
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.5);
   const { height: windowHeight, width: windowWidth, fontScale } = useWindowDimensions();
@@ -531,7 +534,9 @@ function ShotReview({
         setTechniqueConnectionRequired(preparation.status === "connection_required");
         setTechniqueError(
           preparation.status === "connection_required"
-            ? "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
+            ? service.hosted
+              ? "Your analysis connection expired. Retry technique review."
+              : "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
             : preparation.status === "restore_failed"
               ? "Your connection could not be restored. Open your connected preview link and retry. Body tracking can still finish."
               : "Technique review is unavailable on this connection. Body tracking can still finish.",
@@ -547,6 +552,9 @@ function ShotReview({
                   "shot-review",
                   form,
                   abort.signal,
+                  false,
+                  undefined,
+                  operationId.current(clip.id, "shot-review"),
                 );
                 if (abort.signal.aborted || !mounted.current) return null;
                 if (!validShotTechnique(review, duration))
@@ -555,7 +563,16 @@ function ShotReview({
                 return review.pose ?? null;
               }
             : null,
-        track: () => requestService<JointResult>(service, "pose", form, abort.signal),
+        track: () =>
+          requestService<JointResult>(
+            service,
+            "pose",
+            form,
+            abort.signal,
+            false,
+            undefined,
+            operationId.current(clip.id, "pose"),
+          ),
         onReviewError: (error) => {
           if (mounted.current) {
             const connectionRequired =
@@ -566,7 +583,9 @@ function ShotReview({
             setTechniqueConnectionRequired(connectionRequired);
             setTechniqueError(
               connectionRequired
-                ? "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
+                ? service.hosted
+                  ? "Your analysis connection expired. Retry technique review."
+                  : "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
                 : error instanceof Error
                   ? error.message
                   : "Technique review could not finish.",
