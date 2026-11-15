@@ -13,12 +13,16 @@ export function ShotTechnique({
   review,
   busy,
   error,
+  connectionRequired,
+  retryDisabled,
   onRetry,
   onSeek,
 }: {
   review: Review | null;
   busy: boolean;
   error: string;
+  connectionRequired: boolean;
+  retryDisabled: boolean;
   onRetry: () => void;
   onSeek: (time: number) => void;
 }) {
@@ -29,9 +33,11 @@ export function ShotTechnique({
     ? "Reviewing…"
     : score !== null
       ? "AI estimate"
-      : error
-        ? "Unavailable"
-        : "Not graded";
+      : connectionRequired
+        ? "Not connected"
+        : error
+          ? "Unavailable"
+          : "Not graded";
   return (
     <>
       <Pressable
@@ -138,7 +144,7 @@ export function ShotTechnique({
                 <Text accessibilityRole={error ? "alert" : undefined} style={s.body}>
                   {busy
                     ? "Reviewing the visible shot sequence…"
-                    : error || "Choose a video to start your shot review."}
+                    : error || "Analyze movement to review this video’s technique."}
                 </Text>
               )}
               <Text style={s.small}>
@@ -149,6 +155,7 @@ export function ShotTechnique({
                 <Button
                   label={review ? "Review again" : "Retry technique review"}
                   kind="secondary"
+                  disabled={retryDisabled}
                   onPress={() => {
                     setOpen(false);
                     onRetry();

@@ -21,6 +21,7 @@ export { ServiceError } from "./serviceResponse";
 export { coachPairRevision } from "./pairStore";
 import { connectedClient } from "../connected/client";
 import type { ImagePickerAsset } from "expo-image-picker";
+import { prepareShotReviewConnection } from "./shotReviewPreparation";
 export type ServiceState = {
   base: string;
   token: string;
@@ -146,20 +147,34 @@ export async function requestService<T>(
 
 export const forgetCoachPair = forgetStoredCoachPair;
 /** Billable review uses an existing private connection or signed-in account only. */
-export async function prepareShotReview(
-  service: ServiceState,
-): Promise<ServiceState | null> {
-  if (!service.shotReviewAvailable) return null;
-  try {
-    const paired = await restoreCoachPair(service);
-    if (paired.chatPairToken && (paired.chatPairExpiresAt ?? 0) > Date.now())
-      return paired;
-    const session = connectedClient ? await connectedClient.auth.getSession() : null;
-    return session?.data.session && !session.error ? paired : null;
-  } catch {
-    // Optional AI authentication must not prevent local body tracking.
-    return null;
-  }
+export async function prepareShotReview(service: ServiceState, signal: AbortSignal) {
+  const clean: ServiceState = {
+    ...service,
+    chatPairToken: undefined,
+    chatPairExpiresAt: undefined,
+    chatPairPersisted: undefined,
+    chatPairStoreRevision: undefined,
+  };
+  return prepareShotReviewConnection(
+    clean,
+    {
+      pairingEnabled: COACH_DEV_ENABLED,
+      readPair: readCoachPair,
+      restorePair: (active, pair) => ({
+        ...active,
+        chatPairToken: pair.token,
+        chatPairExpiresAt: pair.expiresAt,
+        chatPairPersisted: coachPairPersisted(),
+        chatPairStoreRevision: coachPairRevision(),
+      }),
+      async signedIn() {
+        const session = connectedClient ? await connectedClient.auth.getSession() : null;
+        if (session?.error) throw session.error;
+        return Boolean(session?.data.session);
+      },
+    },
+    signal,
+  );
 }
 export async function restoreCoachPair(service: ServiceState): Promise<ServiceState> {
   if (!COACH_DEV_ENABLED) return service;
