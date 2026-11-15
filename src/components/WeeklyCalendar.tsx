@@ -56,12 +56,13 @@ export function WeeklyCalendar({
       style={({ pressed }) => [styles.control, { opacity: pressed ? 0.65 : 1 }]}
     >
       <View style={styles.week}>
-        {week.map(({ day, date, today, planned, complete }) => (
+        {week.map(({ day, date, today, past, planned, complete }) => (
           <View key={day} style={styles.day}>
             <Text
               style={[
                 styles.weekday,
                 { color: today ? C.ink : C.muted },
+                planned && { fontFamily: "Archivo_500Medium" },
                 today && styles.todayText,
               ]}
             >
@@ -71,16 +72,17 @@ export function WeeklyCalendar({
               style={[
                 styles.date,
                 {
-                  borderColor: today ? C.green : "transparent",
-                  backgroundColor: complete ? C.lime : planned ? C.soft : "transparent",
-                  borderRadius: today || complete ? 17 : 8,
+                  // Only today gets the reference's quiet neutral circle.
+                  // Planned/rest status must not change date shading.
+                  borderColor: "transparent",
+                  backgroundColor: today ? C.line : "transparent",
                 },
               ]}
             >
               <Text
                 style={[
                   styles.dateText,
-                  { color: complete ? C.onLime : today || planned ? C.ink : C.muted },
+                  { color: today || past || complete ? C.ink : C.muted },
                   today && styles.todayText,
                 ]}
               >
