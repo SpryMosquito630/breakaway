@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ShotTechnique as Review } from "../domain/shotTechnique";
 import { Button, useTheme } from "./ui";
+import { haptic } from "../utils/haptics";
 
 const labels = {
   body_control: "Body control",
@@ -23,36 +24,36 @@ export function ShotTechnique({
 }) {
   const { C, s } = useTheme();
   const [open, setOpen] = useState(false);
+  const score = review?.score ?? null;
   const status = busy
     ? "Reviewing…"
-    : review
-      ? review.score === null
-        ? "Not enough evidence"
-        : "AI estimate"
+    : score !== null
+      ? "AI estimate"
       : error
         ? "Unavailable"
-        : "Ready after analysis";
+        : "Not graded";
   return (
     <>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Technique score, ${review?.score ?? "not graded"}. ${status}. View details.`}
         accessibilityState={{ expanded: open }}
-        onPress={() => setOpen(true)}
-        style={({ pressed }) => [
-          styles.tile,
-          { backgroundColor: C.soft, opacity: pressed ? 0.7 : 1 },
-        ]}
+        onPress={() => {
+          haptic("selection");
+          setOpen(true);
+        }}
+        style={({ pressed }) => [styles.tile, { opacity: pressed ? 0.78 : 1 }]}
       >
-        <Text style={s.h3}>Technique</Text>
-        <Text
-          accessibilityLiveRegion="polite"
-          style={[s.h2, { fontFamily: "IBMPlexMono_500Medium" }]}
-        >
-          {review?.score ?? "—"}
-          {" /100"}
-        </Text>
-        <Text style={s.small}>{status}</Text>
+        <View style={styles.badgeContent}>
+          <Text style={styles.label}>TECHNIQUE</Text>
+          <View style={styles.reading}>
+            <Text accessibilityLiveRegion="polite" style={styles.value}>
+              {score ?? "—"}
+            </Text>
+            <Text style={styles.unit}>/100</Text>
+          </View>
+          <Text style={styles.status}>{status}</Text>
+        </View>
       </Pressable>
       <Modal
         visible={open}
@@ -162,7 +163,60 @@ export function ShotTechnique({
   );
 }
 const styles = StyleSheet.create({
-  tile: { flex: 1, minWidth: 0, gap: 4, padding: 14, borderRadius: 12 },
+  tile: {
+    minWidth: 0,
+    borderRadius: 16,
+    backgroundColor: "#DDF3E8",
+    padding: 4,
+    borderWidth: 3,
+    borderColor: "#F6F8F5",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+  },
+  badgeContent: {
+    minHeight: 108,
+    borderWidth: 1,
+    borderColor: "#A6D4BE",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    gap: 3,
+  },
+  label: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.6,
+    color: "#236348",
+  },
+  reading: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 2,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  value: {
+    fontFamily: "IBMPlexMono_500Medium",
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -1,
+    color: "#176442",
+  },
+  unit: {
+    fontFamily: "Archivo_500Medium",
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#236348",
+  },
+  status: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#176442",
+    textAlign: "center",
+  },
   shade: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
