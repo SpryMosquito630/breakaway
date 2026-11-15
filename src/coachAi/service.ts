@@ -13,6 +13,7 @@ export type ServiceState = {
   chatProvider?: "openai" | "gemini";
   chatDevAllowed?: boolean;
   chatPairRequired?: boolean;
+  chatMemoryAvailable?: boolean;
   chatPairToken?: string;
   chatPairExpiresAt?: number;
   jointViewAvailable: boolean;
@@ -66,6 +67,7 @@ export async function discoverService(
         chatProvider: body.chatProvider === "gemini" ? "gemini" : "openai",
         chatDevAllowed: body.chatDevAllowed === true,
         chatPairRequired: body.chatPairRequired === true,
+        chatMemoryAvailable: body.chatMemoryAvailable === true,
         jointViewAvailable: body.jointViewAvailable === true,
       }
     : null;

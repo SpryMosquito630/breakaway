@@ -5,7 +5,7 @@ from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from detector import MODEL_SHA256
-from coaching import CoachingError, configured, chat_configured, chat_provider, auth_config, context_value, authorize_attempt, respond as coach_respond
+from coaching import CoachingError, configured, chat_configured, chat_provider, auth_config, context_value, history_value, authorize_attempt, respond as coach_respond
 from coaching_worker import pose_available
 from food_image import food_context, MAX_PHOTO_BYTES
 from pairing import DevPairing, PairingError
@@ -71,7 +71,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/health':
             return self.error(404, 'not_found', 'This endpoint does not exist.')
         chat_available = chat_configured() and (bool(auth_config()) or self.server.pairing is not None)
-        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
+        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatMemoryAvailable': True, 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
                            'limits': {'maxBytes': MAX_BYTES, 'maxSeconds': 30, 'sampleFps': 15}, 'authentication': 'dev_session_token'})
     def read_body(self):
         max_bytes = min(MAX_BYTES, MAX_PHOTO_BYTES) if self.path == '/food' else MAX_BYTES
@@ -152,8 +152,9 @@ class Handler(BaseHTTPRequestHandler):
                 message = request.get('message')
                 if not isinstance(message, str) or not 1 <= len(message.strip()) <= 1500: raise ClientError(400, 'invalid_message', 'Use a message of 1–1500 characters.')
                 context = context_value(request.get('context', {}))
+                history = history_value(request.get('history', []))
                 authorize_attempt(self.headers.get('X-User-Token', ''), chat=True)
-                self.respond(200, coach_respond([{'type': 'input_text', 'text': message}], context))
+                self.respond(200, coach_respond([{'type': 'input_text', 'text': message}], context, history=history))
                 return
             if self.path in {'/coach','/food'} and not configured():
                 raise ClientError(503, 'ai_unconfigured', 'AI needs a server-side API key and explicitly selected model.')
@@ -197,7 +198,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     self.respond(200, response['analysis'])
         except CoachingError as error:
-            self.error(401 if error.code == 'auth_required' else 429 if error.code == 'ai_quota' else 503 if error.code in {'ai_unconfigured','auth_unconfigured','auth_unavailable'} else 502, error.code, error.message)
+            self.error(400 if error.code == 'invalid_history' else 401 if error.code == 'auth_required' else 429 if error.code == 'ai_quota' else 503 if error.code in {'ai_unconfigured','auth_unconfigured','auth_unavailable'} else 502, error.code, error.message)
         except ClientError as error:
             self.error(error.status, error.code, error.message)
         except (TimeoutError, socket.timeout):

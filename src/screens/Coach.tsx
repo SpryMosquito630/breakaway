@@ -16,6 +16,7 @@ import {
   Settings2,
   RotateCcw,
   Footprints,
+  SquarePen,
 } from "lucide-react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { useTheme } from "../theme/ThemeProvider";
@@ -42,10 +43,11 @@ import { Button } from "../components/ui";
 import { CoachSendFlow } from "../coachAi/sendFlow";
 import { queueChatTurn, updateChatTurn, type ChatTurn } from "../coachAi/conversation";
 import { CoachTyping } from "../components/CoachTyping";
+import { buildCoachRequest, ChatGeneration } from "../coachAi/memory";
 
 type CoachService = ServiceState & { coachIdentity?: string };
 function consentKey(service: CoachService) {
-  return `${service.base}|${service.chatProvider}|${service.coachIdentity ?? service.chatPairToken ?? ""}`;
+  return `chat-v2-${service.chatMemoryAvailable ? "memory" : "single"}|${service.base}|${service.chatProvider}|${service.coachIdentity ?? service.chatPairToken ?? ""}`;
 }
 
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
@@ -68,6 +70,7 @@ export function Coach({ navigation }: { navigation: any }) {
   const [pairCode, setPairCode] = useState("");
   const request = useRef<AbortController | null>(null);
   const flow = useRef(new CoachSendFlow());
+  const generation = useRef(new ChatGeneration());
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const nearBottom = useRef(true);
   const nextId = useRef(0);
@@ -100,14 +103,25 @@ export function Coach({ navigation }: { navigation: any }) {
         </View>
       ),
       headerRight: () => (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          onPress={() => navigation.navigate("Settings")}
-          style={styles.headerAction}
-        >
-          <Settings2 size={21} color={C.ink} />
-        </Pressable>
+        <View style={{ flexDirection: "row" }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="New chat"
+            accessibilityHint="Clear this conversation and start fresh"
+            onPress={newChat}
+            style={styles.headerAction}
+          >
+            <SquarePen size={21} color={C.ink} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
+            onPress={() => navigation.navigate("Settings")}
+            style={styles.headerAction}
+          >
+            <Settings2 size={21} color={C.ink} />
+          </Pressable>
+        </View>
       ),
     });
   }, [navigation, C, s, mode, provider]);
@@ -130,6 +144,26 @@ export function Coach({ navigation }: { navigation: any }) {
       void forgetCoachPair();
     }
   }, [allowed]);
+  function newChat() {
+    generation.current.reset();
+    request.current?.abort();
+    request.current = null;
+    flow.current.cancel();
+    activeTurn.current = null;
+    activeQuestion.current = "";
+    nearBottom.current = true;
+    setTurns([]);
+    setMessage("");
+    setPairCode("");
+    setPairing(false);
+    setDisclosure(false);
+    setConnection("");
+    setChecking(false);
+    setBusy(false);
+    setAwaitingReply(false);
+    setMode((current) => (current === "offline" ? "offline" : "auto"));
+    haptic("selection");
+  }
   function markTurn(status: ChatTurn["status"], note?: string) {
     const id = activeTurn.current;
     setTurns((previous) => updateChatTurn(previous, id, { status, note }));
@@ -182,6 +216,7 @@ export function Coach({ navigation }: { navigation: any }) {
   }
   async function checkConnection() {
     if (!allowed || checking || busy || !flow.current.question) return;
+    const epoch = generation.current.value;
     const controller = new AbortController();
     request.current = controller;
     setChecking(true);
@@ -191,7 +226,13 @@ export function Coach({ navigation }: { navigation: any }) {
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
       const discovered = await discoverService(controller.signal);
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      )
+        return;
       setService(discovered);
       if (!discovered?.chatAvailable) {
         flow.current.cancel();
@@ -199,7 +240,13 @@ export function Coach({ navigation }: { navigation: any }) {
         return;
       }
       const session = await connectedClient?.auth.getSession();
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      )
+        return;
       if (
         (!session?.data.session || session.error) &&
         !(COACH_DEV_ENABLED && discovered.chatDevAllowed)
@@ -217,17 +264,24 @@ export function Coach({ navigation }: { navigation: any }) {
           ...(await restoreCoachPair(active)),
           coachIdentity: active.coachIdentity,
         };
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      )
+        return;
       setService(active);
       clearTimeout(timer);
       await continueQuestion(active);
     } catch {
+      if (!generation.current.matches(epoch)) return;
       flow.current.cancel();
-      if (mounted.current && remoteAllowed.current)
+      if (mounted.current && remoteAllowed.current && generation.current.matches(epoch))
         failTurn("Could not reach AI. Retry or use the offline guide.");
     } finally {
       clearTimeout(timer);
-      if (mounted.current) setChecking(false);
+      if (mounted.current && generation.current.matches(epoch)) setChecking(false);
     }
   }
   async function pairDevice() {
@@ -241,6 +295,7 @@ export function Coach({ navigation }: { navigation: any }) {
       !/^\d{8}$/.test(pairCode)
     )
       return;
+    const epoch = generation.current.value;
     const controller = new AbortController();
     request.current = controller;
     setChecking(true);
@@ -248,7 +303,13 @@ export function Coach({ navigation }: { navigation: any }) {
     const timer = setTimeout(() => controller.abort(), 15000);
     try {
       const paired = await pairCoachService(service, pairCode, controller.signal);
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) {
+      if (!generation.current.matches(epoch)) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      ) {
         await forgetCoachPair();
         return;
       }
@@ -260,7 +321,7 @@ export function Coach({ navigation }: { navigation: any }) {
       else setConnection("Phone paired. Send your question when you’re ready.");
       haptic("success");
     } catch (e) {
-      if (mounted.current && remoteAllowed.current) {
+      if (mounted.current && remoteAllowed.current && generation.current.matches(epoch)) {
         setPairCode("");
         setConnection(
           e instanceof Error && e.name !== "AbortError"
@@ -270,7 +331,7 @@ export function Coach({ navigation }: { navigation: any }) {
       }
     } finally {
       clearTimeout(timer);
-      if (mounted.current) setChecking(false);
+      if (mounted.current && generation.current.matches(epoch)) setChecking(false);
     }
   }
   async function send(question = message, retryId?: number) {
@@ -293,6 +354,7 @@ export function Coach({ navigation }: { navigation: any }) {
   }
   async function sendAI(text: string, active: CoachService) {
     if (!allowed || !active.chatAvailable) return;
+    const epoch = generation.current.value;
     const controller = new AbortController();
     request.current = controller;
     setMode("ai");
@@ -301,7 +363,13 @@ export function Coach({ navigation }: { navigation: any }) {
     const timer = setTimeout(() => controller.abort(), 70000);
     try {
       const session = await connectedClient?.auth.getSession();
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      )
+        return;
       if (
         (!session?.data.session || session.error) &&
         !(COACH_DEV_ENABLED && active.chatDevAllowed)
@@ -317,15 +385,30 @@ export function Coach({ navigation }: { navigation: any }) {
         );
       }
       const context = coachContext(data, catalog);
+      const payload = buildCoachRequest({
+        turns,
+        scope: consentKey(active),
+        provider: active.chatProvider,
+        currentId: activeTurn.current,
+        message: text,
+        context,
+        memoryAvailable: active.chatMemoryAvailable === true,
+      });
       setAwaitingReply(true);
       const value = await requestService<unknown>(
         active,
         "chat",
-        JSON.stringify({ message: text, context }),
+        JSON.stringify(payload),
         controller.signal,
         true,
       );
-      if (!mounted.current || !remoteAllowed.current || controller.signal.aborted) return;
+      if (
+        !mounted.current ||
+        !remoteAllowed.current ||
+        controller.signal.aborted ||
+        !generation.current.matches(epoch)
+      )
+        return;
       const reply = validateCoachReply(
         value,
         context.allowedDrillIds,
@@ -337,14 +420,20 @@ export function Coach({ navigation }: { navigation: any }) {
           status: "complete",
           note: undefined,
           answer: reply,
+          memoryScope: active.chatMemoryAvailable ? consentKey(active) : undefined,
         }),
       );
       setMessage("");
     } catch (e) {
+      if (!generation.current.matches(epoch)) return;
       flow.current.cancel();
       if (e instanceof ServiceError && e.code === "pair_required") {
         await forgetCoachPair();
-        if (mounted.current && remoteAllowed.current) {
+        if (
+          mounted.current &&
+          remoteAllowed.current &&
+          generation.current.matches(epoch)
+        ) {
           // The server rejected this before a provider call. Resume only this
           // explicit question after the owner repairs the development pairing.
           flow.current.queue(text);
@@ -360,7 +449,7 @@ export function Coach({ navigation }: { navigation: any }) {
           });
         }
       }
-      if (mounted.current && remoteAllowed.current) {
+      if (mounted.current && remoteAllowed.current && generation.current.matches(epoch)) {
         if (e instanceof ServiceError && e.code === "pair_required")
           markTurn("queued", "Pair phone to retry");
         else
@@ -372,7 +461,7 @@ export function Coach({ navigation }: { navigation: any }) {
       }
     } finally {
       clearTimeout(timer);
-      if (mounted.current) {
+      if (mounted.current && generation.current.matches(epoch)) {
         setBusy(false);
         setAwaitingReply(false);
       }
@@ -598,8 +687,10 @@ export function Coach({ navigation }: { navigation: any }) {
           <View style={[styles.consent, { backgroundColor: C.soft }]}>
             <Text style={s.h3}>Before you use AI</Text>
             <Text style={s.body}>
-              {provider} receives your question and training preferences to generate a
-              reply. This chat does not send videos, measurements or practice history.
+              {provider} receives your{" "}
+              {service?.chatMemoryAvailable ? "messages, recent replies" : "question"} and
+              training preferences to generate a reply. This chat does not send videos,
+              measurements or practice history.
             </Text>
             <Button
               label="Send question"
@@ -659,7 +750,11 @@ export function Coach({ navigation }: { navigation: any }) {
           </Pressable>
         </View>
         <Text style={[s.small, styles.composerHint]}>
-          {mode === "offline" ? "Offline · no AI" : "AI can make mistakes."}
+          {mode === "offline"
+            ? "Offline · no AI"
+            : service?.chatAvailable && service.chatMemoryAvailable
+              ? "Remembers recent messages in this chat · AI can make mistakes."
+              : "AI can make mistakes."}
         </Text>
       </View>
     </KeyboardAvoidingView>

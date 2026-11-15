@@ -6,6 +6,8 @@ export type ChatTurn = {
   status: "queued" | "sending" | "failed" | "complete";
   note?: string;
   answer?: CoachReply;
+  /** Memory-only identity scope. Never serialize this credential-derived value. */
+  memoryScope?: string;
 };
 
 /** Retries keep the original user bubble instead of appending duplicates. */
@@ -23,7 +25,7 @@ export function queueChatTurn(
 export function updateChatTurn(
   turns: ChatTurn[],
   id: number | null,
-  update: Partial<Pick<ChatTurn, "status" | "note" | "answer">>,
+  update: Partial<Pick<ChatTurn, "status" | "note" | "answer" | "memoryScope">>,
 ): ChatTurn[] {
   return turns.map((turn) => (turn.id === id ? { ...turn, ...update } : turn));
 }
