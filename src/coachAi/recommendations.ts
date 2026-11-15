@@ -88,7 +88,7 @@ export function offlineCoach(
     };
   return {
     source: "offline",
-    reply: `${focus ? `Here are ${focus.toLowerCase()} drills` : "Here are drills for today’s practice"}, matched to your saved equipment and space. Start with ${matches[0].name}: ${matches[0].cue} Open a drill for its steps and practice timer.`,
+    reply: `${focus ? `Let’s work on ${focus.toLowerCase()}.` : "Here’s a good place to start."}\n\nTry ${matches[0].name}. ${matches[0].cue}`,
     drillIds: matches.map((d) => d.id),
   };
 }

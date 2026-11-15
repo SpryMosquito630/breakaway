@@ -1,6 +1,6 @@
 # Coach chat
 
-Coach is the fifth tab beside Train, Drills, Analyze and Progress. With `EXPO_PUBLIC_COACH_REMOTE_ENABLED=true`, it opens with a neutral **Coach · football training** label and a message composer. No network or provider request runs on open. Without remote configuration, it opens in **Offline guide · no AI** mode.
+Coach is the fifth tab beside Train, Drills, Analyze and Progress. With `EXPO_PUBLIC_COACH_REMOTE_ENABLED=true`, it opens with a neutral **Coach Breakaway · AI training assistant** header and a message composer. No network or provider request runs on open. Without remote configuration, it opens in **Offline guide · no AI** mode.
 
 ## Age-independent Coach
 
@@ -48,11 +48,20 @@ A future account-free production integration would need server-verified installa
 
 ## Verification
 
-Public-tunnel mobile-viewport browser QA previously verified the adult first-send flow: a neutral composer without a Connect button, generic passing question, development pairing, two-sentence Google Gemini disclosure, **Send question**, then a genuine Gemini reply with a compatible **Pass and brake** catalog card. Earlier offline QA verified compatible weaker-foot drills, drill details and the timer. These were browser tests, not a physical phone over cellular.
+Public-tunnel browser QA previously verified the adult first-send flow: a neutral composer without a Connect button, generic passing question, development pairing, two-sentence Google Gemini disclosure, **Send question**, then a genuine Gemini reply with a compatible **Pass and brake** catalog card. Earlier offline QA verified compatible weaker-foot drills, drill details and the timer. These were browser tests, not a physical phone over cellular.
 
 Tests cover all-age/unknown-age Coach availability and queue continuation, no send on open, one-use consent continuation, no automatic replay after errors, provider/server/account consent invalidation, pairing precedence, data minimization, age-only profile correction, saved-data preservation and the unchanged restrictions of other features. Server tests use mocked provider transport for structured requests, real source labels, malformed/refused output, auth precedence, pairing expiry/guess limits, owner-file permissions and the fifth-attempt quota boundary. Proxy tests cover route flags, body bounds and phone-header forwarding. The actual server key was absent from a downloaded public iOS development bundle.
 
 
-Latest public-tunnel mobile-viewport browser QA explicitly changed an adult dummy test profile to **Under 13** through Settings → Age range and **Save age range**, verified the saved row, and returned to a neutral Coach composer with no age block. Sending the generic message “hi” followed the same development pairing and two-sentence Gemini disclosure, then **Send question** automatically produced a genuine Gemini greeting with compatible **Sole rolls** and **Inside touches** catalog cards. No actual child information or profile age/name was submitted to the provider. This verifies browser behavior, not a physical phone over cellular. The service was refreshed afterward with the existing bearer and tunnel preserved, leaving a fresh owner code and five development attempts.
+Earlier public-tunnel browser QA explicitly changed an adult dummy test profile to **Under 13** through Settings → Age range and **Save age range**, verified the saved row, and returned to a neutral Coach composer with no age block. Sending the generic message “hi” followed the same development pairing and two-sentence Gemini disclosure, then **Send question** automatically produced a genuine Gemini greeting with compatible **Sole rolls** and **Inside touches** catalog cards. No actual child information or profile age/name was submitted to the provider. This verifies browser behavior, not a physical phone over cellular. The service was refreshed afterward with the existing bearer and tunnel preserved, leaving a fresh owner code and five development attempts.
 
-Current checks pass: 242 app tests, TypeScript, formatting, 20 targeted Python coaching/Gemini/pairing tests and proxy tests.
+Current checks pass: 247 app tests, TypeScript, formatting, 20 targeted Python coaching/Gemini/pairing tests and proxy tests.
+
+
+### Conversation presentation
+
+Coach now uses a compact native header with an original message badge, a clear AI/offline label and the existing Settings destination. A short static greeting starts the conversation. An explicit send immediately creates a right-aligned lime user bubble, including queued/sending/error status; actual replies appear in left-aligned forest bubbles with truthful provider labels and compact catalog cards. Retry updates the same failed turn, and choosing the offline guide completes the same queued question with an explicit offline source. No plan-change or human-online claim is made.
+
+Typing dots appear only while a real chat request is waiting and the screen is focused. They animate opacity on the native driver, become static with Reduce Motion and stop on unmount/focus loss. Keyboard handling, readable message widths, the rounded bottom composer and scroll position stay within the existing native screen. The five new conversation-state tests cover immediate pending messages, real provider attribution, duplicate-free retries, same-turn offline completion and the 20-turn bound. Connection, pairing, consent, authentication and provider quotas are unchanged.
+
+Presentation QA at 390×844 and the default 1280-pixel browser width verified the compact header/composer, immediate queued bubble, same-turn offline reply, catalog-card navigation and conversation preservation on return. Long messages produced no horizontal document overflow. The visual check used the offline guide to preserve the owner’s existing paired phone connection; it made no provider request or service restart. Native keyboard layout and typing-animation fidelity still need a physical-device check. The preview is saved in output/screenshots/breakaway-coach-messaging.jpg.
