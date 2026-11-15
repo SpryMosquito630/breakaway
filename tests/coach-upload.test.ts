@@ -190,6 +190,30 @@ test("hosted native upload uses Firebase auth and stable caller operation ID wit
   }
 });
 
+test("picked clips are preflighted using actual exported bytes before any request", async () => {
+  const h = uploadHarness("ios", true);
+  try {
+    // A short video can be large; duration is not a byte-size estimate.
+    h.files.set(uri, { bytes, size: 25 * 1024 * 1024 + 1 });
+    await assert.rejects(
+      h.service.validateClipAsset({ uri, duration: 1400 }),
+      (error: any) =>
+        error instanceof h.service.ClipValidationError &&
+        /Trim it in Photos/.test(error.message),
+    );
+    assert.equal(h.reads(), 0);
+    assert.equal(h.requests.length, 0);
+    // The exact limit is accepted; validation never reads video bytes into JS.
+    h.files.set(uri, { bytes, size: 25 * 1024 * 1024 });
+    assert.equal((await h.service.validateClipAsset({ uri })).size, 25 * 1024 * 1024);
+    h.files.set(uri, { bytes, size: 0 });
+    await assert.rejects(h.service.validateClipAsset({ uri }), /could not be read/);
+    assert.equal(h.reads(), 0);
+  } finally {
+    h.restore();
+  }
+});
+
 test("hosted discovery verifies server auth marker before considering the connection usable", async () => {
   const h = uploadHarness("ios", true);
   const originalFetch = globalThis.fetch;

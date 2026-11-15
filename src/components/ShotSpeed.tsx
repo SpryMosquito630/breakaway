@@ -1,4 +1,5 @@
 import { useReducer, useState } from "react";
+import { ChevronRight } from "lucide-react-native";
 import {
   Modal,
   Pressable,
@@ -40,21 +41,29 @@ export function ShotSpeed({
         }}
         style={({ pressed }) => [styles.tile, { opacity: pressed ? 0.78 : 1 }]}
       >
-        <Text style={styles.label}>SHOT SPEED</Text>
+        <Text style={[styles.label, { color: C.muted }]}>Shot speed</Text>
         <View style={styles.reading}>
-          <Text accessibilityLiveRegion="polite" style={styles.value}>
-            {result.kmh === null ? "—" : result.kmh.toFixed(0)}
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[result.kmh === null ? styles.empty : styles.value, { color: C.ink }]}
+          >
+            {result.kmh === null ? "Not measured" : result.kmh.toFixed(0)}
           </Text>
-          <Text style={styles.unit}>km/h</Text>
+          {result.kmh !== null ? (
+            <Text style={[styles.unit, { color: C.muted }]}>km/h</Text>
+          ) : null}
+        </View>
+        <View style={styles.action}>
+          <Text style={[styles.caption, { color: C.green }]}>
+            {result.kmh === null ? "Measure manually" : "Manual estimate"}
+          </Text>
+          <ChevronRight size={14} color={C.green} aria-hidden={true} />
         </View>
         {kickingFoot ? (
-          <Text style={styles.foot}>
+          <Text style={[styles.caption, { color: C.muted }]}>
             {kickingFoot === "left" ? "Left foot" : "Right foot"}
           </Text>
         ) : null}
-        <Text style={styles.caption}>
-          {result.kmh === null ? "Set distance & timing ↗" : "Estimated average ↗"}
-        </Text>
       </Pressable>
       <Modal
         visible={open}
@@ -172,45 +181,46 @@ export function ShotSpeed({
 
 const styles = StyleSheet.create({
   tile: {
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
     minWidth: 0,
-    minHeight: 48,
-    gap: 5,
-    paddingVertical: 4,
+    minHeight: 96,
+    gap: 6,
+    paddingVertical: 12,
   },
   label: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 11,
-    lineHeight: 16,
-    letterSpacing: 1.1,
-    color: "#52604F",
-  },
-  reading: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", gap: 6 },
-  value: {
-    fontFamily: "IBMPlexMono_500Medium",
-    fontSize: 40,
-    lineHeight: 48,
-    letterSpacing: -1.2,
-    color: "#142018",
-  },
-  unit: {
     fontFamily: "Archivo_500Medium",
-    fontSize: 16,
-    lineHeight: 22,
-    color: "#52604F",
-  },
-  foot: {
-    fontFamily: "Archivo_600SemiBold",
     fontSize: 14,
     lineHeight: 20,
-    color: "#142018",
   },
+  reading: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    flexWrap: "wrap",
+    gap: 5,
+    minHeight: 34,
+  },
+  value: {
+    fontFamily: "Archivo_600SemiBold",
+    fontVariant: ["tabular-nums"],
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  empty: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 18,
+    lineHeight: 26,
+  },
+  unit: {
+    fontFamily: "Archivo_400Regular",
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  action: { flexDirection: "row", alignItems: "center", gap: 2, flexWrap: "wrap" },
   caption: {
     fontFamily: "Archivo_400Regular",
     fontSize: 12,
     lineHeight: 18,
-    color: "#52604F",
+    flexShrink: 1,
   },
   shade: {
     flex: 1,

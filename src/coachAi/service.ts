@@ -28,6 +28,8 @@ export { coachPairRevision } from "./pairStore";
 import { connectedClient } from "../connected/client";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { prepareShotReviewConnection } from "./shotReviewPreparation";
+import { ClipValidationError } from "./clipValidation";
+export { ClipValidationError } from "./clipValidation";
 export type ServiceState = {
   base: string;
   token: string;
@@ -273,23 +275,35 @@ export async function pairCoachService(
     chatPairStoreRevision: revision + 1,
   };
 }
-export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
-  const maxBytes = (HOSTED_ANALYSIS_CONFIG ? 25 : 50) * 1024 * 1024;
-  const sizeMessage = `Choose a video smaller than ${HOSTED_ANALYSIS_CONFIG ? 25 : 50} MB.`;
-  if (asset.fileSize && asset.fileSize > maxBytes) throw new Error(sizeMessage);
+/** Inspect the exported file before analysis, account restoration, or upload. */
+export async function validateClipAsset(asset: ImagePickerAsset) {
+  const maxMegabytes = HOSTED_ANALYSIS_CONFIG ? 25 : 50;
+  const maxBytes = maxMegabytes * 1024 * 1024;
+  const sizeMessage = `Choose a video smaller than ${maxMegabytes} MB. This clip is too large to analyze. Trim it in Photos, then choose it again, or record a shorter clip here.`;
+  if (asset.fileSize && asset.fileSize > maxBytes)
+    throw new ClipValidationError(sizeMessage);
   if (asset.duration && asset.duration > 30050)
-    throw new Error("Choose a video up to 30 seconds.");
+    throw new ClipValidationError(
+      "Choose a video up to 30 seconds. Trim it in Photos, then choose it again.",
+    );
+  // Metadata may omit fileSize. Inspect the same bytes used by SDK 58 upload.
+  const file =
+    Platform.OS === "web"
+      ? (asset.file ?? (await (await fetch(asset.uri)).blob()))
+      : new File(asset.uri);
+  if (file.size > maxBytes) throw new ClipValidationError(sizeMessage);
+  if (!Number.isFinite(file.size) || file.size <= 0)
+    throw new ClipValidationError(
+      "This video could not be read. Choose it again or record a new clip.",
+    );
+  return file;
+}
+export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
+  const file = await validateClipAsset(asset);
   const form = new FormData();
-  if (Platform.OS === "web") {
-    const blob = asset.file ?? (await (await fetch(asset.uri)).blob());
-    if (blob.size > maxBytes) throw new Error(sizeMessage);
-    form.append("video", blob, "recording.mp4");
-  } else {
-    // Expo 58 fetch accepts File/Blob parts, not React Native's URI descriptor.
-    const file = new File(asset.uri);
-    if (file.size > maxBytes) throw new Error(sizeMessage);
-    form.append("video", file);
-  }
+  if (Platform.OS === "web") form.append("video", file, "recording.mp4");
+  // Expo 58 fetch accepts File/Blob parts, not React Native's URI descriptor.
+  else form.append("video", file);
   if (context) form.append("context", JSON.stringify(context));
   return form;
 }
