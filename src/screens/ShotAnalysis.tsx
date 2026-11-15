@@ -393,7 +393,8 @@ function ShotReview({
   const poseAbort = useRef<AbortController | null>(null);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.5);
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const [videoWidth, setVideoWidth] = useState(0);
   const [time, setTime] = useState(0);
   // The mounted player is authoritative; picker duration units differ by platform.
   const [duration, setDuration] = useState(0);
@@ -627,11 +628,19 @@ function ShotReview({
   return (
     <View style={{ gap: 12 }}>
       <View
+        onLayout={({ nativeEvent }) => {
+          const width = nativeEvent.layout.width;
+          if (width > 0)
+            setVideoWidth((previous) => (previous === width ? previous : width));
+        }}
         style={[
           styles.video,
           {
-            aspectRatio: dimensions.width / dimensions.height,
-            maxHeight: Math.max(260, Math.min(480, windowHeight * 0.46)),
+            height: Math.min(
+              Math.max(260, Math.min(480, windowHeight * 0.46)),
+              ((videoWidth || Math.max(1, windowWidth - 40)) * dimensions.height) /
+                dimensions.width,
+            ),
           },
         ]}
       >
