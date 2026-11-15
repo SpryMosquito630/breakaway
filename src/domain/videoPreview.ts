@@ -28,3 +28,29 @@ export function videoPreviewSize(
   const height = Math.min(maxHeight, (availableWidth * source.height) / source.width);
   return { width: (height * source.width) / source.height, height };
 }
+
+/** Keep source-coordinate callouts inside the visible image without moving joints. */
+export function videoPreviewCallout(
+  source: Size,
+  viewport: Size,
+  fit: PreviewFit,
+  anchor: { x: number; y: number },
+  label: Size & { x: number; y: number },
+  margin: number,
+): { x: number; y: number } | null {
+  const { scale, offsetX, offsetY } = videoPreviewTransform(source, viewport, fit);
+  const left = Math.max(0, -offsetX / scale);
+  const top = Math.max(0, -offsetY / scale);
+  const right = Math.min(source.width, (viewport.width - offsetX) / scale);
+  const bottom = Math.min(source.height, (viewport.height - offsetY) / scale);
+  // A callout must describe a body region that is actually visible in this crop.
+  if (anchor.x < left || anchor.x > right || anchor.y < top || anchor.y > bottom)
+    return null;
+  // Never shrink the readable label to force it into a very small viewport.
+  if (label.width + margin * 2 > right - left || label.height + margin * 2 > bottom - top)
+    return null;
+  return {
+    x: Math.max(left + margin, Math.min(right - label.width - margin, label.x)),
+    y: Math.max(top + margin, Math.min(bottom - label.height - margin, label.y)),
+  };
+}

@@ -660,6 +660,7 @@ function ShotReview({
               labels={showLabels}
               kickingFoot={kickingFoot}
               contentFit={previewFit}
+              viewportSize={previewSize}
             />
           ) : null}
           <Pressable
