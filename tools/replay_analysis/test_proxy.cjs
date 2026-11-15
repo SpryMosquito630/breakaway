@@ -14,7 +14,12 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
       path: req.url,
       authorization: req.headers.authorization,
       ...(req.headers["x-coach-pair"] ? { pair: req.headers["x-coach-pair"] } : {}),
-      ...(req.url === "/shot-review" ? { includePose: req.headers["x-include-pose"], user: req.headers["x-user-token"] } : {}),
+      ...(req.url === "/shot-review"
+        ? {
+            includePose: req.headers["x-include-pose"],
+            user: req.headers["x-user-token"],
+          }
+        : {}),
     });
     req.resume();
     req.on("end", () => {
@@ -131,20 +136,34 @@ test("shot pose proxy permits only health and authenticated pose transport", asy
     );
     await listen(proxy);
     const shotBase = `http://127.0.0.1:${proxy.address().port}/api/replay`;
-    assert.equal((await fetch(`${shotBase}/shot-review`, {
-      method: "POST", body: "synthetic-video", headers: {
-        Authorization: "Bearer test-session", "X-Coach-Pair": "private-phone-token",
-        "X-User-Token": "verified-user-token", "X-Include-Pose": "1",
-      },
-    })).status, 200);
+    assert.equal(
+      (
+        await fetch(`${shotBase}/shot-review`, {
+          method: "POST",
+          body: "synthetic-video",
+          headers: {
+            Authorization: "Bearer test-session",
+            "X-Coach-Pair": "private-phone-token",
+            "X-User-Token": "verified-user-token",
+            "X-Include-Pose": "1",
+          },
+        })
+      ).status,
+      200,
+    );
     assert.deepEqual(requests.at(-1), {
-      path: "/shot-review", authorization: "Bearer test-session", pair: "private-phone-token",
-      user: "verified-user-token", includePose: "1",
+      path: "/shot-review",
+      authorization: "Bearer test-session",
+      pair: "private-phone-token",
+      user: "verified-user-token",
+      includePose: "1",
     });
     assert.equal((await fetch(`${shotBase}/shot-review`)).status, 405);
     for (const route of ["analyze", "chat", "coach", "food", "pair"])
-      assert.equal((await fetch(`${shotBase}/${route}`, { method: "POST", body: "test" })).status, 404);
-
+      assert.equal(
+        (await fetch(`${shotBase}/${route}`, { method: "POST", body: "test" })).status,
+        404,
+      );
   } finally {
     if (proxy) await close(proxy);
     await close(upstream);
