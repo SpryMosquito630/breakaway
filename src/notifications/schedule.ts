@@ -101,8 +101,10 @@ export async function reconcileReminders(api: ReminderScheduler, desired: Remind
   try {
     for (const reminder of desired) {
       if (retained.has(reminder.identifier)) continue;
-      await api.schedule(reminder);
+      // Native APIs can accept a request before their response rejects. Include
+      // the attempted identifier so rollback removes that ambiguous schedule too.
       added.push(reminder.identifier);
+      await api.schedule(reminder);
     }
   } catch (error) {
     // Roll back partial new schedules. A later reconcile can retry from OS state.

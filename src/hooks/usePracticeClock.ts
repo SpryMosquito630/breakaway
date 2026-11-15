@@ -20,11 +20,14 @@ export function usePracticeClock() {
     },
     [update],
   );
-  const current = useCallback(() => (ref.current ? tick(ref.current) : null), []);
+  const current = useCallback(() => {
+    const a = ref.current;
+    return a ? tick(a, Math.max(a.last, Date.now())) : null;
+  }, []);
   const pauseCurrent = useCallback(() => {
     const a = ref.current;
     if (!a) return null;
-    const stopped = pause(a);
+    const stopped = pause(a, Math.max(a.last, Date.now()));
     commit(stopped);
     return stopped;
   }, [commit]);
@@ -50,7 +53,7 @@ export function usePracticeClock() {
     const id = setInterval(() => {
       const a = ref.current;
       if (!a?.running || AppState.currentState !== "active") return;
-      const now = Date.now();
+      const now = Math.max(a.last, Date.now());
       const result = tickWithSignals(a, now);
       ref.current = result.active;
       setActive((previous) =>

@@ -13,7 +13,8 @@ import {
   CircleCheck,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { Active, advance, recap, time } from "../domain/model";
+import { Active, recap, time } from "../domain/model";
+import { advancePractice, samePracticeBlock } from "../domain/practiceActions";
 import { usePracticeClock } from "../hooks/usePracticeClock";
 import {
   Button,
@@ -76,17 +77,20 @@ export function Practice({ navigation }: { navigation: any }) {
     );
   const d = resolvePracticeDrill(a, a.index, drills)!;
   const upcoming = resolvePracticeDrill(a, a.index + 1, drills);
-  const finish = (active = a) => {
+  const finish = (active = a, expected = active) => {
+    if (!samePracticeBlock(clock.current(), expected)) return;
     const result = recap(active);
     clock.commit(null);
     update((st) => ({ ...st, history: [...st.history, result] }));
     navigation.replace("Recap", { id: result.id });
   };
   const next = (skip = false, current?: Active) => {
-    const actual = current ?? clock.current() ?? a;
-    const n = advance(actual, skip);
-    if (n.index >= n.ids.length) finish(n);
-    else clock.commit(n);
+    const live = clock.current();
+    if (!samePracticeBlock(live, a)) return;
+    const command = advancePractice(live, current ?? a, skip);
+    if (!command) return;
+    if (command.kind === "finish") finish(command.active, live);
+    else clock.commit(command.active);
   };
   const end = () => {
     const paused = clock.pauseCurrent();

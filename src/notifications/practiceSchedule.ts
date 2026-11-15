@@ -31,8 +31,12 @@ export function createPracticeNotifier(
         if (revision !== generation) await api.cancel();
       };
       tail = tail.then(work, work).catch((error) => {
-        if (revision === generation) desiredKey = "";
-        onError?.(error);
+        // A newer intent will cancel/reconcile native state. An obsolete request
+        // must not turn off that newer timer through the global failure handler.
+        if (revision === generation) {
+          desiredKey = "";
+          onError?.(error);
+        }
       });
       return tail;
     },

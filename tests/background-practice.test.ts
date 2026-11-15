@@ -234,3 +234,42 @@ test("lifecycle uses latest timer checkpoints and reset serializes after the las
   assert.equal(JSON.parse(values.get(APP_STORAGE_KEY)!).active, null);
   assert.equal(JSON.parse(values.get(APP_STORAGE_KEY)!).backgroundPractice, undefined);
 });
+
+test("clock rollback preserves the timer anchor and deadline until wall time catches up", () => {
+  const a = active(true);
+  const rolledBack = practiceLifecycle(a, true, start - 1000);
+  assert.equal(rolledBack.last, a.last);
+  assert.equal(practiceDeadline(rolledBack), practiceDeadline(a));
+  const caughtUp = practiceLifecycle(rolledBack, true, start);
+  assert.equal(caughtUp.elapsed, 0);
+  assert.equal(caughtUp.remaining, a.remaining);
+});
+
+test("a superseded scheduling rejection does not disable the newest timer intent", async () => {
+  let rejectOld!: (reason: Error) => void;
+  const oldSchedule = new Promise<void>((_, reject) => {
+    rejectOld = reject;
+  });
+  let schedules = 0;
+  let failures = 0;
+  const notifier = createPracticeNotifier(
+    {
+      cancel: async () => {},
+      schedule: async () => {
+        if (++schedules === 1) await oldSchedule;
+      },
+    },
+    () => start,
+    () => {
+      failures++;
+    },
+  );
+  void notifier.sync(active(true));
+  await new Promise((resolve) => setImmediate(resolve));
+  const resumed = { ...active(true), last: start + 1000 };
+  const latest = notifier.sync(resumed);
+  rejectOld(Error("Old native request failed"));
+  await latest;
+  assert.equal(schedules, 2);
+  assert.equal(failures, 0);
+});
