@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
   AppState,
@@ -9,6 +9,7 @@ import {
   Text,
   View,
   useWindowDimensions,
+  type PressableProps,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { createVideoPlayer, VideoView } from "expo-video";
@@ -16,7 +17,7 @@ import { useIsFocused } from "@react-navigation/native";
 import {
   Bookmark,
   Camera,
-  Film,
+  ArrowLeftRight,
   Pause,
   Play,
   RotateCcw,
@@ -28,7 +29,9 @@ import { Button, Disclosure, Page, useTheme } from "../components/ui";
 import { haptic } from "../utils/haptics";
 import { ReplayAnalysis } from "../domain/replay";
 import { replays } from "../replays/storage";
-import { useApp } from "../state/AppState";
+import { bodyTrackingDefaults, canAnalyzeBody } from "../domain/shotTracking";
+import { createClipSaveLease, createClipUrlOwner } from "../domain/clipUrlOwner";
+import { keyboardClipSeek } from "../domain/clipPlayback";
 import { ShotPoseOverlay } from "../components/ShotPoseOverlay";
 import {
   poseHasBody,
@@ -65,6 +68,7 @@ export function ShotAnalysis() {
   const [picking, setPicking] = useState(false);
   const mounted = useRef(true);
   const opened = useRef<string | null>(null);
+  const clipUrls = useMemo(() => createClipUrlOwner((uri) => replays.release(uri)), []);
   const generation = useRef(0);
   const pickerPending = useRef(false);
   const currentId = useRef<string | null>(null);
@@ -88,16 +92,15 @@ export function ShotAnalysis() {
       mounted.current = false;
       generation.current++;
       unsubscribe();
-      if (opened.current) replays.release(opened.current);
+      clipUrls.clear();
+      opened.current = null;
     };
-  }, []);
+  }, [clipUrls]);
   function replace(next: Clip | null) {
     generation.current++;
     currentId.current = next?.id ?? null;
-    if (opened.current) {
-      replays.release(opened.current);
-      opened.current = null;
-    }
+    if (opened.current && opened.current !== next?.uri) clipUrls.release(opened.current);
+    opened.current = next?.uri ?? null;
     setClip(next);
   }
   async function pick(camera: boolean) {
@@ -106,6 +109,7 @@ export function ShotAnalysis() {
     const request = ++generation.current;
     setPicking(true);
     setError("");
+    let pickerAssets: ImagePicker.ImagePickerAsset[] = [];
     try {
       if (camera) {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -127,6 +131,8 @@ export function ShotAnalysis() {
             mediaTypes: ["videos"],
             allowsMultipleSelection: false,
           }));
+      pickerAssets = result.assets ?? [];
+      pickerAssets.forEach((asset) => clipUrls.acquire(asset.uri));
       if (result.canceled || !mounted.current || request !== generation.current) return;
       const asset = result.assets[0];
       const pickedDuration = (asset.duration ?? 0) / (Platform.OS === "web" ? 1 : 1000);
@@ -151,6 +157,9 @@ export function ShotAnalysis() {
       if (mounted.current && request === generation.current)
         setError("Could not open the video. Try again or choose another clip.");
     } finally {
+      pickerAssets.forEach((asset) => {
+        if (asset.uri !== opened.current) clipUrls.release(asset.uri);
+      });
       pickerPending.current = false;
       if (mounted.current) setPicking(false);
     }
@@ -160,8 +169,9 @@ export function ShotAnalysis() {
     setError("");
     try {
       const uri = await replays.open(item.id);
+      clipUrls.acquire(uri);
       if (!mounted.current || request !== generation.current) {
-        replays.release(uri);
+        clipUrls.release(uri);
         return;
       }
       replace({
@@ -172,7 +182,6 @@ export function ShotAnalysis() {
         duration: item.analysis.duration,
         saved: true,
       });
-      opened.current = uri;
     } catch (e) {
       if (mounted.current && request === generation.current)
         setError(e instanceof Error ? e.message : "Could not open this replay.");
@@ -222,39 +231,21 @@ export function ShotAnalysis() {
       ]);
   }
   const pickerActions = (
-    <View style={{ gap: 10 }}>
-      <View style={styles.captureActions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Record shot"
-          disabled={picking}
-          onPress={() => void pick(true)}
-          style={({ pressed }) => [
-            styles.captureChoice,
-            { opacity: picking ? 0.4 : pressed ? 0.7 : 1 },
-          ]}
-        >
-          <View style={[styles.captureCircle, { backgroundColor: NEON }]}>
-            <Camera size={25} color={C.onLime} />
-          </View>
-          <Text style={[s.small, { color: C.ink }]}>Record shot</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Choose video"
-          disabled={picking}
-          onPress={() => void pick(false)}
-          style={({ pressed }) => [
-            styles.captureChoice,
-            { opacity: picking ? 0.4 : pressed ? 0.7 : 1 },
-          ]}
-        >
-          <View style={[styles.captureCircle, { backgroundColor: C.soft }]}>
-            <Upload size={23} color={C.ink} />
-          </View>
-          <Text style={[s.small, { color: C.ink }]}>Choose video</Text>
-        </Pressable>
-      </View>
+    <View style={styles.captureActions}>
+      <Button
+        label={picking ? "Opening…" : "Record video"}
+        icon={Camera}
+        kind="lime"
+        disabled={picking}
+        onPress={() => void pick(true)}
+      />
+      <Button
+        label="Choose video"
+        icon={Upload}
+        kind="secondary"
+        disabled={picking}
+        onPress={() => void pick(false)}
+      />
     </View>
   );
   return (
@@ -264,6 +255,7 @@ export function ShotAnalysis() {
           key={clip.id}
           clip={clip}
           picking={picking}
+          replacementActions={pickerActions}
           onSaved={() =>
             setClip((current) =>
               current?.id === clip.id ? { ...current, saved: true } : current,
@@ -272,66 +264,18 @@ export function ShotAnalysis() {
         />
       ) : (
         <>
-          <View style={{ gap: 6 }}>
-            <Text accessibilityRole="header" style={s.h1}>
-              Film your shot
+          <View style={[styles.captureStage, { backgroundColor: C.deep }]}>
+            <Text accessibilityRole="header" style={[s.h1, { color: C.onDeep }]}>
+              Review your shot
             </Text>
-          </View>
-          <View style={[styles.captureStage, { backgroundColor: C.soft }]}>
-            <View
-              style={[
-                styles.corner,
-                {
-                  top: 16,
-                  left: 16,
-                  borderTopWidth: 2,
-                  borderLeftWidth: 2,
-                  borderColor: C.lineStrong,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.corner,
-                {
-                  top: 16,
-                  right: 16,
-                  borderTopWidth: 2,
-                  borderRightWidth: 2,
-                  borderColor: C.lineStrong,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.corner,
-                {
-                  bottom: 16,
-                  left: 16,
-                  borderBottomWidth: 2,
-                  borderLeftWidth: 2,
-                  borderColor: C.lineStrong,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.corner,
-                {
-                  bottom: 16,
-                  right: 16,
-                  borderBottomWidth: 2,
-                  borderRightWidth: 2,
-                  borderColor: C.lineStrong,
-                },
-              ]}
-            />
-            <Film color={C.muted} size={38} strokeWidth={1.25} />
-            <Text style={[s.body, { textAlign: "center" }]}>
-              Keep your body and ball in frame.
+            <Text style={[s.body, { color: C.onDeep }]}>
+              Film from the side, with your whole body and ball in frame.
             </Text>
+            {pickerActions}
           </View>
-          {pickerActions}
+          <Text style={s.small}>
+            Up to 30 seconds · Video stays on your device until you choose tracking.
+          </Text>
         </>
       )}
       {error ? (
@@ -339,7 +283,6 @@ export function ShotAnalysis() {
           {error}
         </Text>
       ) : null}
-      {clip ? <Disclosure label="Choose another clip">{pickerActions}</Disclosure> : null}
       <Disclosure label="How to film your shot">
         <Text style={s.body}>
           Film from the side with your body and ball visible. Keep your phone clear of the
@@ -408,20 +351,20 @@ function ShotReview({
   clip,
   picking,
   onSaved,
+  replacementActions,
 }: {
+  replacementActions: ReactNode;
   clip: Clip;
   picking: boolean;
   onSaved: () => void;
 }) {
   const { C, s } = useTheme();
   const focused = useIsFocused();
-  const { data } = useApp();
-  const eligible = data.profile.ageBand === "13to17" || data.profile.ageBand === "adult";
-  const [consent, setConsent] = useState(false);
+  const [consent, setConsent] = useState<boolean>(bodyTrackingDefaults.consent);
   const [pose, setPose] = useState<JointResult | null>(null);
   const [poseBusy, setPoseBusy] = useState(false);
   const [poseError, setPoseError] = useState("");
-  const [showPose, setShowPose] = useState(true);
+  const [showPose, setShowPose] = useState<boolean>(bodyTrackingDefaults.enabled);
   const [showLabels, setShowLabels] = useState(true);
   const [kickingFoot, setKickingFoot] = useState<"left" | "right" | null>(null);
   const poseAbort = useRef<AbortController | null>(null);
@@ -440,9 +383,10 @@ function ShotReview({
   const timelinePressX = useRef<number | null>(null);
   const [videoError, setVideoError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [replacing, setReplacing] = useState(false);
   const [saving, setSaving] = useState(false);
   const mounted = useRef(true);
-  const savingAbort = useRef<AbortController | null>(null);
+  const saveLease = useMemo(() => createClipSaveLease(), []);
   // This screen owns one player for the selected clip; avoid source replacement
   // during ordinary review renders (including body-overlay updates).
   const player = useMemo(() => {
@@ -494,7 +438,7 @@ function ShotReview({
       tick.remove();
       play.remove();
       background.remove();
-      savingAbort.current?.abort();
+      saveLease.cancel();
       poseAbort.current?.abort();
       player.pause();
       player.timeUpdateEventInterval = 0;
@@ -504,15 +448,15 @@ function ShotReview({
   useEffect(() => {
     if (!focused || picking) player.pause();
   }, [focused, picking, player]);
-  useEffect(() => {
-    if (!eligible) {
-      poseAbort.current?.abort();
-      setConsent(false);
-      setPose(null);
-    }
-  }, [eligible]);
   async function analyzeBody() {
-    if (!eligible || !consent || !usable || poseAbort.current) return;
+    if (
+      !canAnalyzeBody({
+        consent,
+        usable,
+        busy: !!poseAbort.current,
+      })
+    )
+      return;
     const abort = new AbortController();
     poseAbort.current = abort;
     setPoseBusy(true);
@@ -580,11 +524,11 @@ function ShotReview({
     setTime(player.currentTime);
   }
   async function save() {
-    if (!clip.input || saving || !loaded || duration <= 0 || duration > 30.05) return;
+    if (!clip.input || !loaded || duration <= 0 || duration > 30.05) return;
+    const abort = saveLease.begin();
+    if (!abort) return;
     setSaving(true);
     setSaveError("");
-    const abort = new AbortController();
-    savingAbort.current = abort;
     const analysis: ReplayAnalysis = {
       width: dimensions.width,
       height: dimensions.height,
@@ -599,6 +543,7 @@ function ShotReview({
       if (mounted.current)
         setSaveError(e instanceof Error ? e.message : "Could not save this video.");
     } finally {
+      saveLease.finish(abort);
       if (mounted.current) setSaving(false);
     }
   }
@@ -622,7 +567,7 @@ function ShotReview({
           styles.video,
           {
             aspectRatio: dimensions.width / dimensions.height,
-            maxHeight: Math.max(360, Math.min(620, windowHeight * 0.66)),
+            maxHeight: Math.max(260, Math.min(560, windowHeight * 0.56)),
           },
         ]}
       >
@@ -657,6 +602,28 @@ function ShotReview({
       ) : null}
       <Pressable
         accessibilityRole="adjustable"
+        {...(Platform.OS === "web"
+          ? {
+              "aria-valuemin": 0,
+              "aria-valuemax": Math.max(0, duration),
+              "aria-valuenow": Math.max(0, Math.min(time, Math.max(0, duration))),
+              "aria-valuetext": `${time.toFixed(1)} of ${duration.toFixed(1)} seconds`,
+              onKeyDown: (
+                event: Parameters<NonNullable<PressableProps["onKeyDown"]>>[0],
+              ) => {
+                const target = keyboardClipSeek(
+                  event.nativeEvent.key,
+                  player.currentTime,
+                  duration,
+                  usable,
+                );
+                if (target !== null) {
+                  event.preventDefault();
+                  seek(target);
+                }
+              },
+            }
+          : {})}
         accessibilityLabel="Video position"
         accessibilityValue={{
           min: 0,
@@ -763,40 +730,22 @@ function ShotReview({
             <StepForward size={21} color={C.ink} />
           </Pressable>
         </View>
-        <View style={[styles.speedGroup, { backgroundColor: C.soft }]}>
-          {[0.5, 1, 2].map((value) => (
-            <Pressable
-              key={value}
-              accessibilityRole="radio"
-              accessibilityLabel={`Playback speed ${value} times`}
-              accessibilityState={{ checked: speed === value }}
-              disabled={!usable}
-              onPress={() => {
-                player.playbackRate = value;
-                setSpeed(value);
-              }}
-              style={({ pressed }) => [
-                styles.speedControl,
-                {
-                  backgroundColor: speed === value ? NEON : "transparent",
-                  opacity: !usable ? 0.35 : pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  s.small,
-                  {
-                    fontFamily: "Archivo_600SemiBold",
-                    color: speed === value ? C.onLime : C.muted,
-                  },
-                ]}
-              >
-                {value}×
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Playback speed ${speed} times. Change speed.`}
+          disabled={!usable}
+          onPress={() => {
+            const next = speed === 0.5 ? 1 : speed === 1 ? 2 : 0.5;
+            player.playbackRate = next;
+            setSpeed(next);
+          }}
+          style={({ pressed }) => [
+            styles.speedControl,
+            { backgroundColor: C.soft, opacity: !usable ? 0.35 : pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Text style={[s.h3, { color: C.ink }]}>{speed}×</Text>
+        </Pressable>
       </View>
       <View style={[styles.summaryRow, { borderBottomColor: C.line }]}>
         <Pressable
@@ -823,17 +772,35 @@ function ShotReview({
             fill={clip.saved ? C.green : "transparent"}
           />
           <Text style={[s.small, { color: C.ink }]}>
-            {clip.saved ? "Saved" : saving ? "Saving…" : "Save replay"}
+            {clip.saved ? "Saved" : saving ? "Saving…" : "Save"}
           </Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Replace video"
+          accessibilityState={{ expanded: replacing }}
+          disabled={picking}
+          onPress={() => {
+            player.pause();
+            setReplacing(!replacing);
+          }}
+          style={({ pressed }) => [
+            styles.quietAction,
+            { opacity: picking ? 0.4 : pressed ? 0.6 : 1 },
+          ]}
+        >
+          <ArrowLeftRight size={17} color={C.muted} />
+          <Text style={s.small}>Replace</Text>
+        </Pressable>
       </View>
+      {replacing ? replacementActions : null}
       {saveError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
           {saveError}
         </Text>
       ) : null}
       {pose ? (
-        <View style={{ gap: 10 }}>
+        <Disclosure label="Tracking options">
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             <TrackingChip
               label="Body lines"
@@ -871,7 +838,7 @@ function ShotReview({
           {showPose && !shotPoseAt(pose, time) ? (
             <Text style={s.small}>No nearby body sample at this moment.</Text>
           ) : null}
-        </View>
+        </Disclosure>
       ) : null}
       {poseBusy ? (
         <View style={styles.transportRow}>
@@ -886,65 +853,51 @@ function ShotReview({
           </Pressable>
         </View>
       ) : null}
-      <Disclosure label={pose ? "Tracking options" : "Add body tracking"}>
-        {eligible ? (
-          <>
-            <Text style={s.small}>
-              This clip is sent to the tracking service. Temporary files are deleted after
-              processing.
-            </Text>
-            <View style={styles.toggleRow}>
-              <Text style={[s.small, { flex: 1, paddingRight: 12 }]}>
-                This is my clip. I agree to body tracking.
-              </Text>
-              <Switch
-                accessibilityLabel="I agree to process my clip for body tracking"
-                value={consent}
-                disabled={poseBusy}
-                onValueChange={setConsent}
-                trackColor={{ true: C.green }}
-              />
-            </View>
-            <Button
-              label={
-                poseBusy
-                  ? "Tracking movement…"
-                  : pose
-                    ? "Track again"
-                    : "Analyze movement"
-              }
-              kind="secondary"
-              disabled={!consent || !usable || poseBusy}
-              onPress={() => void analyzeBody()}
-            />
-            {poseBusy ? (
-              <Button
-                label="Cancel body tracking"
-                kind="secondary"
-                onPress={() => poseAbort.current?.abort()}
-              />
-            ) : null}
-          </>
-        ) : (
-          <Text style={s.small}>
-            {data.profile.ageBand === "under13"
-              ? "Body tracking uploads are unavailable for your age range. Local video review stays available."
-              : "Add an age range in training preferences to check body tracking availability. Local review stays available."}
+      <View style={{ gap: 12 }}>
+        <Text accessibilityRole="header" style={s.h3}>
+          Body tracking
+        </Text>
+        <Text style={s.small}>
+          Analyze sends this clip to the tracking service. Temporary files are deleted
+          after processing.
+        </Text>
+        <View style={styles.toggleRow}>
+          <Text style={[s.small, { flex: 1, paddingRight: 12 }]}>
+            This is my clip. I agree to body tracking.
           </Text>
-        )}
+          <Switch
+            accessibilityLabel="I agree to process my clip for body tracking"
+            value={consent}
+            disabled={poseBusy}
+            onValueChange={setConsent}
+            trackColor={{ false: C.lineStrong, true: C.lime }}
+            ios_backgroundColor={C.lineStrong}
+            thumbColor={consent ? C.onLime : C.ink}
+          />
+        </View>
+        <Button
+          label={
+            poseBusy ? "Tracking movement…" : pose ? "Track again" : "Analyze movement"
+          }
+          kind="lime"
+          disabled={
+            !canAnalyzeBody({
+              consent,
+              usable,
+              busy: poseBusy,
+            })
+          }
+          onPress={() => void analyzeBody()}
+        />
         <Text style={s.small}>
           Estimated 2D landmarks, not a technique score. Save keeps the video only.
         </Text>
-        <Text style={s.small}>Choose your kicking foot to label the legs.</Text>
-      </Disclosure>
+      </View>
       {poseError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
           {poseError}
         </Text>
       ) : null}
-      <Disclosure label="Review notes">
-        <Text style={s.body}>Watch your run-up, plant foot and follow-through.</Text>
-      </Disclosure>
     </View>
   );
 }
@@ -963,6 +916,7 @@ function TrackingChip({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
+      {...(Platform.OS === "web" ? { "aria-pressed": selected } : {})}
       onPress={() => {
         haptic("selection");
         onPress();
@@ -993,24 +947,12 @@ function TrackingChip({
 
 const styles = StyleSheet.create({
   captureStage: {
-    height: 280,
     width: "100%",
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 44,
+    borderRadius: 24,
+    padding: 24,
     gap: 16,
   },
-  corner: { position: "absolute", width: 24, height: 24 },
-  captureActions: { flexDirection: "row", justifyContent: "center", gap: 40 },
-  captureChoice: { alignItems: "center", gap: 8, paddingVertical: 4, minWidth: 88 },
-  captureCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  captureActions: { gap: 12 },
   historyRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: 1 },
   historyOpen: {
     flex: 1,
@@ -1023,10 +965,9 @@ const styles = StyleSheet.create({
   video: {
     width: "100%",
     backgroundColor: "#10271D",
-    borderRadius: 12,
+    borderRadius: 20,
     overflow: "hidden",
   },
-  controls: { flexDirection: "row", gap: 8 },
   transportRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1035,7 +976,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   transportGroup: { flexDirection: "row", alignItems: "center", gap: 4 },
-  iconControl: { width: 44, height: 48, alignItems: "center", justifyContent: "center" },
+  iconControl: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
   playControl: {
     width: 56,
     height: 56,
@@ -1043,28 +984,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  speedGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 24,
-    padding: 3,
-  },
   speedControl: {
-    minWidth: 44,
-    minHeight: 44,
-    borderRadius: 22,
+    minWidth: 56,
+    minHeight: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
   },
   summaryRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
     paddingBottom: 12,
   },
   quietAction: {
-    minHeight: 44,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
