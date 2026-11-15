@@ -4,27 +4,28 @@ import Svg, { Circle, Line, Rect, Text as SvgText } from "react-native-svg";
 import type { JointResult } from "../coachAi/service";
 import { BODY_EDGES, shotPoseAt, visibleJoint } from "../domain/shotPose";
 
+import { videoPreviewTransform, type PreviewFit } from "../domain/videoPreview";
+
 export function ShotPoseOverlay({
   pose,
   time,
   labels,
   kickingFoot,
+  contentFit = "contain",
 }: {
   pose: JointResult;
   time: number;
   labels: boolean;
   kickingFoot: "left" | "right" | null;
+  contentFit?: PreviewFit;
 }) {
   const [viewport, setViewport] = useState({ width: 350, height: 420 });
   const frame = shotPoseAt(pose, time);
   if (!frame) return null;
   const points = frame.joints;
-  // Match VideoView's contain transform. Labels stay >=14.5 rendered points,
-  // including portrait footage letterboxed inside a shorter review viewport.
-  const scale = Math.max(
-    0.001,
-    Math.min(viewport.width / pose.width, viewport.height / pose.height),
-  );
+  // Match VideoView's centered fit/fill transform so joints never drift when
+  // preview edges are cropped. Text and strokes retain their rendered size.
+  const scale = Math.max(0.001, videoPreviewTransform(pose, viewport, contentFit).scale);
   const font = 14.5 / scale;
   const callouts = [
     { label: "Torso lean", a: 11, b: 23, side: "left", position: 0.22 },
@@ -56,7 +57,7 @@ export function ShotPoseOverlay({
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       viewBox={`0 0 ${pose.width} ${pose.height}`}
-      preserveAspectRatio="xMidYMid meet"
+      preserveAspectRatio={contentFit === "cover" ? "xMidYMid slice" : "xMidYMid meet"}
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;
         if (

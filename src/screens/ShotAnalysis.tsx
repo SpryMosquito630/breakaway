@@ -35,6 +35,7 @@ import {
 } from "../domain/shotTracking";
 import { createClipSaveLease, createClipUrlOwner } from "../domain/clipUrlOwner";
 import { keyboardClipSeek } from "../domain/clipPlayback";
+import { videoPreviewSize, type PreviewFit } from "../domain/videoPreview";
 import { ShotPoseOverlay } from "../components/ShotPoseOverlay";
 import { ShotSpeed } from "../components/ShotSpeed";
 import { ShotTechnique } from "../components/ShotTechnique";
@@ -396,6 +397,7 @@ function ShotReview({
   const { height: windowHeight, width: windowWidth, fontScale } = useWindowDimensions();
   const stackedMetrics = fontScale > 1.3 || windowWidth < 340;
   const [videoWidth, setVideoWidth] = useState(0);
+  const [previewFit, setPreviewFit] = useState<PreviewFit>("cover");
   const [time, setTime] = useState(0);
   // The mounted player is authoritative; picker duration units differ by platform.
   const [duration, setDuration] = useState(0);
@@ -404,6 +406,13 @@ function ShotReview({
     width: clip.width > 0 ? clip.width : 16,
     height: clip.height > 0 ? clip.height : 9,
   });
+  // Preview-only framing; analysis and saved clips always use the full source.
+  const previewSize = videoPreviewSize(
+    dimensions,
+    videoWidth || Math.max(1, windowWidth - 40),
+    windowHeight,
+    previewFit,
+  );
   const timelineWidth = useRef(1);
   const timelinePressX = useRef<number | null>(null);
   const [videoError, setVideoError] = useState("");
@@ -634,32 +643,43 @@ function ShotReview({
           if (width > 0)
             setVideoWidth((previous) => (previous === width ? previous : width));
         }}
-        style={[
-          styles.video,
-          {
-            height: Math.min(
-              Math.max(260, Math.min(480, windowHeight * 0.46)),
-              ((videoWidth || Math.max(1, windowWidth - 40)) * dimensions.height) /
-                dimensions.width,
-            ),
-          },
-        ]}
+        style={styles.videoStage}
       >
-        <VideoView
-          player={player}
-          nativeControls={false}
-          contentFit="contain"
-          surfaceType="textureView"
-          style={[StyleSheet.absoluteFill, { width: "100%", height: "100%" }]}
-        />
-        {pose && showPose ? (
-          <ShotPoseOverlay
-            pose={pose}
-            time={time}
-            labels={showLabels}
-            kickingFoot={kickingFoot}
+        <View style={[styles.video, previewSize]}>
+          <VideoView
+            player={player}
+            nativeControls={false}
+            contentFit={previewFit}
+            surfaceType="textureView"
+            style={[StyleSheet.absoluteFill, { width: "100%", height: "100%" }]}
           />
-        ) : null}
+          {pose && showPose ? (
+            <ShotPoseOverlay
+              pose={pose}
+              time={time}
+              labels={showLabels}
+              kickingFoot={kickingFoot}
+              contentFit={previewFit}
+            />
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={previewFit === "cover" ? "Show full video" : "Fill frame"}
+            accessibilityHint={
+              previewFit === "cover"
+                ? "Fit the entire video without cropping."
+                : "Enlarge the preview by cropping its edges."
+            }
+            onPress={() =>
+              setPreviewFit((current) => (current === "cover" ? "contain" : "cover"))
+            }
+            style={({ pressed }) => [styles.previewFit, { opacity: pressed ? 0.75 : 1 }]}
+          >
+            <Text style={styles.previewFitLabel}>
+              {previewFit === "cover" ? "Fit" : "Fill"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
       <View style={[styles.metrics, stackedMetrics && styles.metricsStacked]}>
         <ShotSpeed
@@ -1062,11 +1082,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   delete: { minWidth: 56, minHeight: 48, alignItems: "center", justifyContent: "center" },
+  videoStage: { width: "100%", alignItems: "center" },
   video: {
-    width: "100%",
-    backgroundColor: "#10271D",
-    borderRadius: 20,
+    backgroundColor: "#000000",
+    borderRadius: 16,
     overflow: "hidden",
+  },
+  previewFit: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    minWidth: 48,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.78)",
+  },
+  previewFitLabel: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 14,
+    color: "#FFFFFF",
   },
   transportRow: {
     flexDirection: "row",
