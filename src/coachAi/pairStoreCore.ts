@@ -5,35 +5,82 @@ type Storage = {
   write: (value: string) => Promise<void>;
   remove: () => Promise<void>;
 };
-/** Serialize private writes; a stale async read must not replace or revive a credential. */
+/** Serialize private writes and retain a session tombstone even if protected storage fails. */
 export function createCoachPairStore(storage: Storage) {
-  let memory: CoachPair | null = null;
+  let memory: unknown = null;
+  let hasMemory = false;
   let generation = 0;
+  let persisted: boolean | undefined;
   let tail: Promise<void> = Promise.resolve();
+  function save(pair: CoachPair): Promise<boolean> {
+    memory = pair;
+    hasMemory = true;
+    const ticket = ++generation;
+    persisted = undefined;
+    const write = tail.then(() => storage.write(JSON.stringify(pair)));
+    tail = write.catch(() => {});
+    return write.then(
+      () => {
+        if (ticket === generation) persisted = true;
+        return true;
+      },
+      () => {
+        if (ticket === generation) persisted = false;
+        return false;
+      },
+    );
+  }
   return {
+    revision: () => generation,
+    persisted: () => persisted,
     async read(): Promise<unknown> {
-      if (memory) return memory;
+      if (hasMemory) return memory;
       await tail;
-      if (memory) return memory;
+      if (hasMemory) return memory;
       const ticket = generation;
       try {
         const raw = await storage.read();
-        return ticket !== generation ? memory : raw ? JSON.parse(raw) : null;
+        if (ticket !== generation) return memory;
+        memory = raw ? JSON.parse(raw) : null;
+        hasMemory = true;
+        persisted = true;
+        return memory;
       } catch {
+        // A locked device can retry the read later; explicit save/forget still wins.
         return memory;
       }
     },
-    save(pair: CoachPair) {
-      memory = pair;
-      generation++;
-      tail = tail.then(() => storage.write(JSON.stringify(pair))).catch(() => {});
-      return tail;
+    save,
+    async saveIfUnchanged(pair: CoachPair, revision: number) {
+      if (revision !== generation) return { applied: false, persisted: false };
+      const result = await save(pair);
+      return { applied: generation === revision + 1, persisted: result };
     },
-    forget() {
+    forget(revision?: number): Promise<boolean> {
+      // A late rejection of an old request must not delete a newer private invite.
+      if (revision !== undefined && revision !== generation) return Promise.resolve(true);
       memory = null;
-      generation++;
-      tail = tail.then(() => storage.remove()).catch(() => {});
-      return tail;
+      hasMemory = true;
+      const ticket = ++generation;
+      persisted = undefined;
+      const remove = tail.then(async () => {
+        try {
+          await storage.remove();
+        } catch {
+          await storage.write("null");
+        }
+      });
+      tail = remove.catch(() => {});
+      return remove.then(
+        () => {
+          if (ticket === generation) persisted = true;
+          return true;
+        },
+        () => {
+          if (ticket === generation) persisted = false;
+          return false;
+        },
+      );
     },
   };
 }

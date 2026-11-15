@@ -28,3 +28,7 @@ const store = createCoachPairStore({
 export const readCoachPair = store.read;
 export const saveCoachPair = store.save;
 export const forgetStoredCoachPair = store.forget;
+
+export const coachPairRevision = store.revision;
+export const coachPairPersisted = store.persisted;
+export const saveCoachPairIfUnchanged = store.saveIfUnchanged;
