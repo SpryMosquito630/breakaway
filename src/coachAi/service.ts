@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import { File } from "expo-file-system";
+import { fetch as expoFetch } from "expo/fetch";
 import { COACH_DEV_ENABLED } from "../config/coach";
 import { makeCoachPair, validCoachPair } from "./pairing";
 import {
@@ -121,7 +123,8 @@ export async function requestService<T>(
     error.name = "AbortError";
     throw error;
   }
-  const response = await fetch(`${service.base}/${path}`, {
+  const send = Platform.OS === "web" ? fetch : expoFetch;
+  const response = await send(`${service.base}/${path}`, {
     method: "POST",
     body,
     signal,
@@ -228,12 +231,13 @@ export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
     if (blob.size > 50 * 1024 * 1024)
       throw new Error("Choose a video smaller than 50 MB.");
     form.append("video", blob, "recording.mp4");
-  } else
-    form.append("video", {
-      uri: asset.uri,
-      name: "recording.mp4",
-      type: asset.mimeType ?? "video/mp4",
-    } as any);
+  } else {
+    // Expo 58 fetch accepts File/Blob parts, not React Native's URI descriptor.
+    const file = new File(asset.uri);
+    if (file.size > 50 * 1024 * 1024)
+      throw new Error("Choose a video smaller than 50 MB.");
+    form.append("video", file);
+  }
   if (context) form.append("context", JSON.stringify(context));
   return form;
 }
@@ -271,12 +275,11 @@ export async function estimateFoodPhoto(
     const blob = asset.file ?? (await (await fetch(asset.uri, { signal })).blob());
     if (blob.size > 5 * 1024 * 1024) throw new Error("Choose a photo smaller than 5 MB.");
     form.append("photo", blob, "meal.jpg");
-  } else
-    form.append("photo", {
-      uri: asset.uri,
-      name: "meal.jpg",
-      type: asset.mimeType ?? "image/jpeg",
-    } as any);
+  } else {
+    const file = new File(asset.uri);
+    if (file.size > 5 * 1024 * 1024) throw new Error("Choose a photo smaller than 5 MB.");
+    form.append("photo", file);
+  }
   form.append(
     "context",
     JSON.stringify(portionGrams === undefined ? {} : { portionGrams }),
