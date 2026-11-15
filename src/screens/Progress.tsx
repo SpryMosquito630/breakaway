@@ -1,87 +1,39 @@
 import { ProgressionSummary } from "./Progression";
+import { OnboardingPlayerCard } from "../components/OnboardingPlayerCard";
+import { useIsFocused } from "@react-navigation/native";
 import { SkillProfile } from "../components/SkillProfile";
 import { PersonalRating } from "../components/PersonalRating";
 import { haptic } from "../utils/haptics";
 import { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useApp } from "../state/AppState";
-import { Button, Field, Link, Page, SettingRow, Title } from "../components/ui";
+import { Button, Field, Link, Page, Title } from "../components/ui";
 import { time } from "../domain/model";
 import { useTheme } from "../theme/ThemeProvider";
 import { skillProfile } from "../domain/skillProfile";
-import { deriveProgression } from "../progression/engine";
 import { canSaveBenchmark } from "../domain/benchmark";
 import { useBenchmarkClock } from "../hooks/useBenchmarkClock";
 
-export function Progress({ navigation }: { navigation: any }) {
-  const { C, s } = useTheme();
-  const { data, catalog } = useApp();
-  const rating = skillProfile(false, data.assessments);
-  const practice = deriveProgression(data, catalog);
+export function Progress() {
+  const { data } = useApp();
+  const focused = useIsFocused();
+  const { width } = useWindowDimensions();
   return (
-    <Page>
-      <View style={[s.card, { gap: 8, paddingVertical: 20 }]}>
-        {rating.overall === null ? (
-          <>
-            <Text style={s.h2}>Skill profile</Text>
-            <Text style={s.small}>{rating.coverage}/6 tests recorded</Text>
-          </>
-        ) : (
-          <>
-            <Text style={s.small}>Overall test score</Text>
-            <View
-              style={[
-                s.row,
-                { alignItems: "baseline", justifyContent: "flex-start", gap: 12 },
-              ]}
-            >
-              <Text style={[s.stat, { fontSize: 56, lineHeight: 68, color: C.green }]}>
-                {rating.overall}
-              </Text>
-              <Text style={s.small}>/ 100</Text>
-            </View>
-            <Text style={s.small}>6/6 skills assessed · App-defined test targets</Text>
-          </>
-        )}
-      </View>
-      <View style={s.group}>
-        <SettingRow
-          label="Skill tests"
-          onPress={() => navigation.navigate("SkillProfile")}
-        />
-        <SettingRow
-          label="Touch test"
-          value={
-            data.benchmarks.length
-              ? `${data.benchmarks.length} saved results`
-              : "30 seconds"
-          }
-          onPress={() => navigation.navigate("TouchProgress")}
-        />
-      </View>
-      <View style={{ gap: 12 }}>
-        <Text style={s.h2}>Practice</Text>
-        <Text style={s.small}>
-          {practice.weekDays} {practice.weekDays === 1 ? "day" : "days"} this week ·{" "}
-          {practice.days.length} total practice days
-        </Text>
-        <View style={s.group}>
-          <SettingRow
-            label="History"
-            value={`${data.history.length} ${data.history.length === 1 ? "session" : "sessions"}`}
-            onPress={() => navigation.navigate("SessionHistory")}
-          />
-          <SettingRow
-            label="Milestones"
-            value={`Level ${practice.level} · ${practice.xp} XP`}
-            onPress={() => navigation.navigate("PracticeMilestones")}
-          />
-          <SettingRow
-            label="Season goals"
-            onPress={() => navigation.navigate("Seasons")}
-          />
-        </View>
-      </View>
+    <Page contentStyle={{ alignItems: "center", paddingTop: 32 }}>
+      <OnboardingPlayerCard
+        name={data.onboardingAnswers?.name}
+        position={data.onboardingAnswers?.positionDetail ?? data.profile.position ?? "—"}
+        look={data.onboardingAnswers?.snapshotStyle}
+        ratings={skillProfile(false, data.assessments)}
+        active={focused}
+        size={Math.min(width - 64, 320)}
+      />
     </Page>
   );
 }

@@ -175,6 +175,7 @@ export function OnboardingPlayerCard({
   look,
   ratings,
   active = true,
+  size,
 }: {
   name?: string;
   position: string;
@@ -182,10 +183,12 @@ export function OnboardingPlayerCard({
   ratings: ReturnType<typeof skillProfile>;
   /** False for an outgoing step or an unfocused onboarding screen. */
   active?: boolean;
+  /** Larger display in Progress; onboarding retains its reference size. */
+  size?: number;
 }) {
   const { width } = useWindowDimensions();
   // Source frame: a ~230-point visible outline in a 444-point viewport.
-  const scale = Math.min(width * 0.54, 252) / 252;
+  const scale = Math.min(size ?? Math.min(width * 0.54, 252), width - 48) / 252;
   const styles = useMemo(() => createStyles(scale), [scale]);
   const reveal = useRef(new Animated.Value(0)).current;
   const played = useRef(false);
