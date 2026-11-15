@@ -4,7 +4,11 @@ import Svg, { Circle, Line, Rect, Text as SvgText } from "react-native-svg";
 import type { JointResult } from "../coachAi/service";
 import { BODY_EDGES, shotPoseAt, visibleJoint } from "../domain/shotPose";
 
-import { videoPreviewTransform, type PreviewFit } from "../domain/videoPreview";
+import {
+  videoPreviewCallout,
+  videoPreviewTransform,
+  type PreviewFit,
+} from "../domain/videoPreview";
 
 export function ShotPoseOverlay({
   pose,
@@ -105,11 +109,21 @@ export function ShotPoseOverlay({
             const width = font * (item.label.length * 0.54 + 1.45);
             const height = font * 2.1;
             const margin = font * 0.35;
-            const labelX = item.side === "left" ? margin : pose.width - width - margin;
-            const labelY = Math.max(
+            const placement = videoPreviewCallout(
+              pose,
+              viewport,
+              contentFit,
+              { x, y },
+              {
+                width,
+                height,
+                x: item.side === "left" ? margin : pose.width - width - margin,
+                y: pose.height * item.position,
+              },
               margin,
-              Math.min(pose.height - height - margin, pose.height * item.position),
             );
+            if (!placement) return null;
+            const { x: labelX, y: labelY } = placement;
             const endX =
               x < labelX
                 ? labelX
