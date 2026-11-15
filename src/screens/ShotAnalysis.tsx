@@ -687,13 +687,12 @@ function ShotReview({
           duration={duration}
           usable={usable}
           kickingFoot={kickingFoot}
-          insetBadge={!stackedMetrics}
           markTime={() => {
             player.pause();
             return player.currentTime;
           }}
         />
-        <View style={stackedMetrics ? styles.techniqueStacked : styles.techniqueBadge}>
+        <View style={[styles.techniqueInline, stackedMetrics && styles.techniqueStacked]}>
           <ShotTechnique
             review={technique}
             busy={techniqueBusy}
@@ -1062,10 +1061,19 @@ function TrackingChip({
 }
 
 const styles = StyleSheet.create({
-  metrics: { marginTop: 14, marginBottom: 2 },
-  metricsStacked: { gap: 12 },
-  techniqueBadge: { position: "absolute", top: -14, right: 10, width: 120 },
-  techniqueStacked: { alignSelf: "flex-end", width: "100%" },
+  metrics: {
+    marginTop: 14,
+    marginBottom: 2,
+    flexDirection: "row",
+    alignItems: "stretch",
+    padding: 16,
+    gap: 12,
+    borderRadius: 16,
+    backgroundColor: "#F6F8F5",
+  },
+  metricsStacked: { flexDirection: "column" },
+  techniqueInline: { flexBasis: 128, flexShrink: 0 },
+  techniqueStacked: { flexBasis: "auto", flexShrink: 1 },
   captureStage: {
     width: "100%",
     borderRadius: 24,
