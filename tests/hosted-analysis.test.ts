@@ -5,6 +5,57 @@ import { createHostedIdentityProvider } from "../src/coachAi/hostedIdentityCore"
 import { requestHostedAnalysis } from "../src/coachAi/hostedTransport";
 import { createHostedOperationIds } from "../src/coachAi/hostedOperations";
 
+test("expired anonymous identity recovers once with concurrent single-flight sign-in", async () => {
+  let user = { uid: "expired", isAnonymous: true };
+  let signIns = 0;
+  const provider = createHostedIdentityProvider({
+    ready: async () => {},
+    currentUser: () => user,
+    signOut: async () => {},
+    signIn: async () => {
+      signIns++;
+      user = { uid: "renewed", isAnonymous: true };
+      return user;
+    },
+    idToken: async (current) => {
+      if (current.uid === "expired")
+        throw Object.assign(Error("expired"), { code: "auth/user-token-expired" });
+      return "renewed-token";
+    },
+    appCheckToken: async () => "attestation",
+  });
+  const results = await Promise.all([provider(), provider()]);
+  assert.equal(signIns, 1);
+  assert.deepEqual(
+    results.map((value) => value.userId),
+    ["renewed", "renewed"],
+  );
+});
+
+test("network, disabled-user and verified-account failures never recreate identity", async () => {
+  for (const [isAnonymous, code] of [
+    [true, "auth/network-request-failed"],
+    [true, "auth/user-disabled"],
+    [false, "auth/user-token-expired"],
+  ] as const) {
+    const provider = createHostedIdentityProvider({
+      ready: async () => {},
+      currentUser: () => ({ uid: "existing", isAnonymous }),
+      signIn: async () => {
+        throw Error("must not sign in");
+      },
+      signOut: async () => {
+        throw Error("must not sign out");
+      },
+      idToken: async () => {
+        throw Object.assign(Error(code), { code });
+      },
+      appCheckToken: async () => "attestation",
+    });
+    await assert.rejects(provider(), { code });
+  }
+});
+
 test("clip retries retain operation IDs while pose fallback and replacement clips have separate IDs", () => {
   let id = 0;
   const operation = createHostedOperationIds(() => `request-${++id}`);

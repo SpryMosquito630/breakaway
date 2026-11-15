@@ -4,6 +4,7 @@ import {
   getIdToken,
   onAuthStateChanged,
   signInAnonymously,
+  signOut,
 } from "@react-native-firebase/auth";
 import { initializeAppCheck, getToken } from "@react-native-firebase/app-check";
 import { createHostedIdentityProvider } from "./hostedIdentityCore";
@@ -28,4 +29,5 @@ export const getHostedIdentity = createHostedIdentityProvider({
   signIn: async () => (await signInAnonymously(auth)).user,
   idToken: (user) => getIdToken(user),
   appCheckToken: async () => (await getToken(appCheck)).token,
+  signOut: () => signOut(auth),
 });

@@ -61,6 +61,7 @@ import {
 import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
 import { reviewThenTrack, waitForShotTask } from "../coachAi/shotReviewPreparation";
 import { ServiceError } from "../coachAi/serviceResponse";
+import { HOSTED_ANALYSIS_CONFIG } from "../config/hostedAnalysis";
 
 const NEON = "#B6FF00";
 
@@ -77,6 +78,8 @@ type Clip = {
 
 export function ShotAnalysis() {
   const { C, s } = useTheme();
+  const maxPickedBytes = HOSTED_ANALYSIS_CONFIG ? 25 * 1024 * 1024 : MAX_CLIP_BYTES;
+  const maxPickedMegabytes = maxPickedBytes / (1024 * 1024);
   const [clip, setClip] = useState<Clip | null>(null);
   const [history, setHistory] = useState<SavedReplay[]>([]);
   const [error, setError] = useState("");
@@ -156,8 +159,8 @@ export function ShotAnalysis() {
         setError("Choose a clip up to 30 seconds.");
         return;
       }
-      if ((asset.fileSize ?? 0) > MAX_CLIP_BYTES) {
-        setError("Choose a video under 50 MB.");
+      if ((asset.fileSize ?? 0) > maxPickedBytes) {
+        setError(`Choose a video under ${maxPickedMegabytes} MB.`);
         return;
       }
       replace({
@@ -251,8 +254,9 @@ export function ShotAnalysis() {
   const pickerActions = (
     <View style={styles.captureActions}>
       <Text style={[s.small, { color: clip ? C.muted : C.onDeep }]}>
-        Your selected video is processed for body tracking. When AI review is connected,
-        video frames are also sent to Google Gemini for a technique estimate.
+        {HOSTED_ANALYSIS_CONFIG
+          ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
+          : "Your selected video is processed for body tracking. When AI review is connected, video frames are also sent to Google Gemini for a technique estimate."}
       </Text>
       <Button
         label={picking ? "Opening…" : "Record & analyze"}
@@ -311,8 +315,8 @@ export function ShotAnalysis() {
           shot.
         </Text>
         <Text style={s.small}>
-          Up to 30 seconds · 50 MB. Saved replays stay on this device, up to 10 clips or
-          200 MB.
+          Up to 30 seconds · {maxPickedMegabytes} MB. Saved replays stay on this device,
+          up to 10 clips or 200 MB.
         </Text>
       </Disclosure>
       {history.length > 0 || historyError ? (
@@ -788,8 +792,9 @@ function ShotReview({
         ) : !pose ? (
           <>
             <Text style={s.small}>
-              Analyze processes this saved clip for body tracking and, when connected,
-              sends video frames to Google Gemini for a technique estimate.
+              {HOSTED_ANALYSIS_CONFIG
+                ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
+                : "Analyze processes this saved clip for body tracking and, when connected, sends video frames to Google Gemini for a technique estimate."}
             </Text>
             <Button
               label="Analyze movement"

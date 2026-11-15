@@ -2,6 +2,16 @@
 
 Hosted analysis is disabled in the production EAS profile. The existing local preview keeps its five tabs. Enabling hosted analysis adds Analyze independently; it does not enable the laptop-backed Coach screen.
 
+The separate `analysis-validation` profile extends production with hosted analysis enabled, the verified Cloud Run URL, the `preview` EAS environment and the pinned `macos-tahoe-26.5-xcode-26.6` image. It is a four-tab native validation build, not the final five-tab public release. Default production remains unchanged.
+
+Firebase iOS registration, anonymous Auth, App Attest registration and the real plist are configured. `BREAKAWAY_FIREBASE_IOS_CONFIG` is a sensitive file variable in this project's EAS preview environment. It contains Firebase client configuration, not a Gemini/provider credential. Local EAS commands must also receive the local path while evaluating app config:
+
+```sh
+BREAKAWAY_FIREBASE_IOS_CONFIG=./GoogleService-Info.plist npx eas-cli@27.5.0 config --platform ios --profile analysis-validation --json
+```
+
+An isolated iOS prebuild passed using the real plist: generated native files initialize App Check before Firebase, use dynamic frameworks and include the production App Attest entitlement. EAS has an active distribution certificate and existing provisioning profile; the build must synchronize App Attest capability and refresh provisioning if required. Signing and physical-device attestation have not yet been verified for this new profile.
+
 The native iPhone implementation uses React Native Firebase 27.1.1, persistent anonymous Firebase Auth and App Attest. No developer pairing, laptop URL, shared bearer or provider API key authorizes hosted requests. Expo Go and Android cannot use this initial hosted identity path. Native verification errors leave the video available locally.
 
 ## Build prerequisites
@@ -15,3 +25,7 @@ The native iPhone implementation uses React Native Firebase 27.1.1, persistent a
 Uploads use Expo binary multipart with a 25 MiB, 30-second client bound, Firebase ID token, App Check token and an operation UUID. Retries of the same clip and mode reuse that UUID while the review screen remains mounted; the pose fallback has a separate UUID. Unmounting the screen starts a new review lifetime. The client never automatically replaces a UUID after a 409; server error messages remain visible. After an expired cached result (410), reopen the clip to deliberately begin a new review.
 
 Firebase App Check token refresh starts only when hosted analysis is requested. The native Firebase SDK retains its anonymous identity across app launches. A normal app data reset does not delete that server identity or reset daily quotas.
+
+Build 6 was started from `4aabb99`. Its picker still displays the local 50 MB hint, but its hosted upload guard enforces 25 MiB. The source now also uses 25 MiB for the hosted picker hint and initial size check; that small correction is for the next native build. Validate build 6 with a clip under 25 MiB.
+
+Firebase may remove inactive anonymous users after 30 days. The client recovers a deleted/expired anonymous identity once, sharing sign-in across concurrent requests. Network errors, disabled users, failed attestation and verified-account failures never recreate an identity.
