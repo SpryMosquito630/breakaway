@@ -1,46 +1,27 @@
 import { ProgressionSummary } from "./Progression";
-import { OnboardingPlayerCard } from "../components/OnboardingPlayerCard";
-import { useIsFocused } from "@react-navigation/native";
+import { ProgressSkillProfile } from "../components/ProgressSkillProfile";
 import { SkillProfile } from "../components/SkillProfile";
 import { PersonalRating } from "../components/PersonalRating";
 import { haptic } from "../utils/haptics";
 import { useEffect, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
 import { useApp } from "../state/AppState";
 import { Button, Field, Link, Page, Title } from "../components/ui";
 import { time } from "../domain/model";
 import { useTheme } from "../theme/ThemeProvider";
-import { skillProfile } from "../domain/skillProfile";
 import { canSaveBenchmark } from "../domain/benchmark";
 import { useBenchmarkClock } from "../hooks/useBenchmarkClock";
 
 export function Progress({ navigation }: { navigation: any }) {
-  const { data } = useApp();
-  const focused = useIsFocused();
-  const { width } = useWindowDimensions();
   return (
-    <Page contentStyle={{ alignItems: "center", paddingTop: 32 }}>
-      <OnboardingPlayerCard
-        name={data.onboardingAnswers?.name}
-        position={data.onboardingAnswers?.positionDetail ?? data.profile.position ?? "—"}
-        look={data.onboardingAnswers?.snapshotStyle}
-        ratings={skillProfile(false, data.assessments)}
-        active={focused}
-        size={Math.min(width - 64, 320)}
-        onSkillPress={(skill) => {
-          haptic("selection");
-          navigation.navigate("Assessment", { skill });
-        }}
+    <Page contentStyle={{ paddingTop: 24 }}>
+      <ProgressSkillProfile
+        onAssess={(skill) => navigation.navigate("Assessment", { skill })}
       />
     </Page>
   );
 }
+
 export function SkillProfileScreen({ navigation }: { navigation: any }) {
   return (
     <Page>
