@@ -339,3 +339,14 @@ test("load and retry join an in-flight reset without republishing the old profil
   assert.deepEqual(store.getData(), initialData());
   assert.deepEqual(JSON.parse(storage.values.get(APP_STORAGE_KEY)!), initialData());
 });
+
+test("reload waits for accepted pending saves instead of dropping the newest edit", async () => {
+  const storage = memory(JSON.stringify(saved()));
+  const store = createAppStoreCore(storage);
+  await store.load();
+  store.update((data) => ({ ...data, onboarded: false }));
+  await store.load();
+  await store.settled();
+  assert.equal(store.getData().onboarded, false);
+  assert.equal(JSON.parse(storage.values.get(APP_STORAGE_KEY)!).onboarded, false);
+});
