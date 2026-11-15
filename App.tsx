@@ -1,6 +1,6 @@
 import { haptic } from "./src/utils/haptics";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { DEVELOPER_FEATURES } from "./src/config/features";
+import { DEVELOPER_FEATURES, LOCAL_SERVICE_PREVIEW } from "./src/config/features";
 import { setConnectedAgeBand } from "./src/connected/access";
 import {
   AccessibilityInfo,
@@ -41,8 +41,6 @@ import { RecoveryActions } from "./src/components/RecoveryActions";
 import { Onboarding, ReplayOnboarding } from "./src/screens/Onboarding";
 import { Today, Plan } from "./src/screens/Home";
 import { Library, Detail, Replace } from "./src/screens/Library";
-import { ShotAnalysis } from "./src/screens/ShotAnalysis";
-import { Coach } from "./src/screens/Coach";
 import { Practice, Recap } from "./src/screens/Practice";
 import { Assessment } from "./src/screens/Assessment";
 import {
@@ -69,6 +67,12 @@ function developerScreen(load: () => Promise<{ default: React.ComponentType<any>
     </Suspense>
   );
 }
+const ShotAnalysis = developerScreen(() =>
+  import("./src/screens/LocalServiceScreens").then((m) => ({ default: m.ShotAnalysis })),
+);
+const Coach = developerScreen(() =>
+  import("./src/screens/LocalServiceScreens").then((m) => ({ default: m.Coach })),
+);
 const Replay = developerScreen(() =>
   import("./src/screens/DeveloperScreens").then((m) => ({ default: m.Replay })),
 );
@@ -200,12 +204,14 @@ function Main({ navigation }: { navigation: any }) {
         options={{ title: "Train", tabBarLabel: "Train" }}
       />
       <Tab.Screen name="Drills" component={Library} />
-      <Tab.Screen
-        name="Analyze"
-        component={ShotAnalysis}
-        options={{ title: "Shot analysis", tabBarLabel: "Analyze" }}
-      />
-      <Tab.Screen name="Coach" component={Coach} />
+      {LOCAL_SERVICE_PREVIEW ? (
+        <Tab.Screen
+          name="Analyze"
+          component={ShotAnalysis}
+          options={{ title: "Shot analysis", tabBarLabel: "Analyze" }}
+        />
+      ) : null}
+      {LOCAL_SERVICE_PREVIEW ? <Tab.Screen name="Coach" component={Coach} /> : null}
       <Tab.Screen name="Progress" component={Progress} />
     </Tab.Navigator>
   );

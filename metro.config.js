@@ -6,9 +6,18 @@ const developerFeatures = process.env.EXPO_PUBLIC_DEVELOPER_FEATURES === "true";
 const shotPoseAnalysis = process.env.EXPO_PUBLIC_SHOT_POSE_ANALYSIS === "true";
 const coachRemote = process.env.EXPO_PUBLIC_COACH_REMOTE_ENABLED === "true";
 const coachPairing = coachRemote && process.env.EXPO_PUBLIC_COACH_DEV_ENABLED === "true";
-config.cacheVersion = `${config.cacheVersion ?? ""}-developer-${developerFeatures}-shot-pose-${shotPoseAnalysis}-coach-${coachRemote}`;
+config.cacheVersion = `${config.cacheVersion ?? ""}-developer-${developerFeatures}-shot-pose-${shotPoseAnalysis}-coach-${coachRemote}-local-release-${process.env.NODE_ENV === "production"}`;
 const resolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (
+    (process.env.NODE_ENV === "production" || (!coachPairing && !shotPoseAnalysis)) &&
+    /(?:^|\/)LocalServiceScreens$/.test(moduleName)
+  ) {
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(__dirname, "src/screens/LocalServiceScreens.disabled.ts"),
+    };
+  }
   if (!developerFeatures && /(?:^|\/)DeveloperScreens$/.test(moduleName)) {
     return {
       type: "sourceFile",
