@@ -70,7 +70,8 @@ export function createAppStoreCore(storage: Storage) {
   function persist(data: AppData) {
     if (!readable || snapshot.loading || snapshot.recovery) return Promise.resolve();
     return queue(async () => {
-      if (!readable || snapshot.loading || snapshot.recovery) return;
+      // This save was admitted before a reload/reset fence. Finish it in order;
+      // a later read must never discard an already accepted edit.
       try {
         await storage.setItem(APP_STORAGE_KEY, JSON.stringify(data));
         if (snapshot.error !== null) publish({ ...snapshot, error: null });
@@ -88,7 +89,7 @@ export function createAppStoreCore(storage: Storage) {
     if (loading) return loading;
     readable = false;
     publish({ ...snapshot, loading: true });
-    loading = (async () => {
+    loading = queue(async () => {
       let raw: string | null = null;
       let backedUp = false;
       let backupFailed = false;
@@ -125,7 +126,7 @@ export function createAppStoreCore(storage: Storage) {
             : "Saved data could not be read. Your original save is unchanged. Retry to read it again.",
         });
       }
-    })().finally(() => {
+    }).finally(() => {
       loading = null;
     });
     return loading;
