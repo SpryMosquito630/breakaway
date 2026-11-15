@@ -36,6 +36,7 @@ if (developerFeatures || shotPoseAnalysis || coachRemote) {
       poseOnly: !developerFeatures,
       coachChat: coachRemote,
       coachPairing,
+      shotReview: coachPairing,
     });
 }
 module.exports = config;

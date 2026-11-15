@@ -28,7 +28,7 @@ def configured():
     return credentials and (bool(auth_config()) or (os.environ.get('ALLOW_DEV_AI') == '1' and AI_ATTEMPTS < MAX_AI_ATTEMPTS))
 
 def chat_provider():
-    # Gemini is chat-only. Never advertise video/food support from this key.
+    # Gemini supports chat and the isolated shot rubric, not legacy video/food review.
     if os.environ.get('GEMINI_API_KEY', '').strip() and re.fullmatch(r'[A-Za-z0-9._-]{1,100}', os.environ.get('GEMINI_MODEL', '')):
         return 'gemini'
     if os.environ.get('OPENAI_API_KEY', '').strip() and os.environ.get('OPENAI_MODEL', '').strip():

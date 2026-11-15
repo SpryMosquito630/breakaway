@@ -6,7 +6,7 @@ const MAX_BYTES = 50 * 1024 * 1024;
 module.exports = function analysisMiddleware(
   next,
   projectRoot,
-  { poseOnly = false, coachChat = false, coachPairing = false } = {},
+  { poseOnly = false, coachChat = false, coachPairing = false, shotReview = false } = {},
 ) {
   const runtimePath = path.join(projectRoot, "work/replay-service/runtime.json");
   return (req, res, fallback) => {
@@ -18,6 +18,7 @@ module.exports = function analysisMiddleware(
       "/api/replay/pair": "/pair",
       "/api/replay/coach": "/coach",
       "/api/replay/pose": "/pose",
+      "/api/replay/shot-review": "/shot-review",
       "/api/replay/food": "/food",
     };
     if (!routes[route]) return next(req, res, fallback);
@@ -28,18 +29,19 @@ module.exports = function analysisMiddleware(
         "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers":
-          "Authorization, Content-Type, X-User-Token, X-Coach-Pair",
+          "Authorization, Content-Type, X-User-Token, X-Coach-Pair, X-Include-Pose",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       });
       res.end(JSON.stringify(body));
     };
-    // The player-facing shot review exposes local joints only. Other developer
-    // integrations remain closed even if their paths are requested directly.
+    // Explicit feature flags expose only the enabled player-facing routes.
     if (
       (route === "/api/replay/pair" && !coachPairing) ||
+      (route === "/api/replay/shot-review" && !shotReview) ||
       (poseOnly &&
         route !== "/api/replay/health" &&
         route !== "/api/replay/pose" &&
+        !(shotReview && route === "/api/replay/shot-review") &&
         !(coachChat && route === "/api/replay/chat") &&
         !(coachPairing && route === "/api/replay/pair"))
     )
@@ -90,6 +92,7 @@ module.exports = function analysisMiddleware(
       authorization: req.headers.authorization || "",
       "x-user-token": req.headers["x-user-token"] || "",
       "x-coach-pair": req.headers["x-coach-pair"] || "",
+      "x-include-pose": req.headers["x-include-pose"] === "1" ? "1" : "0",
       connection: "close",
     };
     if (req.headers["content-length"])
