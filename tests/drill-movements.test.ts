@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { drills } from "../src/data/drills";
 import { drillMovements } from "../src/data/drill-movements";
 test("every catalog drill has an identified movement guide with a meaningful direction", () => {
-  assert.deepEqual(Object.keys(drillMovements).sort(), drills.map(d => d.id).sort());
+  assert.deepEqual(Object.keys(drillMovements).sort(), drills.map((d) => d.id).sort());
   for (const drill of drills) {
     const movement = drillMovements[drill.id];
     assert.ok(movement.path.startsWith("M"), drill.id);

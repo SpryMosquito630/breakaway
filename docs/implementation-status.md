@@ -1,35 +1,30 @@
-# Breakaway implementation status
+# Breakaway release scope
 
-The roadmap combines seven competing products. Implementations must distinguish local functionality, configured online integrations and experimental analysis. A feature is not live merely because its screen or adapter exists.
+The shipping app is an account-free soccer practice tool: Train, Drills, Progress and optional local reminders. It no longer promotes unfinished products as player-facing features.
 
-## Local core
+## Shipping
 
-- Existing practice clock, frozen sessions, reminders, local history and theme remain authoritative.
-- Position onboarding starts unanswered. Existing saves remain compatible.
-- Saved personal replays keep media and measured ball tracking on device, independently of sample footage.
-- Drill instruction currently includes two bundled examples and 28 movement schematics; the remaining drills do not have filmed examples.
-- Daily time overrides apply to the local date and preserve the weekly schedule.
+- Constraint-aware plans, visible session drills, custom drills/playlists, practice history and six self-reported test scores.
+- Per-minute drill pacing scaled to the frozen block length; revised difficulty set/reset constraints.
+- Foreground timer audio plays through iOS silent mode. Background practice is an explicit, default-off option; it reconciles wall-clock time and requests a local end notification, rather than claiming a background JavaScript service. It never advances to another drill automatically.
+- One week of finite local reminders, excluding practiced dates; refreshed on relevant changes and foregrounding. Delivery follows device settings.
+- Raw-save recovery backup before any repaired save can be written. Read/backup failures gate training/onboarding and block writes; Retry reads again. Isolated invalid active sessions are dropped while validated progress survives.
+- Neutral unanswered age-range question. Age range stays local; unknown/under-13 users cannot access the experimental connected client. Local training remains available to every age range.
 
-## Current roadmap build
+## Developer experiments, disabled by default
 
-- Training: explicit position/weak-foot paths, daily readiness, match calendar, weekly review, favorites, custom drills and playlists.
-- Progression: participation XP, levels, schedule-aware streaks, challenges, badges, practice paths, personal-best recognition and season goals. Ability ratings still come only from saved tests.
-- Athlete notebook: guided routines/rest timers, foreground GPS, manual personal records, food/label/photo logs, hydration/sleep, focus timers and match records.
-- Coach and match organizer: curated session builder, saved sessions, diagrams and exports; local teams, manual ratings, RSVPs, formations and constrained balancing.
-- Connected football: optional auth and explicit training sync; private friends/spaces/challenges, chat/events/polls, opt-in standings and block/report controls.
-- Coaching: local plan-aware guide, optional structured online chat/video feedback, and experimental local joint visualization.
-- Membership: provider-backed offering/purchase/restore adapter with runtime/build gating. No entitlement is granted by a client-side counter or pending payment.
+`EXPO_PUBLIC_DEVELOPER_FEATURES=true` enables experimental replay, AI, athlete notebooks, coach/team tools, accounts, community and membership. Restart Metro with a cleared cache after changing this build flag. Metro excludes the developer screen graph when disabled; these are not shipping product promises. Backend proxy routes are off by default too.
 
-## External activation requirements
+Leaderboards are disabled. No client writes practice points or opts into standings. The desired SQL schema revokes client score writes; policy tests cover those denials. No schema was deployed to a hosted project. Age screening is not identity verification, parental consent or a claim of legal compliance. Public community remains blocked from release pending a suitable youth-safety, moderation and privacy design.
 
-Supabase Auth/REST/email require a configured project and the reviewed schema. Local SQL policy tests do not establish hosted integration. Online AI requires server-side credentials, a configured model and request authorization; no live paid AI calls are made during development without those settings. Store purchases require configured products/provider keys and a store-enabled native build; Expo Go is not a payments test environment.
+The replay sample video is no longer bundled. Developer builds may provide a matching licensed HTTPS source URL; personal clips must never inherit authored sample annotations. The hero is a 148 KiB WebP with provenance tracked in assets/README.md.
 
-GPS, camera, device media persistence, share sheets and purchase flows need physical-device verification. Joint visibility and generated feedback are experimental, not validated technique or medical judgments. Original instructional content remains illustrative rather than coach-endorsed.
+## Release dependencies
 
-## Verification ledger
+Only two filmed drill examples currently exist. The other drills have schematics/instructions. Revised stages are original illustrative content, not coach-reviewed. Additional footage must demonstrate the actual drill and have documented rights. A qualified coach review and further filmed demonstrations require external content/review work; no review or accuracy is fabricated.
 
-November 6, 2026 final integration: 126 app tests passed with no failures/skips; TypeScript passed; combined iOS/Android Expo export passed (38 assets). Backend checks: 11 coaching contracts, six billing-webhook tests and eight existing ball-service tests. Connected and billing SQL policy/ledger suites passed on disposable PostgreSQL 17.11; concurrent credit reservations did not overspend. No hosted service or paid call was exercised.
+Physical-device tests remain required for silent-switch audio, lock/app-switch clock reconciliation, notification timing/cancellation, force-quit/relaunch, permission revocation and native media/share behavior. Native exports and pure clock tests do not prove OS delivery. Supabase/OpenAI/store services remain unconfigured.
 
-Browser checks at 390px: all-unanswered onboarding, position, training paths, custom drill creation/favorite, ordered playlist save and actual practice start, meal persistence after reload, local guide, saved coach-session creation/details/diagram, progression routes and empty-state OVR. All toolkit routes opened; account/community/purchase/AI unavailable states stayed honest. Real local joint review rejected cropped footage and produced aligned, playable full-body landmarks on stock footage. These are fixture checks, not general model accuracy. A review also fixed specialist keeper drills appearing in outfield generated plans and blocked notebook writes after a failed read until successful retry.
+## Development checks
 
-Unverified: physical camera/barcode permissions, real GPS route, native filesystem/share/print, store sandbox purchase and hosted Supabase/Auth/email/OpenAI. Native export is not a device run. Billing remains dormant preparation; purchase reconciliation, authenticated identity linking, durable paid jobs and a verified balance endpoint still require implementation/configuration before charging. The app has no fake credit grant or live billing route.
+Work on a branch, keep functional changes separate from repository-wide formatting, and use a pull request. GitHub Actions runs TypeScript, tests and Prettier checks. Generated work/exports are excluded from TypeScript. Verification results for this branch are recorded in docs/release-hardening.md.

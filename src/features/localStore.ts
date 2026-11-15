@@ -10,8 +10,14 @@ export function createLocalStore<T>(options: LocalStoreOptions<T>) {
   return {
     ...store,
     useStore() {
-      const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
-      useEffect(() => { void store.load(); }, []);
+      const snapshot = useSyncExternalStore(
+        store.subscribe,
+        store.getSnapshot,
+        store.getSnapshot,
+      );
+      useEffect(() => {
+        void store.load();
+      }, []);
       return { ...snapshot, update: store.update, retry: store.retry };
     },
   };

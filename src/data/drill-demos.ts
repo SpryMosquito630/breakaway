@@ -15,7 +15,8 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
     credit: "Videas Cl / Pexels 19216281",
     page: "https://www.pexels.com/video/two-men-in-red-and-black-soccer-uniforms-playing-soccer-19216281/",
     cue: "Guide the ball gently with your sole.",
-    description: "One-foot sole-control example. Stop with the other foot and alternate using the steps below.",
+    description:
+      "One-foot sole-control example. Stop with the other foot and alternate using the steps below.",
   },
   slalom: {
     title: "Marker slalom: weave and return",
@@ -23,6 +24,7 @@ export const drillDemos: Record<string, DrillDemoAsset> = {
     credit: "RDNE Stock project / Pexels 7187061",
     page: "https://www.pexels.com/download/video/7187061/",
     cue: "Small touches around each marker. Turn at the end and return.",
-    description: "Filmed movement example: weaving between cones, turning and returning. Use flat markers spaced for your own walking pace; follow your selected stage’s steps and target.",
+    description:
+      "Filmed movement example: weaving between cones, turning and returning. Use flat markers spaced for your own walking pace; follow your selected stage’s steps and target.",
   },
 };

@@ -1,9 +1,18 @@
 import type { Playlist, TrainingPreferences, DailyReadiness } from "./training";
 import type { SkillAssessment } from "./assessments";
 export type Goal = "Ball control" | "Dribbling" | "Passing" | "Weaker foot";
-export const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward", "Still exploring"] as const;
-export type Position = typeof positions[number];
+export const positions = [
+  "Goalkeeper",
+  "Defender",
+  "Midfielder",
+  "Forward",
+  "Still exploring",
+] as const;
+export type Position = (typeof positions)[number];
+export const ageBands = ["under13", "13to17", "adult"] as const;
+export type AgeBand = (typeof ageBands)[number];
 export type Profile = {
+  ageBand?: AgeBand;
   position?: Position;
   goal: Goal;
   experience: string;
@@ -52,6 +61,8 @@ export type DrillSnapshot = {
   target?: string;
 };
 export type Active = {
+  /** Frozen when the first block starts; absent until then. */
+  backgroundClock?: boolean;
   id: string;
   ids: string[];
   index: number;
@@ -84,6 +95,7 @@ export type History = {
 export type Benchmark = { id: string; date: string; count: number };
 export type TodaySession = { date: string; minutes: 10 | 15 | 20 | 30 };
 export type AppData = {
+  backgroundPractice?: boolean;
   version: 1;
   customDrills?: Drill[];
   trainingRecoveryNotice?: string;
@@ -102,12 +114,7 @@ export type AppData = {
   assessments?: SkillAssessment[];
 };
 export const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-export const goals: Goal[] = [
-  "Ball control",
-  "Dribbling",
-  "Passing",
-  "Weaker foot",
-];
+export const goals: Goal[] = ["Ball control", "Dribbling", "Passing", "Weaker foot"];
 export const initialData = (): AppData => ({
   version: 1,
   planCustomized: false,
@@ -135,10 +142,14 @@ export function allowed(d: Drill, p: Profile) {
 export function positionSupportSkills(position?: Position): readonly string[] {
   switch (position) {
     case "Goalkeeper":
-    case "Defender": return ["Passing", "Ball control"];
-    case "Midfielder": return ["Passing", "Weaker foot"];
-    case "Forward": return ["Dribbling", "Ball control"];
-    default: return [];
+    case "Defender":
+      return ["Passing", "Ball control"];
+    case "Midfielder":
+      return ["Passing", "Weaker foot"];
+    case "Forward":
+      return ["Dribbling", "Ball control"];
+    default:
+      return [];
   }
 }
 export function positionPriority(d: Drill, p: Profile) {
@@ -146,7 +157,10 @@ export function positionPriority(d: Drill, p: Profile) {
   return index < 0 ? 0 : 2 - index;
 }
 export function recommendedForPosition(d: Drill, p: Profile) {
-  return !d.recommendedPositions || (p.position !== undefined && d.recommendedPositions.includes(p.position));
+  return (
+    !d.recommendedPositions ||
+    (p.position !== undefined && d.recommendedPositions.includes(p.position))
+  );
 }
 export function matchPlan(all: Drill[], p: Profile) {
   return all
@@ -220,29 +234,22 @@ export function tick(a: Active, now = Date.now()): Active {
     last: now,
     remaining: a.remaining - used,
     elapsed: a.elapsed + used,
-    blockElapsed:
-      (a.blockElapsed ?? Math.max(0, a.duration - a.remaining)) + used,
+    blockElapsed: (a.blockElapsed ?? Math.max(0, a.duration - a.remaining)) + used,
     running: a.remaining - used > 0,
   };
 }
 export function pause(a: Active, now = Date.now()) {
   return { ...tick(a, now), running: false };
 }
-export function currentDrillResult(
-  a: Active,
-  skip = false,
-): DrillResult | null {
+export function currentDrillResult(a: Active, skip = false): DrillResult | null {
   const id = a.ids[a.index];
   if (!id) return null;
-  const seconds = Math.round(
-    a.blockElapsed ?? Math.max(0, a.duration - a.remaining),
-  );
+  const seconds = Math.round(a.blockElapsed ?? Math.max(0, a.duration - a.remaining));
   const snapshot = a.snapshots?.[id] ?? { version: 1, difficulty: 1 };
   return {
     id,
     ...snapshot,
-    status:
-      !skip && a.remaining <= 0 ? "done" : seconds > 0 ? "partial" : "skipped",
+    status: !skip && a.remaining <= 0 ? "done" : seconds > 0 ? "partial" : "skipped",
     seconds,
   };
 }
@@ -274,9 +281,7 @@ export function replaceActiveDrill(
   const result = currentDrillResult(t);
   const results = [
     ...(t.results ?? []),
-    ...(result && result.seconds > 0
-      ? [{ ...result, status: "partial" as const }]
-      : []),
+    ...(result && result.seconds > 0 ? [{ ...result, status: "partial" as const }] : []),
   ];
   const ids = [...t.ids];
   ids[index] = id;
@@ -350,22 +355,39 @@ export function time(seconds: number) {
   return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
 }
 
-const profileKey = (profile: Profile, ignorePosition = false) => JSON.stringify({
-  position: ignorePosition ? undefined : profile.position,
-  goal: profile.goal,
-  experience: profile.experience,
-  days: [...profile.days].sort(),
-  minutes: profile.minutes,
-  gear: [...profile.gear].sort(),
-  space: profile.space,
-});
+const profileKey = (profile: Profile, ignorePosition = false) =>
+  JSON.stringify({
+    position: ignorePosition ? undefined : profile.position,
+    goal: profile.goal,
+    experience: profile.experience,
+    days: [...profile.days].sort(),
+    minutes: profile.minutes,
+    gear: [...profile.gear].sort(),
+    space: profile.space,
+  });
 export function keepsCustomPlanForPosition(data: AppData, profile: Profile) {
-  return data.planCustomized === true && profileKey(data.profile, true) === profileKey(profile, true);
+  return (
+    data.planCustomized === true &&
+    profileKey(data.profile, true) === profileKey(profile, true)
+  );
 }
-export function updateTrainingProfile(data: AppData, profile: Profile, catalog: Drill[]): AppData {
+export function preserveAgeRestriction(current: Profile, incoming: Profile): Profile {
+  return current.ageBand === "under13" ? { ...incoming, ageBand: "under13" } : incoming;
+}
+export function updateTrainingProfile(
+  data: AppData,
+  profile: Profile,
+  catalog: Drill[],
+): AppData {
+  profile = preserveAgeRestriction(data.profile, profile);
   const changed = profileKey(data.profile) !== profileKey(profile);
   const keepPlan = !changed || keepsCustomPlanForPosition(data, profile);
-  return { ...data, profile, plan: keepPlan ? data.plan : matchPlan(catalog, profile), planCustomized: keepPlan ? data.planCustomized : false };
+  return {
+    ...data,
+    profile,
+    plan: keepPlan ? data.plan : matchPlan(catalog, profile),
+    planCustomized: keepPlan ? data.planCustomized : false,
+  };
 }
 export function completeOnboarding(
   data: AppData,
@@ -373,8 +395,12 @@ export function completeOnboarding(
   matchedPlan: string[],
   replay = false,
 ): AppData {
+  profile = preserveAgeRestriction(data.profile, profile);
   const keepPlan =
-    replay && data.onboarded && (profileKey(data.profile) === profileKey(profile) || keepsCustomPlanForPosition(data, profile));
+    replay &&
+    data.onboarded &&
+    (profileKey(data.profile) === profileKey(profile) ||
+      keepsCustomPlanForPosition(data, profile));
   return {
     ...data,
     profile,

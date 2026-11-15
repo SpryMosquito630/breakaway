@@ -31,7 +31,6 @@ for (const theme of ["light", "dark"] as const) {
     ])
       assert.ok(contrast(text, fill) >= 4.5, `${text} on ${fill}`);
     for (const text of [c.ink, c.muted])
-      for (const fill of [c.bg, c.white])
-        assert.ok(contrast(text, fill) >= 4.5);
+      for (const fill of [c.bg, c.white]) assert.ok(contrast(text, fill) >= 4.5);
   });
 }

@@ -24,14 +24,11 @@ export function BarcodeScanner({
     live = useRef(true);
   useEffect(() => {
     live.current = true;
-    const unregister = registerFeatureReset(
-      "athlete-barcode-camera",
-      async () => {
-        generation.current++;
-        setVisible(false);
-        setPending("");
-      },
-    );
+    const unregister = registerFeatureReset("athlete-barcode-camera", async () => {
+      generation.current++;
+      setVisible(false);
+      setPending("");
+    });
     const sub = AppState.addEventListener("change", (state) => {
       if (state !== "active") {
         generation.current++;
@@ -56,14 +53,10 @@ export function BarcodeScanner({
   async function open() {
     const epoch = ++generation.current;
     try {
-      const allowed = permission?.granted
-        ? permission
-        : await requestPermission();
+      const allowed = permission?.granted ? permission : await requestPermission();
       if (!live.current || epoch !== generation.current) return;
       if (!allowed.granted) {
-        setMessage(
-          "Camera permission was declined. Enter the barcode digits instead.",
-        );
+        setMessage("Camera permission was declined. Enter the barcode digits instead.");
         return;
       }
       locked.current = false;
@@ -71,9 +64,7 @@ export function BarcodeScanner({
       setVisible(true);
     } catch {
       if (live.current && epoch === generation.current)
-        setMessage(
-          "The camera is unavailable. Enter the barcode digits instead.",
-        );
+        setMessage("The camera is unavailable. Enter the barcode digits instead.");
     }
   }
   return (
@@ -103,9 +94,7 @@ export function BarcodeScanner({
             ]}
           >
             <Text style={s.h2}>Scan the food package barcode</Text>
-            <Text style={s.body}>
-              Place the printed barcode inside the camera view.
-            </Text>
+            <Text style={s.body}>Place the printed barcode inside the camera view.</Text>
             <CameraView
               style={{ flex: 1, borderRadius: 12, overflow: "hidden" }}
               facing="back"

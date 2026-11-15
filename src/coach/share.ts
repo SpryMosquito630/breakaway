@@ -1,7 +1,77 @@
-import { Platform } from 'react-native';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import { File, Paths } from 'expo-file-system';
-export async function sharePDF(html:string){if(Platform.OS==='web'){await Print.printAsync({html});return;}let uri:string|undefined;try{const result=await Print.printToFileAsync({html});uri=result.uri;if(!await Sharing.isAvailableAsync())throw Error('Sharing is unavailable on this device.');await Sharing.shareAsync(uri,{mimeType:'application/pdf',UTI:'com.adobe.pdf'});}finally{if(uri)try{new File(uri).delete();}catch{}}}
-export async function shareCSV(csv:string){if(Platform.OS==='web'){const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download='breakaway-group.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const file=new File(Paths.cache,`breakaway-group-${Date.now()}.csv`);try{file.create();file.write('\ufeff'+csv);if(!await Sharing.isAvailableAsync())throw Error('Sharing is unavailable on this device.');await Sharing.shareAsync(file.uri,{mimeType:'text/csv',UTI:'public.comma-separated-values-text'});}finally{try{file.delete();}catch{}}}
-export async function shareLineupImage(svg:string){if(Platform.OS==='web'){const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=url;a.download='breakaway-lineup.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const file=new File(Paths.cache,`breakaway-lineup-${Date.now()}.svg`);try{file.create();file.write(svg);if(!await Sharing.isAvailableAsync())throw Error('Sharing is unavailable on this device.');await Sharing.shareAsync(file.uri,{mimeType:'image/svg+xml',UTI:'public.svg-image'});}finally{try{file.delete();}catch{}}}
+import { Platform } from "react-native";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import { File, Paths } from "expo-file-system";
+export async function sharePDF(html: string) {
+  if (Platform.OS === "web") {
+    await Print.printAsync({ html });
+    return;
+  }
+  let uri: string | undefined;
+  try {
+    const result = await Print.printToFileAsync({ html });
+    uri = result.uri;
+    if (!(await Sharing.isAvailableAsync()))
+      throw Error("Sharing is unavailable on this device.");
+    await Sharing.shareAsync(uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf" });
+  } finally {
+    if (uri)
+      try {
+        new File(uri).delete();
+      } catch {}
+  }
+}
+export async function shareCSV(csv: string) {
+  if (Platform.OS === "web") {
+    const url = URL.createObjectURL(
+      new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "breakaway-group.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+  const file = new File(Paths.cache, `breakaway-group-${Date.now()}.csv`);
+  try {
+    file.create();
+    file.write("\ufeff" + csv);
+    if (!(await Sharing.isAvailableAsync()))
+      throw Error("Sharing is unavailable on this device.");
+    await Sharing.shareAsync(file.uri, {
+      mimeType: "text/csv",
+      UTI: "public.comma-separated-values-text",
+    });
+  } finally {
+    try {
+      file.delete();
+    } catch {}
+  }
+}
+export async function shareLineupImage(svg: string) {
+  if (Platform.OS === "web") {
+    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "breakaway-lineup.svg";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+  const file = new File(Paths.cache, `breakaway-lineup-${Date.now()}.svg`);
+  try {
+    file.create();
+    file.write(svg);
+    if (!(await Sharing.isAvailableAsync()))
+      throw Error("Sharing is unavailable on this device.");
+    await Sharing.shareAsync(file.uri, {
+      mimeType: "image/svg+xml",
+      UTI: "public.svg-image",
+    });
+  } finally {
+    try {
+      file.delete();
+    } catch {}
+  }
+}

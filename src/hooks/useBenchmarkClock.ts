@@ -17,10 +17,7 @@ export function useBenchmarkClock() {
     ref.current = next;
     if (mounted.current) setRun(next);
   }, []);
-  const cancel = useCallback(
-    () => apply(cancelBenchmark(ref.current)),
-    [apply],
-  );
+  const cancel = useCallback(() => apply(cancelBenchmark(ref.current)), [apply]);
   const start = useCallback(() => {
     apply(startBenchmark());
     feedback("countdown");
@@ -44,19 +41,13 @@ export function useBenchmarkClock() {
         setRun(result.run);
         if (previous.phase === "countdown" && result.run.phase === "running")
           feedback("start");
-        else if (
-          previous.phase === "countdown" &&
-          result.run.phase === "countdown"
-        )
+        else if (previous.phase === "countdown" && result.run.phase === "countdown")
           feedback("countdown");
       }
       for (const signal of result.signals) feedback(signal);
     }, 100);
     const sub = AppState.addEventListener("change", (status) => {
-      if (
-        status !== "active" &&
-        ["countdown", "running"].includes(ref.current.phase)
-      )
+      if (status !== "active" && ["countdown", "running"].includes(ref.current.phase))
         cancel();
     });
     return () => {

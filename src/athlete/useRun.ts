@@ -1,23 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import * as Location from "expo-location";
-import {
-  appendPoint,
-  elapsed,
-  id,
-  Point,
-  routeDistance,
-  today,
-} from "./domain";
+import { appendPoint, elapsed, id, Point, routeDistance, today } from "./domain";
 import { athleteStore } from "./store";
 import { registerFeatureReset } from "../features/localStore";
 export function useRun() {
   const store = athleteStore.useStore();
   const [points, setPoints] = useState<Point[]>([]),
     [seconds, setSeconds] = useState(0),
-    [status, setStatus] = useState<"idle" | "starting" | "running" | "paused">(
-      "idle",
-    ),
+    [status, setStatus] = useState<"idle" | "starting" | "running" | "paused">("idle"),
     [message, setMessage] = useState("");
   const ref = useRef({
     token: 0,
@@ -99,9 +90,7 @@ export function useRun() {
             setPoints(next);
           }
           if (next.length >= 5000)
-            pause(
-              "Route sample limit reached. Save this run and start another.",
-            );
+            pause("Route sample limit reached. Save this run and start another.");
         },
       );
       if (token !== r.token) {
@@ -112,16 +101,12 @@ export function useRun() {
       r.started = Date.now();
       r.running = true;
       setStatus("running");
-      setMessage(
-        "GPS estimates may vary. Keep your phone secure and use a safe route.",
-      );
+      setMessage("GPS estimates may vary. Keep your phone secure and use a safe route.");
     } catch (e) {
       if (token === r.token) {
         setStatus(r.base || r.points.length ? "paused" : "idle");
         setMessage(
-          e instanceof Error
-            ? e.message
-            : "GPS could not start. Try again outdoors.",
+          e instanceof Error ? e.message : "GPS could not start. Try again outdoors.",
         );
       }
     }
@@ -140,9 +125,7 @@ export function useRun() {
       meters: routeDistance(r.points),
       points: r.points,
     };
-    if (
-      await store.update((d) => ({ ...d, runs: [...d.runs, run].slice(-1000) }))
-    ) {
+    if (await store.update((d) => ({ ...d, runs: [...d.runs, run].slice(-1000) }))) {
       r.base = 0;
       r.points = [];
       setPoints([]);

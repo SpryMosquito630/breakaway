@@ -1,0 +1,8 @@
+node_modules
+work
+outputs
+.expo
+assets
+package-lock.json
+src/data/replay-sample.json
+src/data/replay-review.json

@@ -15,29 +15,42 @@ export function PreferenceFields({
   section?: "all" | "position" | "goal" | "experience" | "schedule" | "setup";
 }) {
   const { C, s } = useTheme();
-  const set = <K extends keyof Profile>(
-    key: K,
-    value: Profile[K] | undefined,
-  ) => onChange({ ...profile, [key]: value });
+  const set = <K extends keyof Profile>(key: K, value: Profile[K] | undefined) =>
+    onChange({ ...profile, [key]: value });
   const toggle = (key: "days" | "gear", v: string) => {
     const current = profile[key] ?? [];
-    const next = current.includes(v)
-      ? current.filter((x) => x !== v)
-      : [...current, v];
-    set(
-      key,
-      key === "gear" && explicitEquipment && next.length === 0
-        ? undefined
-        : next,
-    );
+    const next = current.includes(v) ? current.filter((x) => x !== v) : [...current, v];
+    set(key, key === "gear" && explicitEquipment && next.length === 0 ? undefined : next);
   };
   return (
     <View style={{ gap: 28 }}>
-      {section === "all" || section === "position" ? <View style={s.stack}>
-        {section === "all" ? <Text style={s.h2}>Position</Text> : null}
-        {positions.map((position) => <Choice key={position} label={position} selected={profile.position === position} detail={position === "Goalkeeper" ? "Ball work and distribution" : position === "Defender" ? "Receiving and playing out" : position === "Midfielder" ? "Passing and both-foot confidence" : position === "Forward" ? "Dribbling and close control" : "Keep your training balanced"} onPress={() => set("position", position)} />)}
-        <Text style={s.small}>Your focus comes first. Position helps choose supporting drills.</Text>
-      </View> : null}
+      {section === "all" || section === "position" ? (
+        <View style={s.stack}>
+          {section === "all" ? <Text style={s.h2}>Position</Text> : null}
+          {positions.map((position) => (
+            <Choice
+              key={position}
+              label={position}
+              selected={profile.position === position}
+              detail={
+                position === "Goalkeeper"
+                  ? "Ball work and distribution"
+                  : position === "Defender"
+                    ? "Receiving and playing out"
+                    : position === "Midfielder"
+                      ? "Passing and both-foot confidence"
+                      : position === "Forward"
+                        ? "Dribbling and close control"
+                        : "Keep your training balanced"
+              }
+              onPress={() => set("position", position)}
+            />
+          ))}
+          <Text style={s.small}>
+            Your focus comes first. Position helps choose supporting drills.
+          </Text>
+        </View>
+      ) : null}
       {section === "all" || section === "goal" ? (
         <View style={s.stack}>
           {section === "all" ? <Text style={s.h2}>Focus</Text> : null}
@@ -96,9 +109,7 @@ export function PreferenceFields({
                     checked: profile.days?.includes(d) ?? false,
                   }}
                   onPress={() => {
-                    haptic(
-                      profile.days?.includes(d) ? "toggle-off" : "toggle-on",
-                    );
+                    haptic(profile.days?.includes(d) ? "toggle-off" : "toggle-on");
                     toggle("days", d);
                   }}
                   style={{
@@ -116,9 +127,7 @@ export function PreferenceFields({
                       s.h3,
                       {
                         color:
-                          (profile.days?.includes(d) ?? false)
-                            ? C.onPrimary
-                            : C.muted,
+                          (profile.days?.includes(d) ?? false) ? C.onPrimary : C.muted,
                       },
                     ]}
                   >
@@ -128,9 +137,7 @@ export function PreferenceFields({
               ))}
             </ScrollView>
             {profile.days !== undefined && !profile.days.length ? (
-              <Text style={[s.small, { color: C.danger }]}>
-                Choose at least one day.
-              </Text>
+              <Text style={[s.small, { color: C.danger }]}>Choose at least one day.</Text>
             ) : null}
           </View>
           <View style={s.stack}>
@@ -169,16 +176,12 @@ export function PreferenceFields({
           </View>
           <View style={s.stack}>
             <Text style={s.h3}>Equipment</Text>
-            <Text style={s.small}>
-              A ball is included. Select your equipment.
-            </Text>
+            <Text style={s.small}>A ball is included. Select your equipment.</Text>
             {explicitEquipment ? (
               <Choice
                 label="Ball only"
                 multiple
-                selected={
-                  profile.gear !== undefined && profile.gear.length === 0
-                }
+                selected={profile.gear !== undefined && profile.gear.length === 0}
                 onPress={() =>
                   set(
                     "gear",

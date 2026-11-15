@@ -77,12 +77,7 @@ export function createReplayRepository(driver: ReplayDriver) {
           throw new Error("This replay is no longer saved.");
         return driver.open(id);
       }),
-    save(
-      id: string,
-      input: ReplayInput,
-      analysis: ReplayAnalysis,
-      signal?: AbortSignal,
-    ) {
+    save(id: string, input: ReplayInput, analysis: ReplayAnalysis, signal?: AbortSignal) {
       const epoch = generation;
       return run(async () => {
         const check = () => {
@@ -94,15 +89,10 @@ export function createReplayRepository(driver: ReplayDriver) {
         check();
         const duplicate = existing.find((r) => r.id === id);
         if (duplicate) return duplicate;
-        if (!validAnalysis(analysis))
-          throw new Error("This analysis cannot be saved.");
+        if (!validAnalysis(analysis)) throw new Error("This analysis cannot be saved.");
         const bytes = await driver.size(input);
         check();
-        if (
-          !Number.isSafeInteger(bytes) ||
-          bytes <= 0 ||
-          bytes > MAX_CLIP_BYTES
-        )
+        if (!Number.isSafeInteger(bytes) || bytes <= 0 || bytes > MAX_CLIP_BYTES)
           throw new Error("Choose a video under 50 MB.");
         if (
           existing.length >= MAX_REPLAYS ||
@@ -119,8 +109,7 @@ export function createReplayRepository(driver: ReplayDriver) {
           bytes,
           analysis,
         };
-        if (!validSavedReplay(record))
-          throw new Error("This replay cannot be saved.");
+        if (!validSavedReplay(record)) throw new Error("This replay cannot be saved.");
         try {
           await driver.put(record, input);
           check();

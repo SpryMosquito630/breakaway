@@ -18,56 +18,157 @@ export function Progress({ navigation }: { navigation: any }) {
   const { data, catalog } = useApp();
   const rating = skillProfile(false, data.assessments);
   const practice = deriveProgression(data, catalog);
-  return <Page>
-    <View style={{ gap: 8, paddingVertical: 8 }}>
-      {rating.overall === null ? <>
-        <Text style={s.h2}>{rating.coverage ? `${rating.coverage} of 6 tests recorded` : "Start your skill profile"}</Text>
-        <Text style={s.small}>{rating.coverage ? "Complete six tests for an overall score." : "0 of 6 tests recorded"}</Text>
-      </> : <>
-        <Text style={s.small}>Overall test score</Text>
-        <View style={[s.row, { alignItems: "baseline", justifyContent: "flex-start", gap: 12 }]}>
-          <Text style={[s.stat, { fontSize: 56, lineHeight: 68, color: C.green }]}>{rating.overall}</Text>
-          <Text style={s.small}>/ 100</Text>
-        </View>
-        <Text style={s.small}>6/6 skills assessed · App-defined test targets</Text>
-      </>}
-    </View>
-    <View style={s.group}>
-      <SettingRow label="Skill tests" value="Results and assessments" onPress={() => navigation.navigate("SkillProfile")} />
-      <SettingRow label="Touch test" value={data.benchmarks.length ? `${data.benchmarks.length} saved results` : "30-second ball control test"} onPress={() => navigation.navigate("TouchProgress")} />
-    </View>
-    <View style={{ gap: 12 }}>
-      <Text style={s.h2}>Practice</Text>
-      <Text style={s.small}>{practice.weekDays} {practice.weekDays === 1 ? "day" : "days"} this week · {practice.days.length} total practice days</Text>
-      <View style={s.group}>
-        <SettingRow label="History" value={`${data.history.length} sessions`} onPress={() => navigation.navigate("SessionHistory")} />
-        <SettingRow label="Milestones" value={`Level ${practice.level} · ${practice.xp} XP`} onPress={() => navigation.navigate("PracticeMilestones")} />
-        <SettingRow label="Season goals" onPress={() => navigation.navigate("Seasons")} />
+  return (
+    <Page>
+      <View style={{ gap: 8, paddingVertical: 8 }}>
+        {rating.overall === null ? (
+          <>
+            <Text style={s.h2}>
+              {rating.coverage
+                ? `${rating.coverage} of 6 tests recorded`
+                : "Start your skill profile"}
+            </Text>
+            <Text style={s.small}>
+              {rating.coverage
+                ? "Complete six tests for an overall score."
+                : "0 of 6 tests recorded"}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={s.small}>Overall test score</Text>
+            <View
+              style={[
+                s.row,
+                { alignItems: "baseline", justifyContent: "flex-start", gap: 12 },
+              ]}
+            >
+              <Text style={[s.stat, { fontSize: 56, lineHeight: 68, color: C.green }]}>
+                {rating.overall}
+              </Text>
+              <Text style={s.small}>/ 100</Text>
+            </View>
+            <Text style={s.small}>6/6 skills assessed · App-defined test targets</Text>
+          </>
+        )}
       </View>
-    </View>
-  </Page>;
+      <View style={s.group}>
+        <SettingRow
+          label="Skill tests"
+          value="Results and assessments"
+          onPress={() => navigation.navigate("SkillProfile")}
+        />
+        <SettingRow
+          label="Touch test"
+          value={
+            data.benchmarks.length
+              ? `${data.benchmarks.length} saved results`
+              : "30-second ball control test"
+          }
+          onPress={() => navigation.navigate("TouchProgress")}
+        />
+      </View>
+      <View style={{ gap: 12 }}>
+        <Text style={s.h2}>Practice</Text>
+        <Text style={s.small}>
+          {practice.weekDays} {practice.weekDays === 1 ? "day" : "days"} this week ·{" "}
+          {practice.days.length} total practice days
+        </Text>
+        <View style={s.group}>
+          <SettingRow
+            label="History"
+            value={`${data.history.length} sessions`}
+            onPress={() => navigation.navigate("SessionHistory")}
+          />
+          <SettingRow
+            label="Milestones"
+            value={`Level ${practice.level} · ${practice.xp} XP`}
+            onPress={() => navigation.navigate("PracticeMilestones")}
+          />
+          <SettingRow
+            label="Season goals"
+            onPress={() => navigation.navigate("Seasons")}
+          />
+        </View>
+      </View>
+    </Page>
+  );
 }
 export function SkillProfileScreen({ navigation }: { navigation: any }) {
-  return <Page><SkillProfile onAssess={(skill) => navigation.navigate("Assessment", { skill })} /></Page>;
+  return (
+    <Page>
+      <SkillProfile onAssess={(skill) => navigation.navigate("Assessment", { skill })} />
+    </Page>
+  );
 }
 export function TouchProgress({ navigation }: { navigation: any }) {
   const { data } = useApp();
-  return <Page><PersonalRating results={data.benchmarks} onTest={() => navigation.navigate("Benchmark")} /></Page>;
+  return (
+    <Page>
+      <PersonalRating
+        results={data.benchmarks}
+        onTest={() => navigation.navigate("Benchmark")}
+      />
+    </Page>
+  );
 }
 export function PracticeMilestones({ navigation }: { navigation: any }) {
-  return <Page><ProgressionSummary navigation={navigation} /></Page>;
+  return (
+    <Page>
+      <ProgressionSummary navigation={navigation} />
+    </Page>
+  );
 }
 export function SessionHistory({ navigation }: { navigation: any }) {
   const { C, s } = useTheme();
   const { data } = useApp();
-  const history = [...data.history].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-  return <Page>
-    {history.length ? history.map((h, index) => <View key={h.id + ':' + index} style={[s.row, { paddingVertical: 12, borderBottomWidth: 1, borderColor: C.line, gap: 12 }]}>
-      <View style={{ flex: 1, gap: 4 }}><Text style={s.h3}>{h.completed ? "Session complete" : "Partial session"}</Text><Text style={s.small}>{new Date(h.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · {h.done}/{h.total} drills{h.effort ? " · " + h.effort : ""}</Text>
-        {h.drills?.map((drill, i) => <Text key={`${drill.id}:${i}`} style={s.small}>{drill.id} · level {drill.difficulty} · {drill.status} · {time(drill.seconds)}</Text>)}
-      </View><Text style={s.small}>{time(h.seconds)}</Text>
-    </View>) : <><Text style={s.body}>Your sessions will appear here after practice.</Text><Button label="Go to Train" onPress={() => navigation.navigate("Main", { screen: "Today" })} /></>}
-  </Page>;
+  const history = [...data.history].sort(
+    (a, b) => Date.parse(b.date) - Date.parse(a.date),
+  );
+  return (
+    <Page>
+      {history.length ? (
+        history.map((h, index) => (
+          <View
+            key={h.id + ":" + index}
+            style={[
+              s.row,
+              { paddingVertical: 12, borderBottomWidth: 1, borderColor: C.line, gap: 12 },
+            ]}
+          >
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={s.h3}>
+                {h.completed ? "Session complete" : "Partial session"}
+              </Text>
+              <Text style={s.small}>
+                {new Date(h.date).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}{" "}
+                · {h.done}/{h.total} drills{h.effort ? " · " + h.effort : ""}
+              </Text>
+              {h.drills?.map((drill, i) => (
+                <Text key={`${drill.id}:${i}`} style={s.small}>
+                  {drill.id} · level {drill.difficulty} · {drill.status} ·{" "}
+                  {time(drill.seconds)}
+                </Text>
+              ))}
+            </View>
+            <Text style={s.small}>{time(h.seconds)}</Text>
+          </View>
+        ))
+      ) : (
+        <>
+          <Text style={s.body}>Your sessions will appear here after practice.</Text>
+          <Button
+            label="Go to Train"
+            onPress={() => navigation.navigate("Main", { screen: "Today" })}
+          />
+        </>
+      )}
+    </Page>
+  );
 }
 export function Benchmark({ navigation }: { navigation: any }) {
   const { C, s } = useTheme();
@@ -137,8 +238,8 @@ export function Benchmark({ navigation }: { navigation: any }) {
               Get set for a 3–2–1 countdown, then 30 seconds of touches.
             </Text>
             <Text style={s.small}>
-              Use the same space and technique each time. Sound and vibration
-              mark the start and finish.
+              Use the same space and technique each time. Sound and vibration mark the
+              start and finish.
             </Text>
             {phase === "cancelled" ? (
               <Text accessibilityLiveRegion="polite" style={s.small}>
@@ -176,9 +277,7 @@ export function Benchmark({ navigation }: { navigation: any }) {
             </Text>
             <Text
               accessibilityLabel={
-                phase === "countdown"
-                  ? `Starting in ${value}`
-                  : `${value} seconds left`
+                phase === "countdown" ? `Starting in ${value}` : `${value} seconds left`
               }
               style={[
                 s.stat,
@@ -192,9 +291,7 @@ export function Benchmark({ navigation }: { navigation: any }) {
               {phase === "countdown" ? value : time(value)}
             </Text>
             <Text style={s.small}>
-              {phase === "countdown"
-                ? "Start on the signal"
-                : "Keep the ball close"}
+              {phase === "countdown" ? "Start on the signal" : "Keep the ball close"}
             </Text>
           </View>
         )}

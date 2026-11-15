@@ -1,17 +1,19 @@
+import { DEVELOPER_FEATURES } from "../config/features";
 import { trainingPlanToday, profileForToday } from "../domain/training";
 import { useState } from "react";
 import { haptic } from "../utils/haptics";
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import {
-  ArrowRight,
-  ArrowLeftRight,
-  CalendarDays,
-  Check,
-} from "lucide-react-native";
+import { ArrowRight, ArrowLeftRight, CalendarDays, Check } from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import { days, time, getDrillDuration } from "../domain/model";
-import { sessionForToday, sessionMinutesToday, setTodayMinutes, todayMinuteChoices, todayOverride } from "../domain/sessionTime";
+import {
+  sessionForToday,
+  sessionMinutesToday,
+  setTodayMinutes,
+  todayMinuteChoices,
+  todayOverride,
+} from "../domain/sessionTime";
 import { useLocalDay } from "../hooks/useLocalDay";
 import {
   Page,
@@ -46,13 +48,14 @@ export function Today({ navigation }: { navigation: any }) {
       : undefined;
     return variant ? { ...d, ...variant } : earned;
   });
-  const ids =
-    data.active?.ids ??
-    trainingPlanToday(data, catalog, now);
+  const ids = data.active?.ids ?? trainingPlanToday(data, catalog, now);
   const profile = profileForToday(data, now);
   const today = days[(now.getDay() + 6) % 7];
   const start = () => {
-    if (!data.active && !ids.length) { navigation.navigate("TrainingPlanner"); return; }
+    if (!data.active && !ids.length) {
+      navigation.navigate("TrainingPlanner");
+      return;
+    }
     haptic("medium");
     if (!data.active)
       update((st) => ({
@@ -61,12 +64,19 @@ export function Today({ navigation }: { navigation: any }) {
       }));
     navigation.navigate("Practice");
   };
-  const duration = time(
-    data.active?.duration ?? getDrillDuration(minutes, ids.length),
-  );
+  const duration = time(data.active?.duration ?? getDrillDuration(minutes, ids.length));
   return (
     <Page contentStyle={{ gap: 16, paddingTop: 8, paddingBottom: 16 }}>
-      {data.trainingRecoveryNotice ? <View style={{ gap: 8 }}><Note>{data.trainingRecoveryNotice}</Note><Button kind="secondary" label="Dismiss recovery notice" onPress={() => update(st => ({ ...st, trainingRecoveryNotice: undefined }))} /></View> : null}
+      {data.trainingRecoveryNotice ? (
+        <View style={{ gap: 8 }}>
+          <Note>{data.trainingRecoveryNotice}</Note>
+          <Button
+            kind="secondary"
+            label="Dismiss recovery notice"
+            onPress={() => update((st) => ({ ...st, trainingRecoveryNotice: undefined }))}
+          />
+        </View>
+      ) : null}
       <View
         style={{
           flexDirection: "row",
@@ -158,16 +168,16 @@ export function Today({ navigation }: { navigation: any }) {
                 : !ids.length
                   ? "Review setup"
                   : progress.doneToday
-                  ? "Train again"
-                  : !profile.days.includes(today) && override
-                    ? "Train now"
-                    : "Start session"}
+                    ? "Train again"
+                    : !profile.days.includes(today) && override
+                      ? "Train now"
+                      : "Start session"}
             </Text>
             <ArrowRight size={17} color={C.onLime} />
           </Pressable>
         </View>
         <Image
-          source={require("../../assets/training-editorial.png")}
+          source={require("../../assets/training-editorial.webp")}
           contentFit="cover"
           contentPosition={{ left: "52%", top: "82%" }}
           style={{ width: 116, alignSelf: "stretch", minHeight: 180 }}
@@ -180,13 +190,18 @@ export function Today({ navigation }: { navigation: any }) {
             accessibilityRole="button"
             accessibilityLabel={`Change time today. ${minutes} minutes${override ? ", just for today" : ", usual schedule"}`}
             accessibilityState={{ expanded: editingTime }}
-            onPress={() => { haptic("selection"); setEditingTime(!editingTime); }}
+            onPress={() => {
+              haptic("selection");
+              setEditingTime(!editingTime);
+            }}
             style={[s.row, { minHeight: 48 }]}
           >
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={s.h3}>{minutes} minutes today</Text>
             </View>
-            <Text style={[s.h3, { color: C.green }]}>{editingTime ? "Close" : "Change"}</Text>
+            <Text style={[s.h3, { color: C.green }]}>
+              {editingTime ? "Close" : "Change"}
+            </Text>
           </Pressable>
           {editingTime ? (
             <View style={{ gap: 12 }}>
@@ -200,9 +215,16 @@ export function Today({ navigation }: { navigation: any }) {
                   />
                 ))}
               </View>
-              <Text style={s.small}>Includes a 2-minute warm-up. Your usual schedule stays at {profile.minutes} minutes.</Text>
+              <Text style={s.small}>
+                Includes a 2-minute warm-up. Your usual schedule stays at{" "}
+                {profile.minutes} minutes.
+              </Text>
               {override ? (
-                <Button label="Use usual schedule" kind="secondary" onPress={() => update((st) => setTodayMinutes(st, undefined))} />
+                <Button
+                  label="Use usual schedule"
+                  kind="secondary"
+                  onPress={() => update((st) => setTodayMinutes(st, undefined))}
+                />
               ) : null}
               <Button label="Done" onPress={() => setEditingTime(false)} />
             </View>
@@ -277,16 +299,38 @@ export function Today({ navigation }: { navigation: any }) {
           ))}
         </Pressable>
       </View>
-      <Disclosure label={`Today’s drills · ${ids.length}`}>
-        <Text style={s.small}>Ball{profile.gear.length ? " + " + profile.gear.join(" + ") : " only"}</Text>
-        {!ids.length ? <Text style={s.body}>Update today’s check-in or choose another playlist to use the equipment you have.</Text> : null}
+      <View style={{ gap: 12 }}>
+        <Text style={s.h2}>{`Today’s drills · ${ids.length}`}</Text>
+        <Text style={s.small}>
+          Ball{profile.gear.length ? " + " + profile.gear.join(" + ") : " only"}
+        </Text>
+        {!ids.length ? (
+          <Text style={s.body}>
+            Update today’s check-in or choose another playlist to use the equipment you
+            have.
+          </Text>
+        ) : null}
         {ids.map((id) => (
-          <DrillRow key={id} duration={duration} drill={catalog.find((d) => d.id === id)!} onPress={() => navigation.navigate("Detail", { id })} />
+          <DrillRow
+            key={id}
+            duration={duration}
+            drill={catalog.find((d) => d.id === id)!}
+            onPress={() => navigation.navigate("Detail", { id })}
+          />
         ))}
-      </Disclosure>
+      </View>
       <View style={s.group}>
-        <SettingRow label="My plan" value={profile.goal} onPress={() => navigation.navigate("MyPlan")} />
-        <SettingRow label="Video replay" onPress={() => navigation.navigate("Replay")} />
+        <SettingRow
+          label="My plan"
+          value={profile.goal}
+          onPress={() => navigation.navigate("MyPlan")}
+        />
+        {DEVELOPER_FEATURES ? (
+          <SettingRow
+            label="Video replay (developer)"
+            onPress={() => navigation.navigate("Replay")}
+          />
+        ) : null}
       </View>
     </Page>
   );
@@ -304,9 +348,7 @@ export function Plan({ navigation }: { navigation: any }) {
         <SettingRow
           label={p.goal}
           value={`${p.experience} · ${p.space}`}
-          onPress={() =>
-            navigation.navigate("Preferences", { section: "goal" })
-          }
+          onPress={() => navigation.navigate("Preferences", { section: "goal" })}
         />
         <SettingRow
           icon={CalendarDays}
@@ -317,7 +359,11 @@ export function Plan({ navigation }: { navigation: any }) {
           }}
         />
       </View>
-      <Button kind="secondary" label="Weekly planner" onPress={() => navigation.navigate("TrainingPlanner")} />
+      <Button
+        kind="secondary"
+        label="Weekly planner"
+        onPress={() => navigation.navigate("TrainingPlanner")}
+      />
       <View style={{ gap: 8 }}>
         <Text style={s.h2}>Session drills</Text>
         <Text style={s.small}>
@@ -337,9 +383,7 @@ export function Plan({ navigation }: { navigation: any }) {
                 feedback="light"
                 icon={ArrowLeftRight}
                 label={`Swap ${drills.find((d) => d.id === id)!.name}`}
-                onPress={() =>
-                  navigation.navigate("Replace", { index: i, mode: "plan" })
-                }
+                onPress={() => navigation.navigate("Replace", { index: i, mode: "plan" })}
               />
             }
           />
@@ -370,25 +414,15 @@ export function Plan({ navigation }: { navigation: any }) {
                   ? (() => {
                       const date = new Date();
                       date.setDate(
-                        date.getDate() -
-                          ((date.getDay() + 6) % 7) +
-                          days.indexOf(d),
+                        date.getDate() - ((date.getDay() + 6) % 7) + days.indexOf(d),
                       );
-                      return planForDate(
-                        catalog,
-                        p,
-                        data.plan,
-                        date,
-                        data.planCustomized,
-                      )
+                      return planForDate(catalog, p, data.plan, date, data.planCustomized)
                         .map((id) => catalog.find((x) => x.id === id)?.name)
                         .join(" · ");
                     })()
                   : "Rest"}
               </Text>
-              {p.days.includes(d) ? (
-                <Text style={s.small}>{p.minutes} min</Text>
-              ) : null}
+              {p.days.includes(d) ? <Text style={s.small}>{p.minutes} min</Text> : null}
             </View>
           ))}
         </View>

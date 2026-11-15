@@ -3,8 +3,7 @@ const root = () => new Directory(Paths.document, "breakaway-meals");
 export async function savePhoto(id: string, uri: string) {
   root().create({ intermediates: true, idempotent: true });
   const file = new File(uri);
-  if (file.size > 10 * 1024 * 1024)
-    throw new Error("Choose a photo smaller than 10 MB.");
+  if (file.size > 10 * 1024 * 1024) throw new Error("Choose a photo smaller than 10 MB.");
   const target = new File(root(), `${id}.jpg`);
   try {
     file.copy(target);

@@ -34,13 +34,7 @@ test("motion and trail break across lost frames and new tracks", () => {
 });
 test("responses reject malformed coordinates and non-monotonic timestamps", () => {
   assert.equal(validAnalysis(a), true);
-  assert.equal(
-    validAnalysis({ ...a, frames: [{ ...a.frames[0], x: 2 }] }),
-    false,
-  );
-  assert.equal(
-    validAnalysis({ ...a, frames: [a.frames[1], a.frames[0]] }),
-    false,
-  );
+  assert.equal(validAnalysis({ ...a, frames: [{ ...a.frames[0], x: 2 }] }), false);
+  assert.equal(validAnalysis({ ...a, frames: [a.frames[1], a.frames[0]] }), false);
   assert.equal(validAnalysis({ ...a, frames: [null] }), false);
 });

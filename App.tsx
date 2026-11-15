@@ -1,5 +1,7 @@
 import { haptic } from "./src/utils/haptics";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { DEVELOPER_FEATURES } from "./src/config/features";
+import { setConnectedAgeBand } from "./src/connected/access";
 import { AccessibilityInfo, ActivityIndicator, Text, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -30,22 +32,99 @@ import { Onboarding, ReplayOnboarding } from "./src/screens/Onboarding";
 import { Today, Plan } from "./src/screens/Home";
 import { Library, Detail, Replace } from "./src/screens/Library";
 import { Practice, Recap } from "./src/screens/Practice";
-import { Replay } from "./src/screens/Replay";
 import { Assessment } from "./src/screens/Assessment";
-import { Progress, Benchmark, SkillProfileScreen, TouchProgress, PracticeMilestones, SessionHistory } from "./src/screens/Progress";
+import {
+  Progress,
+  Benchmark,
+  SkillProfileScreen,
+  TouchProgress,
+  PracticeMilestones,
+  SessionHistory,
+} from "./src/screens/Progress";
 import { Settings, EditPreferences } from "./src/screens/Settings";
 import { Link, IconButton, useTheme } from "./src/components/ui";
 import { ThemeProvider } from "./src/theme/ThemeProvider";
 import { RemindersProvider } from "./src/notifications/RemindersProvider";
 import { TrainingPlanner, CustomDrillEditor, Playlists } from "./src/screens/Training";
 import { Challenges, SkillTree, Seasons } from "./src/screens/Progression";
-import { AthleteFitnessScreen, AthleteRunsScreen, AthleteFuelScreen, AthleteRecoveryScreen, AthleteMatchesScreen } from "./src/screens/AthleteToolkitScreen";
-import { AccountScreen, CommunityScreen } from "./src/screens/Connected";
-import { ToolsHome, ToolCategory } from "./src/screens/ToolsHome";
-import { CoachWorkspace, CoachSessionBuilder, CoachSessionDetail, TeamWorkspace } from "./src/screens/CoachTools";
-import { CoachAI, VideoFeedback } from "./src/screens/CoachAI";
-import { PoseReview } from "./src/screens/PoseReview";
-import { MembershipScreen } from "./src/screens/Membership";
+function developerScreen(load: () => Promise<{ default: React.ComponentType<any> }>) {
+  const Screen = lazy(load);
+  return (props: any) => (
+    <Suspense
+      fallback={<ActivityIndicator accessibilityLabel="Loading developer tool" />}
+    >
+      <Screen {...props} />
+    </Suspense>
+  );
+}
+const Replay = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.Replay })),
+);
+const AthleteFitnessScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.AthleteFitnessScreen,
+  })),
+);
+const AthleteRunsScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.AthleteRunsScreen,
+  })),
+);
+const AthleteFuelScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.AthleteFuelScreen,
+  })),
+);
+const AthleteRecoveryScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.AthleteRecoveryScreen,
+  })),
+);
+const AthleteMatchesScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.AthleteMatchesScreen,
+  })),
+);
+const CommunityScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.CommunityScreen })),
+);
+const AccountRoute = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.AccountRoute })),
+);
+const ToolsHome = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.ToolsHome })),
+);
+const ToolCategory = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.ToolCategory })),
+);
+const CoachWorkspace = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.CoachWorkspace })),
+);
+const CoachSessionBuilder = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.CoachSessionBuilder,
+  })),
+);
+const CoachSessionDetail = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({
+    default: m.CoachSessionDetail,
+  })),
+);
+const TeamWorkspace = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.TeamWorkspace })),
+);
+const CoachAI = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.CoachAI })),
+);
+const VideoFeedback = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.VideoFeedback })),
+);
+const PoseReview = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.PoseReview })),
+);
+const MembershipScreen = developerScreen(() =>
+  import("./src/screens/DeveloperScreens").then((m) => ({ default: m.MembershipScreen })),
+);
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const icons = {
@@ -53,13 +132,6 @@ const icons = {
   Drills: TrafficCone,
   Progress: ChartNoAxesCombined,
 };
-function AccountRoute() {
-  const { data, update, catalog } = useApp();
-  return <AccountScreen data={data} catalog={catalog} onRestore={data.active ? undefined : (incoming) => update((current) => {
-    if (current.active) throw new Error("Finish your current practice before restoring cloud progress.");
-    return incoming;
-  })} />;
-}
 function Main({ navigation }: { navigation: any }) {
   const { C } = useTheme();
   const insets = useSafeAreaInsets();
@@ -108,7 +180,11 @@ function Main({ navigation }: { navigation: any }) {
         },
       })}
     >
-      <Tab.Screen name="Today" component={Today} options={{ title: "Train", tabBarLabel: "Train" }} />
+      <Tab.Screen
+        name="Today"
+        component={Today}
+        options={{ title: "Train", tabBarLabel: "Train" }}
+      />
       <Tab.Screen name="Drills" component={Library} />
       <Tab.Screen name="Progress" component={Progress} />
     </Tab.Navigator>
@@ -116,24 +192,17 @@ function Main({ navigation }: { navigation: any }) {
 }
 function Shell() {
   const { C, s, isDark } = useTheme();
-  const { data, loading, error, retry } = useApp();
+  const { data, loading, recovery, error, retry } = useApp();
+  setConnectedAgeBand(data.profile.ageBand);
   const [reduce, setReduce] = useState(false);
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then(setReduce);
-    const sub = AccessibilityInfo.addEventListener(
-      "reduceMotionChanged",
-      setReduce,
-    );
+    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduce);
     return () => sub.remove();
   }, []);
   if (loading)
     return (
-      <View
-        style={[
-          s.page,
-          { justifyContent: "center", alignItems: "center", gap: 16 },
-        ]}
-      >
+      <View style={[s.page, { justifyContent: "center", alignItems: "center", gap: 16 }]}>
         <Text
           style={{
             fontFamily: "BarlowCondensed_800ExtraBold",
@@ -143,20 +212,29 @@ function Shell() {
         >
           Breakaway
         </Text>
-        <ActivityIndicator
-          color={C.green}
-          accessibilityLabel="Loading your saved plan"
-        />
+        <ActivityIndicator color={C.green} accessibilityLabel="Loading your saved plan" />
       </View>
+    );
+  if (recovery)
+    return (
+      <SafeAreaView style={[s.page, { justifyContent: "center", padding: 24, gap: 16 }]}>
+        <StatusBar style={isDark ? "light" : "dark"} />
+        <Text style={s.h2}>Your saved training needs attention</Text>
+        <Text accessibilityRole="alert" style={s.body}>
+          {error}
+        </Text>
+        <Text style={s.body}>
+          Your original saved data is preserved. Training and setup are paused so a new
+          plan cannot overwrite it.
+        </Text>
+        <Link label="Try reading again" onPress={retry} />
+      </SafeAreaView>
     );
   return (
     <SafeAreaView edges={data.onboarded ? [] : ["top"]} style={s.page}>
       <StatusBar style={isDark ? "light" : "dark"} />
       {error ? (
-        <View
-          accessibilityRole="alert"
-          style={{ padding: 12, backgroundColor: C.soft }}
-        >
+        <View accessibilityRole="alert" style={{ padding: 12, backgroundColor: C.soft }}>
           <Text style={s.body}>{error}</Text>
           <Link label="Try saving again" onPress={retry} />
         </View>
@@ -189,11 +267,7 @@ function Shell() {
               animation: reduce ? "fade" : "default",
             }}
           >
-            <Stack.Screen
-              name="Main"
-              component={Main}
-              options={{ headerShown: false }}
-            />
+            <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
             <Stack.Screen
               name="Detail"
               component={Detail}
@@ -220,12 +294,51 @@ function Shell() {
             />
             <Stack.Screen name="Settings" component={Settings} />
             <Stack.Screen name="MyPlan" component={Plan} options={{ title: "My plan" }} />
-            <Stack.Screen name="Tools" component={ToolsHome} options={{ title: "More tools" }} />
-            <Stack.Screen name="ToolCategory" component={ToolCategory} options={({ route }: any) => ({ title: { training: "Training", coaching: "Coaching", notebook: "Notebook", connected: "Connected" }[route.params?.category as "training" | "coaching" | "notebook" | "connected"] ?? "Training" })} />
-            <Stack.Screen name="SkillProfile" component={SkillProfileScreen} options={{ title: "Skill tests" }} />
-            <Stack.Screen name="TouchProgress" component={TouchProgress} options={{ title: "Touch test" }} />
-            <Stack.Screen name="PracticeMilestones" component={PracticeMilestones} options={{ title: "Practice milestones" }} />
-            <Stack.Screen name="SessionHistory" component={SessionHistory} options={{ title: "Practice history" }} />
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="Tools"
+                component={ToolsHome}
+                options={{ title: "More tools" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="ToolCategory"
+                component={ToolCategory}
+                options={({ route }: any) => ({
+                  title:
+                    {
+                      training: "Training",
+                      coaching: "Coaching",
+                      notebook: "Notebook",
+                      connected: "Connected",
+                    }[
+                      route.params?.category as
+                        "training" | "coaching" | "notebook" | "connected"
+                    ] ?? "Training",
+                })}
+              />
+            ) : null}
+            <Stack.Screen
+              name="SkillProfile"
+              component={SkillProfileScreen}
+              options={{ title: "Skill tests" }}
+            />
+            <Stack.Screen
+              name="TouchProgress"
+              component={TouchProgress}
+              options={{ title: "Touch test" }}
+            />
+            <Stack.Screen
+              name="PracticeMilestones"
+              component={PracticeMilestones}
+              options={{ title: "Practice milestones" }}
+            />
+            <Stack.Screen
+              name="SessionHistory"
+              component={SessionHistory}
+              options={{ title: "Practice history" }}
+            />
             <Stack.Screen
               name="ReplayOnboarding"
               component={ReplayOnboarding}
@@ -242,29 +355,137 @@ function Shell() {
               component={EditPreferences}
               options={{ title: "Training preferences" }}
             />
-            <Stack.Screen name="Replay" component={Replay} options={{ title: "Video replay" }} />
-            <Stack.Screen name="Assessment" component={Assessment} options={{ title: "Skill assessment" }} />
-            <Stack.Screen name="TrainingPlanner" component={TrainingPlanner} options={{ title: "Training planner" }} />
-            <Stack.Screen name="CustomDrillEditor" component={CustomDrillEditor} options={{ title: "Custom drill" }} />
-            <Stack.Screen name="Playlists" component={Playlists} options={{ title: "Playlists" }} />
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="Replay"
+                component={Replay}
+                options={{ title: "Video replay" }}
+              />
+            ) : null}
+            <Stack.Screen
+              name="Assessment"
+              component={Assessment}
+              options={{ title: "Skill assessment" }}
+            />
+            <Stack.Screen
+              name="TrainingPlanner"
+              component={TrainingPlanner}
+              options={{ title: "Training planner" }}
+            />
+            <Stack.Screen
+              name="CustomDrillEditor"
+              component={CustomDrillEditor}
+              options={{ title: "Custom drill" }}
+            />
+            <Stack.Screen
+              name="Playlists"
+              component={Playlists}
+              options={{ title: "Playlists" }}
+            />
             <Stack.Screen name="Challenges" component={Challenges} />
-            <Stack.Screen name="SkillTree" component={SkillTree} options={{ title: "Practice path" }} />
+            <Stack.Screen
+              name="SkillTree"
+              component={SkillTree}
+              options={{ title: "Practice path" }}
+            />
             <Stack.Screen name="Seasons" component={Seasons} />
-            <Stack.Screen name="AthleteFitness" component={AthleteFitnessScreen} options={{ title: "Fitness & mobility" }} />
-            <Stack.Screen name="AthleteRuns" component={AthleteRunsScreen} options={{ title: "Run tracker" }} />
-            <Stack.Screen name="AthleteFuel" component={AthleteFuelScreen} options={{ title: "Food & fueling" }} />
-            <Stack.Screen name="AthleteRecovery" component={AthleteRecoveryScreen} options={{ title: "Recovery & mindset" }} />
-            <Stack.Screen name="AthleteMatches" component={AthleteMatchesScreen} options={{ title: "Match notebook" }} />
-            <Stack.Screen name="Account" component={AccountRoute} options={{ title: "Account & sync" }} />
-            <Stack.Screen name="Community" component={CommunityScreen} />
-            <Stack.Screen name="CoachWorkspace" component={CoachWorkspace} options={{ title: "Coach workspace" }} />
-            <Stack.Screen name="CoachSessionBuilder" component={CoachSessionBuilder} options={{ title: "Build a session" }} />
-            <Stack.Screen name="CoachSessionDetail" component={CoachSessionDetail} options={{ title: "Coach session" }} />
-            <Stack.Screen name="TeamWorkspace" component={TeamWorkspace} options={{ title: "Local teams & matches" }} />
-            <Stack.Screen name="CoachAI" component={CoachAI} options={{ title: "Training guide" }} />
-            <Stack.Screen name="VideoFeedback" component={VideoFeedback} options={{ title: "Video feedback" }} />
-            <Stack.Screen name="PoseReview" component={PoseReview} options={{ title: "Joint view" }} />
-            <Stack.Screen name="Membership" component={MembershipScreen} />
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="AthleteFitness"
+                component={AthleteFitnessScreen}
+                options={{ title: "Fitness & mobility" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="AthleteRuns"
+                component={AthleteRunsScreen}
+                options={{ title: "Run tracker" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="AthleteFuel"
+                component={AthleteFuelScreen}
+                options={{ title: "Food & fueling" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="AthleteRecovery"
+                component={AthleteRecoveryScreen}
+                options={{ title: "Recovery & mindset" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="AthleteMatches"
+                component={AthleteMatchesScreen}
+                options={{ title: "Match notebook" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="Account"
+                component={AccountRoute}
+                options={{ title: "Account & sync" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen name="Community" component={CommunityScreen} />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="CoachWorkspace"
+                component={CoachWorkspace}
+                options={{ title: "Coach workspace" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="CoachSessionBuilder"
+                component={CoachSessionBuilder}
+                options={{ title: "Build a session" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="CoachSessionDetail"
+                component={CoachSessionDetail}
+                options={{ title: "Coach session" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="TeamWorkspace"
+                component={TeamWorkspace}
+                options={{ title: "Local teams & matches" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="CoachAI"
+                component={CoachAI}
+                options={{ title: "Training guide" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="VideoFeedback"
+                component={VideoFeedback}
+                options={{ title: "Video feedback" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen
+                name="PoseReview"
+                component={PoseReview}
+                options={{ title: "Joint view" }}
+              />
+            ) : null}
+            {DEVELOPER_FEATURES ? (
+              <Stack.Screen name="Membership" component={MembershipScreen} />
+            ) : null}
             <Stack.Screen
               name="Benchmark"
               component={Benchmark}
@@ -290,9 +511,7 @@ function AppContent() {
   });
   if (!loaded && !error)
     return (
-      <View
-        style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center" }}
-      >
+      <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center" }}>
         <ActivityIndicator color={C.green} />
       </View>
     );

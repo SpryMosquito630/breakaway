@@ -4,10 +4,22 @@ import { drills } from "../src/data/drills";
 import { getDrillDuration, initialData, type AppData } from "../src/domain/model";
 import { localDateKey, planForDate } from "../src/domain/planning";
 import { restoreAppData } from "../src/domain/storage";
-import { millisecondsUntilTomorrow, sanitizeTodaySession, sessionForToday, sessionMinutesToday, setTodayMinutes, todayOverride } from "../src/domain/sessionTime";
+import {
+  millisecondsUntilTomorrow,
+  sanitizeTodaySession,
+  sessionForToday,
+  sessionMinutesToday,
+  setTodayMinutes,
+  todayOverride,
+} from "../src/domain/sessionTime";
 
 const day = new Date(2026, 10, 6, 12);
-const base = (): AppData => ({ ...initialData(), onboarded: true, plan: ["weak", "sole", "inside"], planCustomized: true });
+const base = (): AppData => ({
+  ...initialData(),
+  onboarded: true,
+  plan: ["weak", "sole", "inside"],
+  planCustomized: true,
+});
 
 test("today's 10-minute choice changes blocks without changing the profile, drill count, manual order or history", () => {
   const data = base();
@@ -24,7 +36,10 @@ test("today's 10-minute choice changes blocks without changing the profile, dril
   assert.equal(active.ids.length * active.duration + 120, 600);
   assert.equal(active.warmed, false);
   assert.equal(getDrillDuration(adjusted.profile.minutes, active.ids.length), 260);
-  assert.deepEqual(planForDate(drills, adjusted.profile, adjusted.plan, day, true), data.plan);
+  assert.deepEqual(
+    planForDate(drills, adjusted.profile, adjusted.plan, day, true),
+    data.plan,
+  );
   assert.equal(sessionMinutesToday(setTodayMinutes(adjusted, undefined, day), day), 15);
   assert.equal(setTodayMinutes(adjusted, undefined, day).todaySession, undefined);
 });
@@ -38,14 +53,32 @@ test("all allowed times persist and survive reopening; legacy saves and malforme
     assert.deepEqual(restored.plan, data.plan);
   }
   assert.equal(restoreAppData(JSON.stringify(base()), drills).todaySession, undefined);
-  for (const value of [null, [], "10", 10, {}, { date: "2026-11-06", minutes: "10" }, { date: "2026-11-06", minutes: 0 }, { date: "2026-11-06", minutes: 25 }, { date: "2026-02-29", minutes: 10 }, { date: "2026-11-31", minutes: 10 }, { date: "2026-11-06T00:00:00Z", minutes: 10 }]) {
+  for (const value of [
+    null,
+    [],
+    "10",
+    10,
+    {},
+    { date: "2026-11-06", minutes: "10" },
+    { date: "2026-11-06", minutes: 0 },
+    { date: "2026-11-06", minutes: 25 },
+    { date: "2026-02-29", minutes: 10 },
+    { date: "2026-11-31", minutes: 10 },
+    { date: "2026-11-06T00:00:00Z", minutes: 10 },
+  ]) {
     const data = base();
-    const restored = restoreAppData(JSON.stringify({ ...data, todaySession: value }), drills);
+    const restored = restoreAppData(
+      JSON.stringify({ ...data, todaySession: value }),
+      drills,
+    );
     assert.equal(restored.todaySession, undefined);
     assert.deepEqual(restored.profile, data.profile);
     assert.deepEqual(restored.plan, data.plan);
   }
-  assert.deepEqual(sanitizeTodaySession({ date: "2028-02-29", minutes: 10, extra: "discard" }), { date: "2028-02-29", minutes: 10 });
+  assert.deepEqual(
+    sanitizeTodaySession({ date: "2028-02-29", minutes: 10, extra: "discard" }),
+    { date: "2028-02-29", minutes: 10 },
+  );
 });
 
 test("an active session freezes timing across later overrides, reset attempts, restores and midnight", () => {
@@ -57,11 +90,17 @@ test("an active session freezes timing across later overrides, reset attempts, r
   const tomorrow = new Date(2026, 10, 7, 12);
   assert.equal(sessionForToday(data, drills, tomorrow), active);
   const restored = restoreAppData(JSON.stringify(data), drills);
-  assert.deepEqual(JSON.parse(JSON.stringify(restored.active)), JSON.parse(JSON.stringify(active)));
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(restored.active)),
+    JSON.parse(JSON.stringify(active)),
+  );
   assert.equal(sessionForToday(restored, drills, tomorrow), restored.active);
   // Finishing and training again uses today's setting, then reverts tomorrow.
   assert.equal(sessionForToday({ ...data, active: null }, drills, day).duration, 160);
-  assert.equal(sessionForToday({ ...data, active: null }, drills, tomorrow).duration, 260);
+  assert.equal(
+    sessionForToday({ ...data, active: null }, drills, tomorrow).duration,
+    260,
+  );
 });
 
 test("overrides expire at local midnight, even on rest days, in different zones and across DST", () => {

@@ -44,6 +44,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
+    "prettier": "^3.9.10",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
@@ -53,7 +54,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "format": "prettier --write App.tsx index.ts src tests *.json *.js \"tools/**/*.cjs\"",
+    "format:check": "prettier --check App.tsx index.ts src tests *.json *.js \"tools/**/*.cjs\""
   },
   "private": true
 }

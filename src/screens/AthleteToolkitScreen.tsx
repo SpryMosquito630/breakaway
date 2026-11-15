@@ -3,14 +3,7 @@ import { parseFoodEstimate } from "../athlete/aiFood";
 import { discoverService, estimateFoodPhoto } from "../coachAi/service";
 import { confirmAthlete } from "../athlete/confirm";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  AppState,
-  Linking,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { AppState, Linking, Pressable, Text, TextInput, View } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import Svg, { Polyline } from "react-native-svg";
@@ -39,22 +32,12 @@ import {
   Meal,
 } from "../athlete/domain";
 import { lookupFood, Food } from "../athlete/food";
-import {
-  openPhoto,
-  releasePhoto,
-  removePhoto,
-  savePhoto,
-} from "../athlete/photos";
+import { openPhoto, releasePhoto, removePhoto, savePhoto } from "../athlete/photos";
 import { athleteEpoch } from "../athlete/lifecycle";
 import { useKeepTimerAwake, useTimerFeedback } from "../hooks/useTimerFeedback";
 import { registerFeatureReset } from "../features/localStore";
 import { useRun } from "../athlete/useRun";
-export type AthleteSection =
-  | "fitness"
-  | "runs"
-  | "fuel"
-  | "recovery"
-  | "matches";
+export type AthleteSection = "fitness" | "runs" | "fuel" | "recovery" | "matches";
 type Back = {
   onBack?: () => void;
 };
@@ -135,18 +118,11 @@ function StorageStatus() {
     </>
   );
 }
-export function AthleteHubScreen({
-  onOpen,
-}: {
-  onOpen: (s: AthleteSection) => void;
-}) {
+export function AthleteHubScreen({ onOpen }: { onOpen: (s: AthleteSection) => void }) {
   const { s } = useTheme();
   return (
     <Page>
-      <Title
-        title="Athlete toolkit"
-        body="Your training, match and recovery notebook."
-      />
+      <Title title="Athlete toolkit" body="Your training, match and recovery notebook." />
       <View style={s.group}>
         {(
           [
@@ -192,8 +168,8 @@ export function AthleteHubScreen({
         ))}
       </View>
       <Text style={s.small}>
-        Location stays on this device. Meal photos leave it only when you
-        explicitly request an AI estimate.
+        Location stays on this device. Meal photos leave it only when you explicitly
+        request an AI estimate.
       </Text>
       <StorageStatus />
     </Page>
@@ -215,9 +191,7 @@ function useCountdown() {
     [],
   );
   const pause = () => {
-    setRemaining(
-      Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)),
-    );
+    setRemaining(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
     setRunning(false);
   };
   useEffect(() => {
@@ -274,10 +248,9 @@ export function AthleteFitnessScreen({ onBack }: Back) {
     else if (
       await store.update((d) => ({
         ...d,
-        routines: [
-          ...d.routines,
-          { id: id(), date: today(), name: routine.name },
-        ].slice(-1000),
+        routines: [...d.routines, { id: id(), date: today(), name: routine.name }].slice(
+          -1000,
+        ),
       }))
     ) {
       setStep(0);
@@ -343,9 +316,7 @@ export function AthleteFitnessScreen({ onBack }: Back) {
         </Text>
         <Text style={s.h2}>{item.name}</Text>
         <Text style={s.body}>{item.cue}</Text>
-        <Text style={s.stat}>
-          {clock(active ? timer.remaining : item.seconds)}
-        </Text>
+        <Text style={s.stat}>{clock(active ? timer.remaining : item.seconds)}</Text>
         {active && timer.remaining === 0 && !timer.running ? (
           <Text accessibilityLiveRegion="polite" style={s.h3}>
             Step complete
@@ -357,18 +328,14 @@ export function AthleteFitnessScreen({ onBack }: Back) {
           <Button
             label={active && timer.remaining ? "Resume step" : "Start step"}
             onPress={() => {
-              timer.start(
-                active && timer.remaining ? timer.remaining : item.seconds,
-              );
+              timer.start(active && timer.remaining ? timer.remaining : item.seconds);
               setActive(true);
             }}
           />
         )}
         {active && timer.remaining === 0 && !timer.running ? (
           <Button
-            label={
-              step === routine.steps.length - 1 ? "Finish routine" : "Next step"
-            }
+            label={step === routine.steps.length - 1 ? "Finish routine" : "Next step"}
             onPress={() => void next()}
             disabled={!store.ready}
           />
@@ -417,11 +384,7 @@ export function AthleteFitnessScreen({ onBack }: Back) {
 function RoutePreview({ points }: { points: Point[] }) {
   const { C, s } = useTheme();
   if (points.length < 2)
-    return (
-      <Text style={s.small}>
-        Your route appears after two usable GPS samples.
-      </Text>
-    );
+    return <Text style={s.small}>Your route appears after two usable GPS samples.</Text>;
   const lat = points.map((p) => p.latitude),
     lng = points.map((p) => p.longitude),
     minX = Math.min(...lng),
@@ -503,8 +466,8 @@ export function AthleteRunsScreen({ onBack }: Back) {
       <Text style={s.h2}>Saved runs</Text>
       {run.store.data.runs.length === 0 ? (
         <Text style={s.body}>
-          Start outdoors with a clear GPS signal. A saved run stays in your
-          local notebook.
+          Start outdoors with a clear GPS signal. A saved run stays in your local
+          notebook.
         </Text>
       ) : null}
       {run.store.data.runs
@@ -653,10 +616,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
     abort.current = controller;
     const timeout = setTimeout(() => controller.abort(), 12000);
     try {
-      const result = await lookupFood(
-        (scanned ?? barcode).trim(),
-        controller.signal,
-      );
+      const result = await lookupFood((scanned ?? barcode).trim(), controller.signal);
       if (!current(epoch) || controller.signal.aborted) return;
       setFood(result);
       setAiEstimated(false);
@@ -692,8 +652,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
         setMessage("Photo selected. It is saved only when you save this meal.");
       }
     } catch {
-      if (current(epoch))
-        setMessage("The photo picker could not open. Try again.");
+      if (current(epoch)) setMessage("The photo picker could not open. Try again.");
     }
   }
   async function estimate() {
@@ -715,9 +674,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
       if (!current(epoch) || controller.signal.aborted) return;
       const portion = number(aiGrams, 5000, true);
       if (portion !== undefined && (!Number.isFinite(portion) || portion <= 0))
-        throw new Error(
-          "Enter a portion between 1 and 5000 grams, or leave it blank.",
-        );
+        throw new Error("Enter a portion between 1 and 5000 grams, or leave it blank.");
       const result = parseFoodEstimate(
         await estimateFoodPhoto(asset, portion, controller.signal),
       );
@@ -791,11 +748,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
         protein: values[1],
         carbs: values[2],
         fat: values[3],
-        ...(photo
-          ? { photo: key }
-          : editing?.photo
-            ? { photo: editing.photo }
-            : {}),
+        ...(photo ? { photo: key } : editing?.photo ? { photo: editing.photo } : {}),
         ...(aiEstimated
           ? { source: "AI photo estimate", estimateNotes }
           : food
@@ -807,13 +760,10 @@ export function AthleteFuelScreen({ onBack }: Back) {
       if (
         await store.update((d) => ({
           ...d,
-          meals: [...d.meals.filter((m) => m.id !== editing?.id), meal].slice(
-            -1000,
-          ),
+          meals: [...d.meals.filter((m) => m.id !== editing?.id), meal].slice(-1000),
         }))
       ) {
-        if (photo && editing?.photo)
-          await removePhoto(editing.photo).catch(() => {});
+        if (photo && editing?.photo) await removePhoto(editing.photo).catch(() => {});
         setName("");
         setCalories("");
         setProtein("");
@@ -842,12 +792,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
         onBack={onBack}
       />
       <StorageStatus />
-      <Field
-        label="Date (YYYY-MM-DD)"
-        value={date}
-        set={setDate}
-        disabled={busy}
-      />
+      <Field label="Date (YYYY-MM-DD)" value={date} set={setDate} disabled={busy} />
       <Text style={s.h2}>Label lookup</Text>
       <Field
         label="Barcode digits"
@@ -900,9 +845,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
         disabled={busy}
       />
       <Button
-        label={
-          showNutrition ? "Hide optional nutrition" : "Add optional nutrition"
-        }
+        label={showNutrition ? "Hide optional nutrition" : "Add optional nutrition"}
         kind="secondary"
         onPress={() => setShowNutrition(!showNutrition)}
       />
@@ -963,8 +906,8 @@ export function AthleteFuelScreen({ onBack }: Back) {
             disabled={busy}
           />
           <Text style={s.small}>
-            Up to 30 meal photos, 10 MB each. Photos stay local unless you
-            explicitly request an AI estimate.
+            Up to 30 meal photos, 10 MB each. Photos stay local unless you explicitly
+            request an AI estimate.
           </Text>
         </>
       ) : null}
@@ -995,9 +938,8 @@ export function AthleteFuelScreen({ onBack }: Back) {
       {(photo || editing?.photo) && aiAvailable ? (
         <>
           <Text style={s.small}>
-            Estimate sends this photo (up to 5 MB) and the optional portion to
-            the configured AI provider. Estimates can be wrong and remain
-            editable.
+            Estimate sends this photo (up to 5 MB) and the optional portion to the
+            configured AI provider. Estimates can be wrong and remain editable.
           </Text>
           <Field
             label="Photo portion in grams (optional)"
@@ -1016,8 +958,8 @@ export function AthleteFuelScreen({ onBack }: Back) {
       ) : null}
       {(photo || editing?.photo) && !aiAvailable ? (
         <Text style={s.small}>
-          AI photo estimates are not configured. Your manual photo diary works
-          without them.
+          AI photo estimates are not configured. Your manual photo diary works without
+          them.
         </Text>
       ) : null}
       {aiEstimated ? (
@@ -1059,9 +1001,7 @@ export function AthleteFuelScreen({ onBack }: Back) {
               </Text>
             ) : null}
             {m.source ? (
-              <Text style={s.small}>
-                {m.source} · editable estimate · check portions
-              </Text>
+              <Text style={s.small}>{m.source} · editable estimate · check portions</Text>
             ) : null}
             {m.estimateNotes?.map((note, i) => (
               <Text key={i} style={s.small}>
@@ -1120,14 +1060,12 @@ export function AthleteFuelScreen({ onBack }: Back) {
       <Text style={s.h2}>Simple meal ideas</Text>
       <Text style={s.body}>
         Try oatmeal with fruit and yogurt; a rice bowl with beans or chicken and
-        vegetables; or a sandwich with fruit. Adapt to allergies, culture and
-        what is available. Eat regular meals and bring water to training.
+        vegetables; or a sandwich with fruit. Adapt to allergies, culture and what is
+        available. Eat regular meals and bring water to training.
       </Text>
       <Pressable
         accessibilityRole="link"
-        onPress={() =>
-          void Linking.openURL("https://www.myplate.gov/life-stages/teens")
-        }
+        onPress={() => void Linking.openURL("https://www.myplate.gov/life-stages/teens")}
         style={{ minHeight: 48, justifyContent: "center" }}
       >
         <Text style={s.body}>Read MyPlate guidance for teens ↗</Text>
@@ -1146,15 +1084,12 @@ export function AthleteRecoveryScreen({ onBack }: Back) {
     [mode, setMode] = useState<"breathing" | "quiet">("breathing"),
     [goal, setGoal] = useState(""),
     [optIn, setOptIn] = useState(false);
-  const phase =
-    timer.remaining % 8 > 4 ? "Breathe in gently" : "Breathe out gently";
+  const phase = timer.remaining % 8 > 4 ? "Breathe in gently" : "Breathe out gently";
   async function save() {
     const w = number(water, 10000),
       sl = number(sleep, 24);
     if (!validDate(date) || !Number.isFinite(w) || !Number.isFinite(sl)) {
-      setMessage(
-        "Enter a valid date, water from 0–10000 mL and sleep from 0–24 hours.",
-      );
+      setMessage("Enter a valid date, water from 0–10000 mL and sleep from 0–24 hours.");
       return;
     }
     if (
@@ -1201,8 +1136,8 @@ export function AthleteRecoveryScreen({ onBack }: Back) {
           : "Sit comfortably. Keep your breathing natural."}
       </Text>
       <Text style={s.body}>
-        Optional focus practice. Skip any cue that feels uncomfortable; no
-        breath holding is required.
+        Optional focus practice. Skip any cue that feels uncomfortable; no breath holding
+        is required.
       </Text>
       {timer.running ? (
         <Button label="Pause" kind="secondary" onPress={timer.pause} />
@@ -1232,13 +1167,11 @@ export function AthleteRecoveryScreen({ onBack }: Back) {
           </Text>
         ))}
       <Text style={s.small}>
-        This notebook records what you enter. It does not prescribe fluid intake
-        or assess your health.
+        This notebook records what you enter. It does not prescribe fluid intake or assess
+        your health.
       </Text>
       <Button
-        label={
-          optIn ? "Close personal goal note" : "Optional personal goal note"
-        }
+        label={optIn ? "Close personal goal note" : "Optional personal goal note"}
         kind="secondary"
         onPress={() => setOptIn(!optIn)}
       />
@@ -1246,8 +1179,8 @@ export function AthleteRecoveryScreen({ onBack }: Back) {
         <>
           <Text style={s.body}>
             For a weight-related goal, talk with a parent, guardian or qualified
-            professional. Record a personal note if useful; the app does not
-            calculate a target weight or diet.
+            professional. Record a personal note if useful; the app does not calculate a
+            target weight or diet.
           </Text>
           <Field label="Your goal note" value={goal} set={setGoal} />
           <Button
@@ -1376,11 +1309,7 @@ export function AthleteMatchesScreen({ onBack }: Back) {
           />
         ))}
       </View>
-      <Button
-        label="Save match"
-        onPress={() => void save()}
-        disabled={!store.ready}
-      />
+      <Button label="Save match" onPress={() => void save()} disabled={!store.ready} />
       <Notice message={message} />
       <Text style={s.h2}>Match history</Text>
       {store.data.matches.length === 0 ? (
@@ -1396,8 +1325,7 @@ export function AthleteMatchesScreen({ onBack }: Back) {
               {m.opponent} · {m.result}
             </Text>
             <Text style={s.body}>
-              {m.date} · {m.minutes} min · {m.goals} G · {m.assists} A ·{" "}
-              {m.saves} saves
+              {m.date} · {m.minutes} min · {m.goals} G · {m.assists} A · {m.saves} saves
             </Text>
             <Button
               label="Delete match"

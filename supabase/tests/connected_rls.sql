@@ -5,6 +5,13 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 insert into public.training_backups(user_id,revision,payload) values(auth.uid(),1,'{"version":1}');
 insert into public.community_profiles(user_id,alias) values(auth.uid(),'First');
+update public.community_profiles set alias = 'Updated nickname' where user_id = auth.uid();
+do $$ begin
+ begin update public.community_profiles set practice_points = 999 where user_id = auth.uid(); raise exception 'Client score mutation allowed'; exception when insufficient_privilege then null; end;
+ begin update public.community_profiles set leaderboard_opt_in = true where user_id = auth.uid(); raise exception 'Standings opt-in allowed'; exception when insufficient_privilege then null; end;
+ begin insert into public.community_profiles(user_id,alias,practice_points) values(auth.uid(),'Spoof',999); raise exception 'Client score insert allowed'; exception when insufficient_privilege then null; end;
+end $$;
+
 insert into public.community_spaces(id,owner_id,title,kind) values('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',auth.uid(),'Private team','team');
 do $$ begin
  begin insert into public.space_members(space_id,user_id) values('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','33333333-3333-3333-3333-333333333333'); raise exception 'Owner invited a non-friend'; exception when insufficient_privilege then null; end;

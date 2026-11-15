@@ -20,10 +20,7 @@ function useThemeState() {
     let mounted = true;
     AsyncStorage.getItem(KEY)
       .then((value) => {
-        if (
-          mounted &&
-          (value === "light" || value === "dark" || value === "system")
-        )
+        if (mounted && (value === "light" || value === "dark" || value === "system"))
           setValue(value);
       })
       .catch(() => {

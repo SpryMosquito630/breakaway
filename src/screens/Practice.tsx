@@ -1,3 +1,4 @@
+import { drillTarget } from "../domain/targets";
 import { DrillMovement as Diagram } from "../components/DrillMovement";
 import { DrillDemo } from "../components/DrillDemo";
 import { haptic } from "../utils/haptics";
@@ -26,7 +27,11 @@ import {
   Title,
   useTheme,
 } from "../components/ui";
-function resolvePracticeDrill(active: Active, index: number, drills: import("../domain/model").Drill[]) {
+function resolvePracticeDrill(
+  active: Active,
+  index: number,
+  drills: import("../domain/model").Drill[],
+) {
   const base = drills.find((d) => d.id === active.ids[index]);
   if (!base) return null;
   const snapshot = active.snapshots?.[base.id];
@@ -39,12 +44,19 @@ function resolvePracticeDrill(active: Active, index: number, drills: import("../
     ...(snapshot?.cue ? { cue: snapshot.cue } : {}),
     ...(snapshot?.steps ? { steps: snapshot.steps } : {}),
     ...(snapshot?.tip ? { tip: snapshot.tip } : {}),
-    target: snapshot?.target ?? variant?.target,
+    target: drillTarget(snapshot?.target ?? variant?.target, active.duration),
     stage,
   };
 }
 export function Practice({ navigation }: { navigation: any }) {
-  const { update, catalog: drills } = useApp();
+  const {
+    data,
+    update,
+    catalog: drills,
+    backgroundClockMessage,
+    backgroundClockBusy,
+    setBackgroundPractice,
+  } = useApp();
   const { width, height } = useWindowDimensions();
   const compact = width < 360 || height < 740;
   const { C, s } = useTheme();
@@ -136,7 +148,13 @@ export function Practice({ navigation }: { navigation: any }) {
         ? "Final 10 seconds"
         : "Running";
   const startBlock = () =>
-    clock.commit({ ...a, phase: "timer", running: true, last: Date.now() });
+    clock.commit({
+      ...a,
+      backgroundClock: a.backgroundClock ?? data.backgroundPractice === true,
+      phase: "timer",
+      running: true,
+      last: Date.now(),
+    });
   const skipLink = (
     <Link label="Skip drill" feedback="warning" onPress={() => next(true)} />
   );
@@ -154,6 +172,7 @@ export function Practice({ navigation }: { navigation: any }) {
           <Button
             size="large"
             label={`Start drill · ${time(a.duration)}`}
+            disabled={backgroundClockBusy}
             accessibilityLabel={`Start ${d.name}, ${time(a.duration)} practice block`}
             icon={Play}
             onPress={startBlock}
@@ -210,9 +229,7 @@ export function Practice({ navigation }: { navigation: any }) {
     </View>
   );
   const preview = upcoming ? (
-    <View
-      style={{ gap: 8, borderTopWidth: 1, borderColor: C.line, paddingTop: 20 }}
-    >
+    <View style={{ gap: 8, borderTopWidth: 1, borderColor: C.line, paddingTop: 20 }}>
       <Text style={s.small}>
         Up next · Drill {a.index + 2} of {a.ids.length}
       </Text>
@@ -220,9 +237,7 @@ export function Practice({ navigation }: { navigation: any }) {
       <Text style={s.small}>
         Stage {upcoming.stage} · {time(a.duration)}
       </Text>
-      {upcoming.target ? (
-        <Text style={s.body}>Aim for {upcoming.target}</Text>
-      ) : null}
+      {upcoming.target ? <Text style={s.body}>{upcoming.target}</Text> : null}
     </View>
   ) : null;
   return (
@@ -234,9 +249,7 @@ export function Practice({ navigation }: { navigation: any }) {
       <View style={{ gap: 8 }}>
         <View style={s.row}>
           <Text style={s.small}>
-            {a.warmed
-              ? `Drill ${a.index + 1} of ${a.ids.length}`
-              : "Before you start"}
+            {a.warmed ? `Drill ${a.index + 1} of ${a.ids.length}` : "Before you start"}
           </Text>
           <Link label="End session" onPress={end} />
         </View>
@@ -274,24 +287,44 @@ export function Practice({ navigation }: { navigation: any }) {
           })}
         </View>
       </View>
+      {a.backgroundClock === undefined ? (
+        <View style={{ gap: 8 }}>
+          <Chip
+            label={
+              backgroundClockBusy
+                ? "Checking notifications…"
+                : "Continue when screen locks"
+            }
+            selected={data.backgroundPractice === true}
+            onPress={() => {
+              if (!backgroundClockBusy)
+                void setBackgroundPractice(!data.backgroundPractice);
+            }}
+          />
+          <Text style={s.small}>
+            {data.backgroundPractice
+              ? "Current block keeps time while locked or in another app. A notification marks the end; device settings may delay it. Next drill waits for you."
+              : "Optional · Off by default. Practice pauses when you leave the app. Turning this on requests notification permission."}
+          </Text>
+          {backgroundClockMessage ? (
+            <Text style={s.small}>{backgroundClockMessage}</Text>
+          ) : null}
+        </View>
+      ) : backgroundClockMessage ? (
+        <Text style={s.small}>{backgroundClockMessage}</Text>
+      ) : null}
       {!a.warmed ? (
         <>
           <View style={{ gap: 12 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <Footprints size={24} color={C.green} strokeWidth={1.5} />
               <Text style={s.h1}>Warm up</Text>
             </View>
-            <Text style={[s.stat, { fontSize: 44, lineHeight: 56 }]}>
-              2 min
-            </Text>
+            <Text style={[s.stat, { fontSize: 44, lineHeight: 56 }]}>2 min</Text>
             <Text style={s.body}>
               Walk or jog easily, then gently move your ankles and hips.
             </Text>
-            <Text style={s.small}>
-              Self-paced · Warm-up time is not logged.
-            </Text>
+            <Text style={s.small}>Self-paced · Warm-up time is not logged.</Text>
           </View>
           <View
             style={{
@@ -311,21 +344,16 @@ export function Practice({ navigation }: { navigation: any }) {
       ) : complete ? (
         <>
           <View style={{ gap: 16, paddingTop: 12 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <CircleCheck size={26} color={C.success} strokeWidth={1.8} />
-              <Text
-                accessibilityRole="header"
-                style={[s.h2, { color: C.success }]}
-              >
+              <Text accessibilityRole="header" style={[s.h2, { color: C.success }]}>
                 Drill complete
               </Text>
             </View>
             <Text style={s.h1}>{d.name}</Text>
             <Text style={s.body}>
-              {time(a.blockElapsed ?? a.duration)} practiced · {a.done + 1}/
-              {a.ids.length} drills completed
+              {time(a.blockElapsed ?? a.duration)} practiced · {a.done + 1}/{a.ids.length}{" "}
+              drills completed
             </Text>
           </View>
           {preview ?? (
@@ -338,9 +366,7 @@ export function Practice({ navigation }: { navigation: any }) {
               }}
             >
               <Text style={s.h2}>That was your last drill.</Text>
-              <Text style={s.body}>
-                Finish the session to save your practice.
-              </Text>
+              <Text style={s.body}>Finish the session to save your practice.</Text>
             </View>
           )}
         </>
@@ -365,7 +391,7 @@ export function Practice({ navigation }: { navigation: any }) {
                   },
                 ]}
               >
-                Aim for {d.target}
+                {d.target}
               </Text>
             ) : null}
           </View>
@@ -394,9 +420,7 @@ export function Practice({ navigation }: { navigation: any }) {
             >
               {time(a.remaining)}
             </Text>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               {a.running ? (
                 <Play
                   size={14}
@@ -411,21 +435,20 @@ export function Practice({ navigation }: { navigation: any }) {
                 style={[
                   s.h3,
                   {
-                    color: !a.running
-                      ? C.muted
-                      : a.remaining <= 10
-                        ? C.flare
-                        : C.green,
+                    color: !a.running ? C.muted : a.remaining <= 10 ? C.flare : C.green,
                   },
                 ]}
               >
                 {status}
               </Text>
             </View>
+            {a.backgroundClock ? (
+              <Text style={s.small}>
+                Keeps time when locked · Next drill waits for you
+              </Text>
+            ) : null}
           </View>
-          <Text style={[s.body, { textAlign: "center", color: C.ink }]}>
-            {d.cue}
-          </Text>
+          <Text style={[s.body, { textAlign: "center", color: C.ink }]}>{d.cue}</Text>
           <View style={{ borderTopWidth: 1, borderColor: C.line }}>
             <Disclosure label="Drill instructions">
               <Steps drill={d} />
@@ -439,16 +462,13 @@ export function Practice({ navigation }: { navigation: any }) {
             <Text style={s.small}>Get set · {time(a.duration)} block</Text>
             <Title title={d.name} />
             <Text style={s.small}>
-              Ball{d.gear.length ? " + " + d.gear.join(" + ") : " only"} ·{" "}
-              {d.space}
+              Ball{d.gear.length ? " + " + d.gear.join(" + ") : " only"} · {d.space}
             </Text>
           </View>
           <View style={{ gap: 8 }}>
             <Text style={s.small}>Stage {d.stage}</Text>
             {d.target ? (
-              <Text style={[s.h3, { fontSize: 17, lineHeight: 25 }]}>
-                Aim for {d.target}
-              </Text>
+              <Text style={[s.h3, { fontSize: 17, lineHeight: 25 }]}>{d.target}</Text>
             ) : null}
             <Text style={s.body}>{d.cue}</Text>
           </View>

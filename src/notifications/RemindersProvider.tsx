@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { AppState, Platform } from "react-native";
+import { PRACTICE_NOTIFICATION_ID } from "./practiceSchedule";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useApp } from "../state/AppState";
 import {
@@ -28,12 +29,17 @@ function native() {
   return (notifications ??= import("expo-notifications").then((n) => {
     // Match SDK 58's foreground presentation defaults, including our training reminders.
     n.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowBanner: true,
-        shouldShowList: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-      }),
+      handleNotification: async (notification) => {
+        const practiceInForeground =
+          notification.request.identifier === PRACTICE_NOTIFICATION_ID &&
+          AppState.currentState === "active";
+        return {
+          shouldShowBanner: !practiceInForeground,
+          shouldShowList: !practiceInForeground,
+          shouldPlaySound: !practiceInForeground,
+          shouldSetBadge: false,
+        };
+      },
     });
     return n;
   }));
@@ -61,12 +67,9 @@ function scheduler(n: Notifications): ReminderScheduler {
           data: { reminderSignature: reminder.signature },
         },
         trigger: {
-          type: n.SchedulableTriggerInputTypes.WEEKLY,
-          weekday: reminder.weekday,
-          hour: reminder.hour,
-          minute: reminder.minute,
+          type: n.SchedulableTriggerInputTypes.DATE,
+          date: reminder.date,
           channelId: CHANNEL,
-          delivery: "bestEffort",
         },
       });
     },
@@ -103,6 +106,8 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
   const prefs = useRef(preferences);
   const days = useRef(data.profile.days);
   days.current = data.profile.days;
+  const history = useRef(data.history);
+  history.current = data.history;
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyCount = useRef(0);
@@ -129,10 +134,10 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
     await channel(n);
     await reconcileReminders(
       api,
-      desiredReminders(days.current, prefs.current),
+      desiredReminders(days.current, prefs.current, history.current),
     );
     setMessage(
-      "Scheduled on your training days. Device settings may delay delivery.",
+      "Scheduled for untrained days in the next 7 days. Open the app each week to refresh. Device settings may delay delivery.",
     );
   }, []);
   const run = useCallback(async (operation: () => Promise<void>) => {
@@ -163,17 +168,13 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
         if (!mounted) return;
-        const restored = raw
-          ? normalizeReminders(JSON.parse(raw))
-          : defaultReminders();
+        const restored = raw ? normalizeReminders(JSON.parse(raw)) : defaultReminders();
         prefs.current = restored;
         setPreferences(restored);
       })
       .catch(() => {
         if (mounted)
-          setMessage(
-            "Saved reminder settings could not be read. Set them again below.",
-          );
+          setMessage("Saved reminder settings could not be read. Set them again below.");
       })
       .finally(() => {
         if (mounted) setReady(true);
@@ -183,14 +184,32 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
   const dayKey = data.profile.days.join(",");
+  const historyKey = data.history.map((h) => `${h.date}:${h.seconds}`).join(",");
   useEffect(() => {
     if (ready && !loading) void run(sync);
-  }, [ready, loading, dayKey, run, sync]);
+  }, [ready, loading, dayKey, historyKey, run, sync]);
   useEffect(() => {
+    // Refresh at local midnight even when the app stays open overnight.
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = () => {
+      const now = new Date();
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      timer = setTimeout(
+        () => {
+          if (AppState.currentState === "active" && ready && !loading) void run(sync);
+          refresh();
+        },
+        midnight.getTime() - now.getTime() + 1000,
+      );
+    };
+    refresh();
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active" && ready && !loading) void run(sync);
     });
-    return () => sub.remove();
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
   }, [ready, loading, run, sync]);
   const setEnabled = (enabled: boolean) =>
     run(async () => {
@@ -223,9 +242,7 @@ export function RemindersProvider({ children }: { children: React.ReactNode }) {
         message,
         setEnabled,
         setTime: (hour, minute) =>
-          run(() =>
-            commit(normalizeReminders({ ...prefs.current, hour, minute })),
-          ),
+          run(() => commit(normalizeReminders({ ...prefs.current, hour, minute }))),
         reset: () => run(() => commit(defaultReminders())),
       }}
     >

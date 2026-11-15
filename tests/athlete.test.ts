@@ -37,9 +37,7 @@ test("GPS uses earth distance, rejects drift/jumps/bad accuracy and never joins 
   assert.equal(routeDistance(c), routeDistance(b));
   assert.equal(
     appendPoint(
-      Array.from({ length: 5000 }, (_, i) =>
-        point(i * 0.00001, 1000 + i * 1000),
-      ),
+      Array.from({ length: 5000 }, (_, i) => point(i * 0.00001, 1000 + i * 1000)),
       point(0.05, 5001000),
     ).length,
     5000,
@@ -79,9 +77,7 @@ test("restore discards malformed rows, deduplicates ids, recomputes GPS distance
     runs: [run, { ...run, id: "bad", points: [{ ...point(), latitude: 100 }] }],
     matches: [match, match, { ...match, id: "x", goals: -1 }],
     recovery: [{ id: "z", date: "2026-02-30", water: 200, sleep: 8 }],
-    meals: [
-      { id: "food", date: "2026-11-06", name: "Lunch", photo: "../secret" },
-    ],
+    meals: [{ id: "food", date: "2026-11-06", name: "Lunch", photo: "../secret" }],
   });
   assert.equal(state.runs.length, 1);
   assert.ok(state.runs[0].meters < 4);

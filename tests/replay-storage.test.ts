@@ -91,20 +91,13 @@ test("concurrent repeated save is idempotent; deletion removes playable entry", 
 });
 test("storage count and byte caps never silently evict existing videos", async () => {
   const f = fake();
-  for (let i = 0; i < 10; i++)
-    await f.repo.save(`replay-${i}`, input, analysis);
-  await assert.rejects(
-    f.repo.save("replay-extra", input, analysis),
-    /storage is full/,
-  );
+  for (let i = 0; i < 10; i++) await f.repo.save(`replay-${i}`, input, analysis);
+  await assert.rejects(f.repo.save("replay-extra", input, analysis), /storage is full/);
   assert.equal(f.rows.size, 10);
   const b = fake();
   b.setBytes(MAX_BYTES / 4);
   for (let i = 0; i < 4; i++) await b.repo.save(`replay-${i}`, input, analysis);
-  await assert.rejects(
-    b.repo.save("replay-extra", input, analysis),
-    /storage is full/,
-  );
+  await assert.rejects(b.repo.save("replay-extra", input, analysis), /storage is full/);
 });
 test("bad metadata, oversized media, and disk-full writes fail without orphan records", async () => {
   const f = fake();
@@ -167,10 +160,7 @@ test("damaged replay metadata offers replay-only recovery and permits saving aga
   f.rows.set("replay-damaged", { version: 99 } as unknown as SavedReplay);
   await assert.rejects(f.repo.list(), (error) => {
     assert.match((error as Error).message, /Clear saved replays/);
-    assert.match(
-      (error as Error).message,
-      /training history and preferences will stay/,
-    );
+    assert.match((error as Error).message, /training history and preferences will stay/);
     assert.doesNotMatch((error as Error).message, /Reset all data/);
     return true;
   });
@@ -179,8 +169,5 @@ test("damaged replay metadata offers replay-only recovery and permits saving aga
   await f.repo.clear();
   assert.deepEqual(await f.repo.list(), []);
   await f.repo.save("replay-after-recovery", input, analysis);
-  assert.equal(
-    await f.repo.open("replay-after-recovery"),
-    "local:replay-after-recovery",
-  );
+  assert.equal(await f.repo.open("replay-after-recovery"), "local:replay-after-recovery");
 });
