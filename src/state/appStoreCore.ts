@@ -7,6 +7,7 @@ export const APP_RECOVERY_BACKUP_KEY = `${APP_STORAGE_KEY}-recovery-backup`;
 type Storage = {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
 };
 type Snapshot = {
   data: AppData;
@@ -26,6 +27,7 @@ export function createAppStoreCore(storage: Storage) {
   let latestData: AppData = snapshot.data;
   let readable = false;
   let loading: Promise<void> | null = null;
+  let resetting: Promise<void> | null = null;
   let tail: Promise<unknown> = Promise.resolve();
   const listeners = new Set<() => void>();
   function publish(next: Snapshot) {
@@ -54,6 +56,7 @@ export function createAppStoreCore(storage: Storage) {
     });
   }
   function load(): Promise<void> {
+    if (resetting) return resetting;
     if (loading) return loading;
     readable = false;
     publish({ ...snapshot, loading: true });
@@ -116,6 +119,26 @@ export function createAppStoreCore(storage: Storage) {
       publish({ ...snapshot, data });
       void persist(data);
     },
+    // Only an explicit confirmed reset removes the preserved recovery copy.
+    reset(): Promise<void> {
+      if (resetting) return resetting;
+      if (!readable || snapshot.loading || snapshot.recovery)
+        return Promise.reject(
+          new Error("Saved training must finish loading before it can be reset."),
+        );
+      readable = false;
+      resetting = queue(async () => {
+        await storage.removeItem(APP_RECOVERY_BACKUP_KEY);
+        const data = initialData();
+        await storage.setItem(APP_STORAGE_KEY, JSON.stringify(data));
+        latestData = data;
+        publish({ data, loading: false, recovery: false, error: null });
+      }).finally(() => {
+        readable = true;
+        resetting = null;
+      });
+      return resetting;
+    },
     checkpointActive(active: Active) {
       if (!readable || snapshot.loading || snapshot.recovery) return;
       const current = latestData.active;
@@ -133,6 +156,7 @@ export function createAppStoreCore(storage: Storage) {
       void persist(data);
     },
     retry() {
+      if (resetting) return resetting;
       return snapshot.recovery || !readable ? load() : persist(latestData);
     },
     // Allows callers/tests to await the current persistence queue without adding writes.

@@ -1,3 +1,4 @@
+import { sanitizeOnboardingAnswers } from "./onboardingFlow";
 import { restorePracticeClock } from "./practiceClock";
 import {
   combinedCatalog,
@@ -93,6 +94,9 @@ export function restoreAppData(raw: string, catalog: Drill[], now = Date.now()):
     }
   }
   p.profile = profile;
+  const onboardingAnswers = sanitizeOnboardingAnswers(p.onboardingAnswers);
+  if (onboardingAnswers) p.onboardingAnswers = onboardingAnswers;
+  else delete p.onboardingAnswers;
   if (!positions.includes(profile.position)) delete profile.position;
   if (!["under13", "13to17", "adult"].includes(profile.ageBand)) delete profile.ageBand;
   const known = (id: string) => catalog.some((d) => d.id === id);

@@ -1,5 +1,24 @@
 # Breakaway local video-analysis development service
 
+### Player shot Joint View
+
+The player-facing shot screen can enable **only** local body-joint estimation with
+`EXPO_PUBLIC_SHOT_POSE_ANALYSIS=true` while keeping
+`EXPO_PUBLIC_DEVELOPER_FEATURES=false`. In this mode Metro exposes only
+`/api/replay/health` and `/api/replay/pose`; other analysis routes return 404.
+This does not enable OpenAI or expose the developer screens. Start the Python
+service first, then restart Expo through `start-expo.cjs` so its session token
+is injected without being printed:
+
+```sh
+EXPO_PUBLIC_SHOT_POSE_ANALYSIS=true EXPO_PUBLIC_DEVELOPER_FEATURES=false node tools/replay_analysis/start-expo.cjs --tunnel --port 8082
+```
+
+Preserve the current tunnel/port configuration when restarting an existing
+session. `node --test tools/replay_analysis/test_proxy.cjs` checks this restricted
+route boundary. Joint View estimates visible landmarks; it does not judge shot
+technique or measure ball speed.
+
 The app sends a selected recording only after **Analyze**. It is processed on this computer using the pinned official YOLOX Nano ONNX model. Ball tracking and Joint View do not send recordings to an AI API. The separately opted-in AI feedback action sends up to eight reduced-size frames to OpenAI only when explicitly configured. The phone reaches this computer through the existing Expo HTTPS development tunnel, so the upload necessarily travels through that tunnel provider. This is a development prototype, not production hosting or production authentication.
 
 The service returns automatic **ball tracking only**: source dimensions/timestamps, normalized ball centers, optional marker radius, uncalibrated detector scores and normalized image movement. It does not infer body feints, cuts, technique advice, skill phases, physical speed or player ratings. Authored demo notes in the sample replay stay separate from a new recording's results.
@@ -88,7 +107,7 @@ The suite exercises a real model+multipart upload, timed gap schema, invalid byt
 
 `CoachAI` first offers **Local guide**, a deterministic device-only summary of the actual plan, saved practice and self-reported tests. It is not an AI response. **Send to AI** explicitly shares bounded message/context. `VideoFeedback` explicitly asks **Get AI feedback** before sending frames. Neither operation runs automatically after ball tracking or selection. AI text never changes OVR or test scores. Saved feedback stores text only on the device (20 notes max), not a permanent video copy. Timestamp buttons seek only observations from the currently selected clip; old notes are labeled as unlinked text.
 
-AI is **unavailable by default**. Server-only environment variables `OPENAI_API_KEY` and `OPENAI_MODEL` are required; choose a model supporting Responses vision and strict structured outputs. There is no guessed/default model. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or corresponding `EXPO_PUBLIC_` values on the server) for authenticated use. The client sends its signed-in session JWT in `X-User-Token` only for an explicit AI request; the server verifies it with Supabase `/auth/v1/user` before any provider request. Missing/expired JWTs are rejected. Auth configuration always takes precedence over development opt-in. Verified users receive at most five attempts/user and50 total attempts per running service. Failed attempts consume quota. These in-memory quotas reset on restart and do not replace durable production budgets. Without auth configuration, `ALLOW_DEV_AI=1` enables an explicit development-only path with five total attempts per running service shared across all bundle holders. Do not enable development opt-in on a public/shared deployment. No key belongs in any `EXPO_PUBLIC_*` variable. The session bearer is only development friction.
+AI is **unavailable by default**. Server-only environment variables `OPENAI_API_KEY` and `OPENAI_MODEL` are required; choose a model supporting Responses vision and strict structured outputs. There is no guessed/default model. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or corresponding `EXPO_PUBLIC_` values on the server) for authenticated use. The client sends its signed-in session JWT in `X-User-Token` only for an explicit AI request; the server verifies it with Supabase `/auth/v1/user` before any provider request. Missing/expired JWTs are rejected. Auth configuration always takes precedence over development opt-in. Verified users receive at most five attempts/user and50 total attempts per running service. Failed attempts consume quota. These in-memory quotas reset on restart and do not replace durable production budgets. Without auth configuration, `ALLOW_DEV_AI=1` enables an explicit development-only path with five total attempts per running service shared across all bundle holders. Do not expose unpaired development access on a public/shared deployment. Accountless text chat additionally requires `COACH_DEV_PAIRING=1` and a separately paired phone credential; see [private cellular pairing](../../docs/coach-chat.md#private-cellular-debug-pairing). The bundled session bearer alone cannot authorize accountless chat. No key belongs in any `EXPO_PUBLIC_*` variable. The session bearer is only development friction.
 
 `GET /health` adds `aiAvailable` (provider/auth configuration, or remaining opt-in development quota) and `jointViewAvailable` (installed dependency + verified model). No secret is returned.
 
@@ -110,3 +129,5 @@ Verification: `python tools/replay_analysis/test_coaching.py` uses mocked Respon
 Returns `{name,calories,protein,carbs,fat,notes,source:"openai",approximate:true,editable:true}`. Calories are kcal and macros grams for the supplied/assumed photographed portion. Every numeric value can be null for insufficient evidence, and non-null values are bounded0–10000. Notes describe uncertainty, portion assumptions and hidden ingredients. No targets, diagnoses, allergy assurances or confidence percentages are returned. The UI must let the user edit and explicitly save a meal after review; the endpoint itself does not save food logs. Live estimates remain unverified without credentials. The typed client helper `estimateFoodPhoto` obtains only the signed-in user's session at explicit request time.
 
 Eleven coaching contract tests now also verify image rotation/640px reduction/EXIF removal, null/invalid nutrient handling, a mocked strict image-provider response, authenticated quotas and missing credentials; no live provider requests are made.
+
+Private paired-phone Coach testing uses the bounded `/pair` exchange described in [Coach setup](../../docs/coach-chat.md#private-cellular-debug-pairing). It does not enable video/food AI or other developer routes. Pairing is disabled by default and unavailable when account authentication is configured.

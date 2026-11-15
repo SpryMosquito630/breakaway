@@ -214,6 +214,9 @@ test("lifecycle uses latest timer checkpoints and reset serializes after the las
   const values = new Map<string, string>();
   const store = createAppStoreCore({
     getItem: async (k) => values.get(k) ?? null,
+    removeItem: async (k) => {
+      values.delete(k);
+    },
     setItem: async (k, v) => {
       values.set(k, v);
     },

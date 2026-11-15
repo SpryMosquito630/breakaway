@@ -43,6 +43,9 @@ function memory(raw: string | null) {
     values,
     writes,
     getItem: async (key: string) => values.get(key) ?? null,
+    removeItem: async (key: string) => {
+      values.delete(key);
+    },
     setItem: async (key: string, value: string) => {
       writes.push([key, value]);
       values.set(key, value);
@@ -260,4 +263,79 @@ test("write failure retry preserves the latest edited state", async () => {
   fail = false;
   await store.retry();
   assert.equal(JSON.parse(storage.values.get(APP_STORAGE_KEY)!).onboarded, true);
+});
+
+test("confirmed reset removes the raw recovery copy and serialized training after pending saves", async () => {
+  const raw = JSON.stringify({ ...saved(), active: { invalid: true } });
+  const storage = memory(raw);
+  const store = createAppStoreCore(storage);
+  await store.load();
+  assert.equal(storage.values.get(APP_RECOVERY_BACKUP_KEY), raw);
+  store.update((data) => ({ ...data, onboardingAnswers: { name: "Private name" } }));
+  await store.reset();
+  await store.settled();
+  assert.equal(storage.values.has(APP_RECOVERY_BACKUP_KEY), false);
+  assert.deepEqual(JSON.parse(storage.values.get(APP_STORAGE_KEY)!), initialData());
+  assert.deepEqual(store.getData(), initialData());
+});
+test("a failed read preserves an existing recovery copy and blocks reset", async () => {
+  const storage = memory(JSON.stringify(saved()));
+  storage.values.set(APP_RECOVERY_BACKUP_KEY, "preserved original");
+  storage.getItem = async () => {
+    throw Error("Read failed");
+  };
+  const store = createAppStoreCore(storage);
+  await store.load();
+  await assert.rejects(store.reset(), /finish loading/);
+  assert.equal(storage.values.get(APP_RECOVERY_BACKUP_KEY), "preserved original");
+  assert.equal(storage.writes.length, 0);
+});
+test("backup deletion failure keeps the existing profile and reports reset failure", async () => {
+  const storage = memory(JSON.stringify(saved()));
+  storage.values.set(APP_RECOVERY_BACKUP_KEY, "preserved original");
+  storage.removeItem = async () => {
+    throw Error("Storage unavailable");
+  };
+  const store = createAppStoreCore(storage);
+  await store.load();
+  const before = store.getData();
+  const backup = storage.values.get(APP_RECOVERY_BACKUP_KEY);
+  await assert.rejects(store.reset(), /Storage unavailable/);
+  assert.equal(store.getData(), before);
+  assert.equal(storage.values.get(APP_RECOVERY_BACKUP_KEY), backup);
+});
+
+test("load and retry join an in-flight reset without republishing the old profile", async () => {
+  const storage = memory(JSON.stringify(saved()));
+  const store = createAppStoreCore(storage);
+  await store.load();
+  let release!: () => void;
+  const paused = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const remove = storage.removeItem;
+  storage.removeItem = async (key) => {
+    await paused;
+    await remove(key);
+  };
+  let reads = 0;
+  const get = storage.getItem;
+  storage.getItem = async (key) => {
+    reads++;
+    return get(key);
+  };
+  const published: boolean[] = [];
+  store.subscribe(() => published.push(store.getSnapshot().data.onboarded));
+  const reset = store.reset();
+  const retry = store.retry();
+  const load = store.load();
+  assert.equal(retry, reset);
+  assert.equal(load, reset);
+  assert.equal(reads, 0);
+  release();
+  await Promise.all([reset, retry, load]);
+  assert.equal(reads, 0);
+  assert.deepEqual(published, [false]);
+  assert.deepEqual(store.getData(), initialData());
+  assert.deepEqual(JSON.parse(storage.values.get(APP_STORAGE_KEY)!), initialData());
 });

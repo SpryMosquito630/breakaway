@@ -17,6 +17,7 @@ export function AccountRoute() {
                   );
                 return {
                   ...incoming,
+                  onboardingAnswers: current.onboardingAnswers,
                   profile: { ...incoming.profile, ageBand: current.profile.ageBand },
                 };
               })

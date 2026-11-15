@@ -490,7 +490,9 @@ export function Replay() {
             ? SAMPLE_VIDEO
               ? "Sample · authored moments · automatic ball tracking"
               : "No developer sample URL configured. Choose your own clip below."
-            : "Your clip · automatic ball tracking"}
+            : analysis.detector === "manual-review"
+              ? "Your clip · local shot review"
+              : "Your clip · automatic ball tracking"}
         </Text>
       </View>
       <Disclosure label={`My replays (${history.length})`}>

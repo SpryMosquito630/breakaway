@@ -1,20 +1,19 @@
 import { DEVELOPER_FEATURES } from "../config/features";
 import { trainingPlanToday, profileForToday } from "../domain/training";
-import { useState } from "react";
 import { haptic } from "../utils/haptics";
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
-import { ArrowRight, ArrowLeftRight, CalendarDays, Check } from "lucide-react-native";
+import { ArrowRight, ArrowLeftRight, CalendarDays } from "lucide-react-native";
 import { useApp } from "../state/AppState";
 import { days, time, getDrillDuration } from "../domain/model";
 import {
   sessionForToday,
   sessionMinutesToday,
-  setTodayMinutes,
-  todayMinuteChoices,
   todayOverride,
 } from "../domain/sessionTime";
 import { useLocalDay } from "../hooks/useLocalDay";
+import { WeeklyCalendar } from "../components/WeeklyCalendar";
+import { trainHero } from "../data/train-hero";
 import {
   Page,
   Note,
@@ -23,7 +22,6 @@ import {
   SettingRow,
   Disclosure,
   Button,
-  Chip,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import {
@@ -36,7 +34,6 @@ export function Today({ navigation }: { navigation: any }) {
   const { data, update, catalog: drills } = useApp();
   const { C, s } = useTheme();
   const now = useLocalDay();
-  const [editingTime, setEditingTime] = useState(false);
   const override = todayOverride(data, now);
   const minutes = sessionMinutesToday(data, now);
   const progress = weeklyProgress(data.history, data.profile, now);
@@ -81,7 +78,9 @@ export function Today({ navigation }: { navigation: any }) {
         style={{
           flexDirection: "row",
           minHeight: 180,
-          borderRadius: 18,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: C.line,
           overflow: "hidden",
           backgroundColor: C.deep,
         }}
@@ -113,7 +112,7 @@ export function Today({ navigation }: { navigation: any }) {
             </Text>
             <Text
               style={{
-                fontFamily: "Archivo_600SemiBold",
+                fontFamily: "Archivo_700Bold",
                 fontSize: 27,
                 lineHeight: 33,
                 letterSpacing: -0.8,
@@ -147,7 +146,7 @@ export function Today({ navigation }: { navigation: any }) {
               alignSelf: "stretch",
               justifyContent: "space-between",
               backgroundColor: C.lime,
-              borderRadius: 10,
+              borderRadius: 26,
               paddingHorizontal: 16,
               paddingVertical: 12,
               flexDirection: "row",
@@ -177,127 +176,26 @@ export function Today({ navigation }: { navigation: any }) {
           </Pressable>
         </View>
         <Image
-          source={require("../../assets/training-editorial.webp")}
+          source={trainHero.source}
           contentFit="cover"
-          contentPosition={{ left: "52%", top: "82%" }}
+          contentPosition="center"
           style={{ width: 116, alignSelf: "stretch", minHeight: 180 }}
-          accessibilityLabel="Ball and boots on the pitch"
+          accessibilityLabel={trainHero.description}
         />
       </View>
-      {!data.active ? (
-        <View style={{ gap: 8 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Change time today. ${minutes} minutes${override ? ", just for today" : ", usual schedule"}`}
-            accessibilityState={{ expanded: editingTime }}
-            onPress={() => {
-              haptic("selection");
-              setEditingTime(!editingTime);
-            }}
-            style={[s.row, { minHeight: 48 }]}
-          >
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={s.h3}>{minutes} minutes today</Text>
-            </View>
-            <Text style={[s.h3, { color: C.green }]}>
-              {editingTime ? "Close" : "Change"}
-            </Text>
-          </Pressable>
-          {editingTime ? (
-            <View style={{ gap: 12 }}>
-              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                {todayMinuteChoices.map((value) => (
-                  <Chip
-                    key={value}
-                    label={`${value} min`}
-                    selected={minutes === value}
-                    onPress={() => update((st) => setTodayMinutes(st, value))}
-                  />
-                ))}
-              </View>
-              <Text style={s.small}>
-                Includes a 2-minute warm-up. Your usual schedule stays at{" "}
-                {profile.minutes} minutes.
-              </Text>
-              {override ? (
-                <Button
-                  label="Use usual schedule"
-                  kind="secondary"
-                  onPress={() => update((st) => setTodayMinutes(st, undefined))}
-                />
-              ) : null}
-              <Button label="Done" onPress={() => setEditingTime(false)} />
-            </View>
-          ) : null}
-        </View>
-      ) : null}
       <View style={{ gap: 8 }}>
-        <View style={s.row}>
-          <Text style={s.h2}>This week</Text>
-          <Text style={s.small}>
-            {progress.count} / {progress.target} sessions
-          </Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Edit weekly schedule. ${progress.count} of ${progress.target} complete this week. Completed days: ${progress.completedDays.join(", ") || "none"}`}
-          onPress={() => {
+        <Text style={s.h2}>This week</Text>
+        <WeeklyCalendar
+          now={now}
+          scheduledDays={profile.days}
+          completedDays={progress.completedDays}
+          count={progress.count}
+          target={progress.target}
+          onEdit={() => {
             haptic("selection");
             navigation.navigate("Preferences", { section: "schedule" });
           }}
-          style={{
-            flexDirection: "row",
-            backgroundColor: C.white,
-            borderRadius: 12,
-            padding: 4,
-          }}
-        >
-          {days.map((d) => (
-            <View
-              key={d}
-              style={{
-                flex: 1,
-                height: 40,
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 7,
-                borderRadius: 9,
-                backgroundColor:
-                  d === today
-                    ? C.green
-                    : progress.completedDays.includes(d)
-                      ? C.pitchSoft
-                      : "transparent",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Archivo_500Medium",
-                  fontSize: 12,
-                  color: d === today ? C.onPrimary : C.muted,
-                }}
-              >
-                {d.slice(0, 1)}
-              </Text>
-              {progress.completedDays.includes(d) ? (
-                <Check size={12} color={d === today ? C.onPrimary : C.green} />
-              ) : (
-                <View
-                  style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: profile.days.includes(d)
-                      ? d === today
-                        ? C.onPrimary
-                        : C.green
-                      : "transparent",
-                  }}
-                />
-              )}
-            </View>
-          ))}
-        </Pressable>
+        />
       </View>
       <View style={{ gap: 12 }}>
         <Text style={s.h2}>{`Today’s drills · ${ids.length}`}</Text>

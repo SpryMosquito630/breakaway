@@ -95,6 +95,8 @@ export type History = {
 export type Benchmark = { id: string; date: string; count: number };
 export type TodaySession = { date: string; minutes: 10 | 15 | 20 | 30 };
 export type AppData = {
+  /** Optional onboarding reflections stored only on this device. */
+  onboardingAnswers?: import("./onboardingFlow").OnboardingAnswers;
   backgroundPractice?: boolean;
   version: 1;
   customDrills?: Drill[];
@@ -373,6 +375,11 @@ export function keepsCustomPlanForPosition(data: AppData, profile: Profile) {
 }
 export function preserveAgeRestriction(current: Profile, incoming: Profile): Profile {
   return current.ageBand === "under13" ? { ...incoming, ageBand: "under13" } : incoming;
+}
+/** Only the explicit age-correction editor uses this; ordinary edits keep their restriction. */
+export function correctSavedAgeRange(data: AppData, ageBand: AgeBand): AppData {
+  if (!ageBands.includes(ageBand) || data.profile.ageBand === ageBand) return data;
+  return { ...data, profile: { ...data.profile, ageBand } };
 }
 export function updateTrainingProfile(
   data: AppData,

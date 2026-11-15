@@ -371,7 +371,11 @@ export function Practice({ navigation }: { navigation: any }) {
             style={{
               alignItems: "center",
               gap: 8,
-              paddingVertical: compact ? 0 : 4,
+              paddingVertical: compact ? 8 : 16,
+              backgroundColor: C.white,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: C.line,
             }}
           >
             <Text
@@ -488,7 +492,7 @@ export function Recap({ navigation, route }: { navigation: any; route: any }) {
         style={{
           width: 64,
           height: 64,
-          borderRadius: 20,
+          borderRadius: 16,
           backgroundColor: C.pitchSoft,
           alignItems: "center",
           justifyContent: "center",

@@ -80,5 +80,20 @@
       "V pull"
     ],
     "licenseChecked": "https://www.pexels.com/license/"
+  },
+  "welcomeBackgroundUse": {
+    "status": "Historical use; replaced by assets/welcome/shot-on-goal.mp4. Drill use remains unchanged.",
+    "file": "marker-slalom.mp4",
+    "poster": "marker-slalom-poster.jpg",
+    "reviewDate": "2026-11-08",
+    "reviewMethod": "Eight chronological center-cover portrait crops at 1fps, approximately 390x844 phone framing; boots, ball and on-field player visible across the sequence.",
+    "presentation": "Muted looping decorative welcome background; cover crop plus existing dark overlay; no new coaching claim or mapping. Same bundled MP4 and poster, no duplicate video bytes.",
+    "lifecycle": "Static poster until reduced-motion preference resolves false; poster on error; pause/release outside active foreground/focused welcome."
+  },
+  "additionalFootageReview20261112": {
+    "date": "2026-11-12",
+    "qualifiedNewClips": 0,
+    "notes": "research-2026-11-12.json",
+    "licenseChecked": "https://www.pexels.com/license/"
   }
 }

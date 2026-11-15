@@ -1,0 +1,149 @@
+{
+  "reviewedOn": "2026-11-14",
+  "clips": [
+    {
+      "drillId": "partner-first",
+      "title": "Receive and pass",
+      "credit": "Kampus Production",
+      "page": "https://www.pexels.com/video/children-passing-around-a-soccer-ball-8813013/",
+      "cue": "First touch into space",
+      "description": "A real first touch followed by a grounded pass.",
+      "limit": "Group-practice example. Use your partner and alternate sides as written.",
+      "license": {
+        "name": "Pexels License",
+        "url": "https://www.pexels.com/license/",
+        "changes": "Source 8.2–11.5 seconds; resized to 960×540; muted and H.264 encoded. No generative edits."
+      },
+      "rightsReviewedOn": "2026-11-14",
+      "sha256": "45d6a938449f8d804230b04711c72a8b996eeeb2387795cba65aaac790f4d50c",
+      "review": "Full23.2s chronologically reviewed; 7–19s at2fps; playerreceivesandredirectsgroundballwithinsidefoot; no coach review; primarysource/licensewebverified.",
+      "file": "receive-side-pass.mp4",
+      "bytes": 503466,
+      "durationSeconds": 3.32,
+      "poster": {
+        "file": "receive-side-pass-poster.jpg",
+        "frameSeconds": 1,
+        "bytes": 56978,
+        "sha256": "459c2375c058c6d02dbd2114179841f1ebcdab3b1f21414bd13b9978843c1727"
+      },
+      "sourceSha256": "c493a1e8bc506b0cf29953727770ea9bc25e1cc1f87cd4c5b1de83fe8677d9cf",
+      "posterReview": "Full-frame1s still inspected: ball, receiving foot and lower body visible; no synthetic alterations."
+    },
+    {
+      "drillId": "wall",
+      "title": "Wall pass and receive",
+      "credit": "Michael Lappas The Athletes Gym",
+      "page": "https://www.youtube.com/watch?v=HESOZuRJ9CA",
+      "cue": "Soften the first touch",
+      "description": "Inside-foot wall passes and controlled returning touches.",
+      "limit": "Training example at a faster pace. Use gentle passes and alternate feet as written.",
+      "license": {
+        "name": "CC BY 3.0",
+        "url": "https://creativecommons.org/licenses/by/3.0/",
+        "changes": "Excerpt 33.6–37.7 seconds, resized to 960×540, muted and H.264 encoded; no generative edits."
+      },
+      "rightsReviewedOn": "2026-11-14",
+      "licenseEvidence": {
+        "id": "HESOZuRJ9CA",
+        "title": "SOCCER PASSING - EASY WALL DRILLS TO IMPROVE YOUR SKILLS",
+        "uploader": "Michael Lappas The Athletes Gym",
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "page": "https://www.youtube.com/watch?v=HESOZuRJ9CA"
+      },
+      "sha256": "808d3a376fad283d111757b8f108f027e97df6079cbc2184737f2b65a4f298e9",
+      "review": "Full source viewed chronological frames;31–60s dense2fps review confirms inside-footwallpassreturncontrol; no coach endorsement.",
+      "file": "wall-pass-receive.mp4",
+      "bytes": 1083960,
+      "durationSeconds": 4.1041,
+      "poster": {
+        "file": "wall-pass-receive-poster.jpg",
+        "frameSeconds": 1,
+        "bytes": 115924,
+        "sha256": "73798937e8a6f788aeaf8cb39b954e9cdf025c770c69b417c5ffdbcf0666cd7d"
+      }
+    },
+    {
+      "title": "Two-touch partner passing",
+      "credit": "I tried 17 Partner Soccer Drills For 2 Players with my friend (FULL PRACTICE PLAN) — Progressive Soccer",
+      "page": "https://www.youtube.com/watch?v=6NoEqnwEoCk",
+      "cue": "Cushion, then pass",
+      "description": "Two players control and return inside-foot passes.",
+      "limit": "The players are farther apart. Start a few steps apart and move sideways as written.",
+      "license": {
+        "name": "CC BY 3.0",
+        "url": "https://creativecommons.org/licenses/by/3.0/",
+        "changes": "Excerpt from passing chapter, approximately 427–436.5 seconds; resized to 1280×720, muted and H.264 encoded. Original source overlays retained."
+      },
+      "rightsReviewedOn": "2026-11-14",
+      "drillId": "partner",
+      "file": "partner-two-touch.mp4",
+      "sha256": "da888829ca35d83036232d88be947066dd36abc20c529bfa8c2b27ec210c6f18",
+      "bytes": 646548,
+      "poster": {
+        "file": "partner-two-touch-poster.jpg",
+        "frameSeconds": 1,
+        "sha256": "71bf7e08eb14cdc2e583faf869666a5c352ea19db3cc1cad18ab87d2ca27ef44"
+      },
+      "licenseEvidence": {
+        "id": "6NoEqnwEoCk",
+        "title": "I tried 17 Partner Soccer Drills For 2 Players with my friend (FULL PRACTICE PLAN)",
+        "uploader": "Progressive Soccer",
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "upload_date": "20230501"
+      },
+      "sourceSha256": "7f19412749d381ec3bc76105e6dd97eac43a43a2dedc73e048bfc94e9d8dbc5a",
+      "sourceExcerpt": "Original421–529sec download; local6–15.5sec trimmed.",
+      "review": "Passing chapter chronological review, 4–25s local dense2fps confirms complete inside-foot control and pass cycles; source shows2players, not solo collection. No coach endorsement.",
+      "durationSeconds": 9.5095
+    },
+    {
+      "drillId": "wall-open",
+      "title": "Receive across and pass back",
+      "credit": "SOCCER PASSING - EASY WALL DRILLS TO IMPROVE YOUR SKILLS — Michael Lappas The Athletes Gym",
+      "page": "https://www.youtube.com/watch?v=HESOZuRJ9CA",
+      "cue": "Receive across; pass with the other foot.",
+      "description": "Wall rebound controlled across the body, followed by a grounded opposite-foot return pass.",
+      "limit": "Source repeats one direction at a quicker pace and uses markers. Alternate the direction of your first touch and pass gently as written.",
+      "license": {
+        "name": "CC BY 3.0",
+        "url": "https://creativecommons.org/licenses/by/3.0/",
+        "changes": "Excerpt 52.7–56.5 seconds; muted, 854×480 H.264 at 24 fps. Original scene retained; no generative edits."
+      },
+      "rightsReviewedOn": "2026-11-14",
+      "file": "wall-open-out.mp4",
+      "bytes": 550306,
+      "sha256": "d4ff625384e4095a714e9732f9987c1e7e6606d8906a45d18bc69811ec3e4729",
+      "durationSeconds": 3.833333,
+      "codec": "h264",
+      "dimensions": [
+        854,
+        480
+      ],
+      "hasAudio": false,
+      "sourceSha256": "0f82c8fbeb7d79630761fa1324127ba31832f764f4cb1ce9b28ff6e17276b5bb",
+      "sourceStartSeconds": 52.7,
+      "sourceEndSeconds": 56.5,
+      "sourceBytes": 5126776,
+      "licenseEvidence": {
+        "id": "HESOZuRJ9CA",
+        "title": "SOCCER PASSING - EASY WALL DRILLS TO IMPROVE YOUR SKILLS",
+        "uploader": "Michael Lappas The Athletes Gym",
+        "channel_url": "https://www.youtube.com/channel/UC6o8YfD1wHyyVkjcYr2iHyA",
+        "upload_date": "20210730",
+        "license": "Creative Commons Attribution license (reuse allowed)",
+        "playable_in_embed": true
+      },
+      "metadataSha256": "73202df7ded2e7dd6ecfb5f5f643f58d10db67225c6d2a7b62b7df26e657951e",
+      "licenseVersionNote": "Original upload predates August2025. YouTube metadata explicitly says Creative Commons Attribution license (reuse allowed); CC BY3.0 used conservatively consistently with the already integrated source. Version is not separately encoded in metadata.",
+      "review": "Full60.2s source reviewed chronologically at1fps;47–58s reviewed at4fps and51–54s at6fps to inspect foot order. Final52.7–56.5s excerpt shows incoming wall rebound, across-body receiving touch, opposite-foot grounded return and repeat. Original source has a camera edit before the selected excerpt; selected interval contains none. Not coach-reviewed.",
+      "loopReview": "Full output decoded without errors, including three consecutive plays via ffmpeg -stream_loop2. Visual boundary frames show an obvious repeat reset; no claim of seamless footage or alternate-direction repetition.",
+      "poster": {
+        "file": "wall-open-out-poster.jpg",
+        "frameSeconds": 1.1,
+        "bytes": 46428,
+        "sha256": "96c465d5af1be3cc289c2a6629f5893194b66fc7310b4d0bcd2fdf3be3dfe84c"
+      },
+      "posterReview": "Full frame checked; entire active learner, both feet and ball visible, original background athletes retained. No generated changes."
+    }
+  ]
+}

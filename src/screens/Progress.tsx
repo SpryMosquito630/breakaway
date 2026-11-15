@@ -20,7 +20,7 @@ export function Progress({ navigation }: { navigation: any }) {
   const practice = deriveProgression(data, catalog);
   return (
     <Page>
-      <View style={{ gap: 8, paddingVertical: 8 }}>
+      <View style={[s.card, { gap: 8, paddingVertical: 20 }]}>
         {rating.overall === null ? (
           <>
             <Text style={s.h2}>Skill profile</Text>
@@ -68,7 +68,7 @@ export function Progress({ navigation }: { navigation: any }) {
         <View style={s.group}>
           <SettingRow
             label="History"
-            value={`${data.history.length} sessions`}
+            value={`${data.history.length} ${data.history.length === 1 ? "session" : "sessions"}`}
             onPress={() => navigation.navigate("SessionHistory")}
           />
           <SettingRow

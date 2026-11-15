@@ -1,6 +1,10 @@
 import tokens from "./tokens.json";
 export type ThemeMode = "system" | "light" | "dark";
 export type ThemeName = "light" | "dark";
+/** A fresh install shares onboarding's forest appearance; explicit choices win. */
+export function restoreThemeMode(stored: string | null): ThemeMode {
+  return stored === "light" || stored === "system" || stored === "dark" ? stored : "dark";
+}
 function token(name: string, theme: ThemeName): string {
   const found = tokens.color.tokens.find((t) => t.name === name);
   if (!found) throw Error(`Missing color token ${name}`);

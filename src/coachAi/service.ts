@@ -1,11 +1,21 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
+import { COACH_DEV_ENABLED } from "../config/coach";
+import { makeCoachPair, validCoachPair, type CoachPair } from "./pairing";
 import { connectedClient } from "../connected/client";
 import type { ImagePickerAsset } from "expo-image-picker";
 export type ServiceState = {
   base: string;
   token: string;
   aiAvailable: boolean;
+  chatAvailable?: boolean;
+  chatProvider?: "openai" | "gemini";
+  chatDevAllowed?: boolean;
+  chatPairRequired?: boolean;
+  chatMemoryAvailable?: boolean;
+  chatPairToken?: string;
+  chatPairExpiresAt?: number;
   jointViewAvailable: boolean;
 };
 export type Feedback = {
@@ -53,6 +63,11 @@ export async function discoverService(
         base,
         token,
         aiAvailable: body.aiAvailable === true,
+        chatAvailable: body.chatAvailable === true,
+        chatProvider: body.chatProvider === "gemini" ? "gemini" : "openai",
+        chatDevAllowed: body.chatDevAllowed === true,
+        chatPairRequired: body.chatPairRequired === true,
+        chatMemoryAvailable: body.chatMemoryAvailable === true,
         jointViewAvailable: body.jointViewAvailable === true,
       }
     : null;
@@ -76,13 +91,91 @@ export async function requestService<T>(
     headers: {
       Authorization: `Bearer ${service.token}`,
       ...(userToken ? { "X-User-Token": userToken } : {}),
+      ...(path === "chat" &&
+      COACH_DEV_ENABLED &&
+      service.chatPairToken &&
+      (service.chatPairExpiresAt ?? 0) > Date.now()
+        ? { "X-Coach-Pair": service.chatPairToken }
+        : {}),
       ...(json ? { "Content-Type": "application/json" } : {}),
     },
   });
   const value = await response.json();
   if (!response.ok)
-    throw new Error(value?.error?.message ?? "The analysis service is unavailable.");
+    throw new ServiceError(
+      value?.error?.message ?? "The analysis service is unavailable.",
+      value?.error?.code,
+    );
   return value as T;
+}
+
+export class ServiceError extends Error {
+  constructor(
+    message: string,
+    public code?: string,
+  ) {
+    super(message);
+  }
+}
+
+const PAIR_KEY = "breakaway.coach.dev-pair";
+let memoryPair: CoachPair | null = null;
+export async function forgetCoachPair() {
+  memoryPair = null;
+  if (Platform.OS !== "web") {
+    try {
+      await SecureStore.deleteItemAsync(PAIR_KEY);
+    } catch {
+      /* Already cleared in memory. */
+    }
+  }
+}
+export async function restoreCoachPair(service: ServiceState): Promise<ServiceState> {
+  if (!COACH_DEV_ENABLED) return service;
+  let pair: unknown = memoryPair;
+  if (!pair && Platform.OS !== "web") {
+    try {
+      const raw = await SecureStore.getItemAsync(PAIR_KEY);
+      pair = raw ? JSON.parse(raw) : null;
+    } catch {
+      pair = null;
+    }
+  }
+  if (!validCoachPair(pair, service.base)) return service;
+  memoryPair = pair;
+  return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
+}
+export async function pairCoachService(
+  service: ServiceState,
+  code: string,
+  signal: AbortSignal,
+) {
+  if (
+    !COACH_DEV_ENABLED ||
+    !service.chatDevAllowed ||
+    !service.chatPairRequired ||
+    !/^\d{8}$/.test(code)
+  )
+    throw Error("Enter the eight-digit pairing code.");
+  const value = await requestService<unknown>(
+    service,
+    "pair",
+    JSON.stringify({ code }),
+    signal,
+    true,
+  );
+  const pair = makeCoachPair(service.base, value);
+  memoryPair = pair;
+  if (Platform.OS !== "web") {
+    try {
+      await SecureStore.setItemAsync(PAIR_KEY, JSON.stringify(pair), {
+        keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      });
+    } catch {
+      /* The current session remains paired. */
+    }
+  }
+  return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
 }
 export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
   if (asset.fileSize && asset.fileSize > 50 * 1024 * 1024)

@@ -17,6 +17,7 @@ export function CoachAI({ navigation }: { navigation: any }) {
   const [service, setService] = useState<ServiceState | null>(null);
   const [busy, setBusy] = useState(false);
   const request = useRef<AbortController | null>(null);
+  const provider = service?.chatProvider === "gemini" ? "Google Gemini" : "OpenAI";
   async function connect() {
     try {
       setService(await discoverService());
@@ -35,7 +36,7 @@ export function CoachAI({ navigation }: { navigation: any }) {
     setError("");
   }
   async function send() {
-    if (!service?.aiAvailable || busy || !message.trim()) return;
+    if (!service?.chatAvailable || busy || !message.trim()) return;
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
@@ -53,7 +54,7 @@ export function CoachAI({ navigation }: { navigation: any }) {
         true,
       );
       setReply(value.reply);
-      setSource("AI reply · OpenAI");
+      setSource(`AI reply · ${provider}`);
       setDrillIds(value.drillIds.filter((id) => catalog.some((d) => d.id === id)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "AI could not respond.");
@@ -96,13 +97,13 @@ export function CoachAI({ navigation }: { navigation: any }) {
         </Text>
         <Button
           label={busy ? "Asking AI…" : "Send to AI"}
-          disabled={!service?.aiAvailable || busy || !message.trim()}
+          disabled={!service?.chatAvailable || busy || !message.trim()}
           onPress={() => void send()}
           kind="secondary"
         />
         <Text style={s.small}>
-          {service?.aiAvailable
-            ? "Send to AI shares this message, your position, goal, recent practice and self-reported tests with OpenAI. Feedback is guidance and does not change your rating."
+          {service?.chatAvailable
+            ? `Send to AI shares this message, your position, goal, recent practice and self-reported tests with ${provider}. Feedback is guidance and does not change your rating.`
             : "AI is not configured or the analysis computer is disconnected. Local guide is available."}
         </Text>
         <Button

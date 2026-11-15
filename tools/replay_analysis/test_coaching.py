@@ -43,6 +43,22 @@ class ContractTests(unittest.TestCase):
    self.assertEqual(size,(320,240));self.assertLessEqual(fps,5);self.assertTrue(all(max(f.shape[:2])<=640 for t,f in frames));self.assertLessEqual(len(frames),5)
    self.assertFalse(pose_available(Path(tmp)/'missing.task'))
    with self.assertRaisesRegex(CoachingError,'verified'):joints(path,Path(tmp)/'missing.task')
+ def test_negative_preroll_timestamp_uses_frame_time(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   path=Path(tmp)/'preroll.mp4';writer=cv2.VideoWriter(str(path),cv2.VideoWriter_fourcc(*'mp4v'),24,(320,240))
+   for _ in range(24):writer.write(np.zeros((240,320,3),np.uint8))
+   writer.release();original=cv2.VideoCapture
+   class PrerollCapture:
+    def __init__(self,path):self.cap=original(path);self.first=True
+    def get(self,key):
+     if key==cv2.CAP_PROP_POS_MSEC and self.first:self.first=False;return -33.4
+     return self.cap.get(key)
+    def __getattr__(self,name):return getattr(self.cap,name)
+   with patch('coaching_worker.cv2.VideoCapture',PrerollCapture):frames,_,_,_=sample_video(path)
+   stamps=[t for t,_ in frames]
+   self.assertEqual(stamps[0],0)
+   self.assertTrue(all(t>=0 for t in stamps))
+   self.assertTrue(all(a<b for a,b in zip(stamps,stamps[1:])))
  def test_verified_auth_and_no_dev_fallback(self):
   env={'OPENAI_API_KEY':'test','OPENAI_MODEL':'explicit-test-model','SUPABASE_URL':'https://example.supabase.co','SUPABASE_PUBLISHABLE_KEY':'sb_publishable_test','ALLOW_DEV_AI':'1'}
   uid='12345678-1234-1234-1234-123456789abc'

@@ -26,7 +26,11 @@ def sample_video(path, target_fps=5):
             if not cap.grab(): break
             if index>=MAX_SOURCE_FRAMES or index/fps>MAX_SECONDS: raise InvalidVideo('Choose a clip up to 30 seconds.')
             t=cap.get(cv2.CAP_PROP_POS_MSEC)/1000
-            if not math.isfinite(t) or t<=last: t=index/fps
+            # Some decoders expose a negative preroll PTS for the first frame.
+            # Player seeking starts at zero; use the decoded frame's nominal
+            # presentation time when PTS is unusable, preserving forward order.
+            if not math.isfinite(t) or t<0 or t<=last:
+                t=max(index/fps, last+1/fps if last>=0 else 0)
             last=t
             if t>30: raise InvalidVideo('Choose a clip up to 30 seconds.')
             if index%step: continue

@@ -7,7 +7,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.sprymosquito630.breakaway",
+      "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -67,6 +72,12 @@
           "isAndroidForegroundServiceEnabled": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d37a05e8-b275-42ad-8519-57ec26d88e7d"
+      }
+    },
+    "owner": "sprymosquito630"
   }
 }

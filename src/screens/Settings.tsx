@@ -1,4 +1,5 @@
 import { DEVELOPER_FEATURES } from "../config/features";
+import { trainHero } from "../data/train-hero";
 import { replays } from "../replays/storage";
 import { resetFeatureStores } from "../features/localStore";
 import { haptic } from "../utils/haptics";
@@ -23,21 +24,45 @@ import {
   Compass,
 } from "lucide-react-native";
 import { useApp } from "../state/AppState";
-import { initialData, updateTrainingProfile, pause } from "../domain/model";
+import {
+  updateTrainingProfile,
+  correctSavedAgeRange,
+  pause,
+  type AgeBand,
+} from "../domain/model";
 import { Preferences } from "../components/Preferences";
 import {
   Button,
+  Choice,
   Disclaimer,
   Disclosure,
+  Link,
   Page,
   SettingRow,
   Title,
 } from "../components/ui";
+const playerPhotoCredits = require("../../assets/player-styles/manifest.json") as {
+  file: string;
+  author: string;
+  attribution: string;
+  changes: string;
+  license: string;
+  sourceUrl: string;
+  licenseUrl: string;
+}[];
+
 export function Settings({ navigation }: { navigation: any }) {
-  const { data, update } = useApp();
+  const { data, update, reset } = useApp();
   const { C, s, mode, setMode, error: themeError } = useTheme();
   const reminders = useReminders();
   const [resetError, setResetError] = useState("");
+  const [linkError, setLinkError] = useState("");
+  function openLink(url: string) {
+    setLinkError("");
+    void Linking.openURL(url).catch(() =>
+      setLinkError("Could not open the page. Check your connection and try again."),
+    );
+  }
   function resetData() {
     setResetError("");
     haptic("warning");
@@ -46,7 +71,7 @@ export function Settings({ navigation }: { navigation: any }) {
       .then(async () => {
         await resetFeatureStores();
         await reminders.reset();
-        update(() => initialData());
+        await reset();
       })
       .catch(() =>
         setResetError("Reset could not finish. Free device space and try again."),
@@ -73,6 +98,20 @@ export function Settings({ navigation }: { navigation: any }) {
           onPress={() => navigation.navigate("Preferences", { section: "all" })}
         />
         <SettingRow
+          icon={SlidersHorizontal}
+          label="Age range"
+          value={
+            data.profile.ageBand === "under13"
+              ? "Under 13"
+              : data.profile.ageBand === "13to17"
+                ? "13–17"
+                : data.profile.ageBand === "adult"
+                  ? "18 or older"
+                  : "Not set"
+          }
+          onPress={() => navigation.navigate("Preferences", { section: "age" })}
+        />
+        <SettingRow
           icon={ListChecks}
           label="My plan"
           onPress={() => navigation.navigate("MyPlan")}
@@ -93,6 +132,7 @@ export function Settings({ navigation }: { navigation: any }) {
               key={value}
               accessibilityRole="radio"
               accessibilityState={{ checked: mode === value }}
+              aria-checked={mode === value}
               onPress={() => {
                 if (mode === value) return;
                 haptic("selection");
@@ -102,7 +142,7 @@ export function Settings({ navigation }: { navigation: any }) {
                 minHeight: 48,
                 paddingHorizontal: 18,
                 justifyContent: "center",
-                borderRadius: 12,
+                borderRadius: 24,
                 borderWidth: 1,
                 borderColor: mode === value ? C.green : C.lineStrong,
                 backgroundColor: mode === value ? C.green : C.white,
@@ -136,12 +176,52 @@ export function Settings({ navigation }: { navigation: any }) {
           }}
         />
       </View>
+      <View style={s.group}>
+        <Link
+          label="Privacy policy"
+          onPress={() =>
+            openLink("https://sprymosquito630.github.io/breakaway-support/privacy.html")
+          }
+        />
+        <Link
+          label="Support"
+          onPress={() => openLink("https://sprymosquito630.github.io/breakaway-support/")}
+        />
+        {linkError ? (
+          <Text accessibilityRole="alert" style={[s.small, { color: C.danger }]}>
+            {linkError}
+          </Text>
+        ) : null}
+      </View>
+      <Disclosure label="Player photo credits">
+        <Text style={s.small}>
+          Playing-style inspiration. No affiliation or endorsement. Photos are cropped,
+          resized and recompressed; individual source and change details follow.
+        </Text>
+        {playerPhotoCredits.map((credit) => (
+          <View key={credit.file} style={{ gap: 8, paddingVertical: 8 }}>
+            <Text style={s.small}>{credit.attribution}</Text>
+            <Text style={s.small}>{credit.changes}</Text>
+            <Link
+              label={`Photo source · ${credit.author}`}
+              onPress={() => openLink(credit.sourceUrl)}
+            />
+            <Link label={credit.license} onPress={() => openLink(credit.licenseUrl)} />
+          </View>
+        ))}
+      </Disclosure>
       <Disclosure label="Privacy & practice notes">
         <Text style={s.small}>
           Your training preferences and progress stay on this device. Reset all data
           clears this device’s saved training.
         </Text>
         <Disclaimer />
+        <Text style={s.small}>{trainHero.credit}</Text>
+        <Link label="Train photo source" onPress={() => openLink(trainHero.page)} />
+        <Link
+          label="CC BY-SA 4.0 photo license"
+          onPress={() => openLink(trainHero.license)}
+        />
       </Disclosure>
       <View style={s.group}>
         <SettingRow icon={Trash2} label="Reset all data" danger onPress={confirmReset} />
@@ -158,16 +238,24 @@ export function EditPreferences({ navigation, route }: { navigation: any; route:
   const { data, update, catalog } = useApp();
   const { s } = useTheme();
   const [profile, setProfile] = useState(data.profile);
+  const [ageChoice, setAgeChoice] = useState<AgeBand | undefined>(data.profile.ageBand);
   const section = route.params?.section || "all";
   return (
     <Page
       footer={
         <Button
-          disabled={!profile.days.length}
-          label="Save changes"
+          disabled={
+            section === "age"
+              ? !ageChoice || ageChoice === data.profile.ageBand
+              : !profile.days.length
+          }
+          label={section === "age" ? "Save age range" : "Save changes"}
           feedback="success"
           onPress={() => {
-            update((st) => updateTrainingProfile(st, profile, catalog));
+            if (section === "age") {
+              if (!ageChoice) return;
+              update((st) => correctSavedAgeRange(st, ageChoice));
+            } else update((st) => updateTrainingProfile(st, profile, catalog));
             navigation.goBack();
           }}
         />
@@ -176,16 +264,38 @@ export function EditPreferences({ navigation, route }: { navigation: any; route:
       {section !== "all" ? (
         <Title
           title={
-            section === "schedule"
-              ? "Your schedule"
-              : section === "position"
-                ? "Your position"
-                : "Training focus"
+            section === "age"
+              ? "Age range"
+              : section === "schedule"
+                ? "Your schedule"
+                : section === "position"
+                  ? "Your position"
+                  : "Training focus"
           }
         />
       ) : null}
-      <Preferences profile={profile} onChange={setProfile} section={section} />
-      {data.active ? (
+      {section === "age" ? (
+        <View style={s.stack}>
+          <Text style={s.body}>Review and correct your saved age range.</Text>
+          {(
+            [
+              ["under13", "Under 13"],
+              ["13to17", "13–17"],
+              ["adult", "18 or older"],
+            ] as const
+          ).map(([value, label]) => (
+            <Choice
+              key={value}
+              label={label}
+              selected={ageChoice === value}
+              onPress={() => setAgeChoice(value)}
+            />
+          ))}
+        </View>
+      ) : (
+        <Preferences profile={profile} onChange={setProfile} section={section} />
+      )}
+      {data.active && section !== "age" ? (
         <Text style={s.small}>Changes apply after your current session.</Text>
       ) : null}
     </Page>
@@ -214,7 +324,7 @@ function ReminderSettings() {
             void setEnabled(value);
           }}
           trackColor={{ false: C.lineStrong, true: C.green }}
-          thumbColor={C.white}
+          thumbColor={C.ink}
         />
       </View>
       {preferences.enabled ? (
