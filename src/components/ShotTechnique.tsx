@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronRight } from "lucide-react-native";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ShotTechnique as Review } from "../domain/shotTechnique";
 import { Button, useTheme } from "./ui";
@@ -37,28 +38,38 @@ export function ShotTechnique({
         ? "Not connected"
         : error
           ? "Unavailable"
-          : "Not graded";
+          : review
+            ? "Not scored"
+            : "Not reviewed";
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Technique score, ${review?.score ?? "not graded"}. ${status}. View details.`}
-        accessibilityState={{ expanded: open }}
+        accessibilityLabel={`Technique score, ${score ?? (review ? "not scored" : "not reviewed")}. ${status}. View details.`}
+        accessibilityState={{ expanded: open, busy }}
         onPress={() => {
           haptic("selection");
           setOpen(true);
         }}
         style={({ pressed }) => [styles.tile, { opacity: pressed ? 0.78 : 1 }]}
       >
-        <View style={styles.badgeContent}>
-          <Text style={styles.label}>TECHNIQUE</Text>
-          <View style={styles.reading}>
-            <Text accessibilityLiveRegion="polite" style={styles.value}>
-              {score ?? "—"}
-            </Text>
-            <Text style={styles.unit}>/100</Text>
-          </View>
-          <Text style={styles.status}>{status}</Text>
+        <Text style={[styles.label, { color: C.muted }]}>Technique</Text>
+        <View style={styles.reading}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[score === null ? styles.empty : styles.value, { color: C.ink }]}
+          >
+            {score ?? status}
+          </Text>
+          {score !== null ? (
+            <Text style={[styles.unit, { color: C.muted }]}>/100</Text>
+          ) : null}
+        </View>
+        <View style={styles.action}>
+          <Text style={[styles.caption, { color: C.green }]}>
+            {score !== null && busy ? "AI estimate · Reviewing…" : "AI estimate"}
+          </Text>
+          <ChevronRight size={14} color={C.green} aria-hidden={true} />
         </View>
       </Pressable>
       <Modal
@@ -171,48 +182,46 @@ export function ShotTechnique({
 }
 const styles = StyleSheet.create({
   tile: {
-    flexGrow: 1,
+    flex: 1,
     minWidth: 0,
-    minHeight: 48,
-    borderRadius: 10,
-    backgroundColor: "#DDF3E8",
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  badgeContent: {
-    gap: 5,
+    minHeight: 96,
+    gap: 6,
+    paddingVertical: 12,
   },
   label: {
-    fontFamily: "Archivo_600SemiBold",
-    fontSize: 11,
-    lineHeight: 16,
-    letterSpacing: 0.6,
-    color: "#236348",
+    fontFamily: "Archivo_500Medium",
+    fontSize: 14,
+    lineHeight: 20,
   },
   reading: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 2,
+    gap: 4,
     flexWrap: "wrap",
+    minHeight: 34,
   },
   value: {
-    fontFamily: "IBMPlexMono_500Medium",
-    fontSize: 34,
-    lineHeight: 48,
-    letterSpacing: -1,
-    color: "#176442",
+    fontFamily: "Archivo_600SemiBold",
+    fontVariant: ["tabular-nums"],
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  empty: {
+    fontFamily: "Archivo_600SemiBold",
+    fontSize: 18,
+    lineHeight: 26,
   },
   unit: {
-    fontFamily: "Archivo_500Medium",
-    fontSize: 11,
-    lineHeight: 16,
-    color: "#236348",
+    fontFamily: "Archivo_400Regular",
+    fontSize: 13,
+    lineHeight: 20,
   },
-  status: {
-    fontFamily: "Archivo_600SemiBold",
+  action: { flexDirection: "row", alignItems: "center", gap: 2, flexWrap: "wrap" },
+  caption: {
+    fontFamily: "Archivo_400Regular",
     fontSize: 12,
     lineHeight: 18,
-    color: "#176442",
+    flexShrink: 1,
   },
   shade: {
     flex: 1,

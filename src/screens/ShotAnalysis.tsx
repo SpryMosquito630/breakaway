@@ -53,12 +53,14 @@ import {
 } from "../domain/shotPose";
 import {
   clipForm,
+  validateClipAsset,
+  ClipValidationError,
   discoverService,
   requestService,
   prepareShotReview,
   type JointResult,
 } from "../coachAi/service";
-import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
+import { ReplayInput, SavedReplay } from "../replays/repository";
 import { reviewThenTrack, waitForShotTask } from "../coachAi/shotReviewPreparation";
 import { ServiceError } from "../coachAi/serviceResponse";
 import { HOSTED_ANALYSIS_CONFIG } from "../config/hostedAnalysis";
@@ -78,8 +80,7 @@ type Clip = {
 
 export function ShotAnalysis() {
   const { C, s } = useTheme();
-  const maxPickedBytes = HOSTED_ANALYSIS_CONFIG ? 25 * 1024 * 1024 : MAX_CLIP_BYTES;
-  const maxPickedMegabytes = maxPickedBytes / (1024 * 1024);
+  const maxPickedMegabytes = HOSTED_ANALYSIS_CONFIG ? 25 : 50;
   const [clip, setClip] = useState<Clip | null>(null);
   const [history, setHistory] = useState<SavedReplay[]>([]);
   const [error, setError] = useState("");
@@ -145,10 +146,14 @@ export function ShotAnalysis() {
             mediaTypes: ["videos"],
             videoMaxDuration: 30,
             videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
+            videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
           })
         : ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["videos"],
             allowsMultipleSelection: false,
+            // iOS otherwise copies the full-size PHAsset without compression.
+            // The system exports the selected representation; no movement is cropped.
+            videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
           }));
       pickerAssets = result.assets ?? [];
       pickerAssets.forEach((asset) => clipUrls.acquire(asset.uri));
@@ -159,10 +164,8 @@ export function ShotAnalysis() {
         setError("Choose a clip up to 30 seconds.");
         return;
       }
-      if ((asset.fileSize ?? 0) > maxPickedBytes) {
-        setError(`Choose a video under ${maxPickedMegabytes} MB.`);
-        return;
-      }
+      await validateClipAsset(asset);
+      if (!mounted.current || request !== generation.current) return;
       replace({
         id: `replay-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
         uri: asset.uri,
@@ -173,9 +176,13 @@ export function ShotAnalysis() {
         saved: false,
         analyzeOnLoad: true,
       });
-    } catch {
+    } catch (error) {
       if (mounted.current && request === generation.current)
-        setError("Could not open the video. Try again or choose another clip.");
+        setError(
+          error instanceof ClipValidationError
+            ? error.message
+            : "Could not prepare the video. Try again or choose another clip.",
+        );
     } finally {
       pickerAssets.forEach((asset) => {
         if (asset.uri !== opened.current) clipUrls.release(asset.uri);
@@ -393,6 +400,7 @@ function ShotReview({
   const [pose, setPose] = useState<JointResult | null>(null);
   const [poseBusy, setPoseBusy] = useState(false);
   const [poseError, setPoseError] = useState("");
+  const [clipBlocked, setClipBlocked] = useState(false);
   const [technique, setTechnique] = useState<TechniqueReview | null>(null);
   const [techniqueBusy, setTechniqueBusy] = useState(false);
   const [techniqueError, setTechniqueError] = useState("");
@@ -500,6 +508,7 @@ function ShotReview({
       })
     )
       return;
+    if (clipBlocked) return;
     trackingStart.manual();
     const abort = new AbortController();
     poseAbort.current = abort;
@@ -512,14 +521,6 @@ function ShotReview({
     player.pause();
     const timeout = setTimeout(() => abort.abort(), 100000);
     try {
-      const service = await waitForShotTask(abort.signal, () =>
-        discoverService(abort.signal),
-      );
-      if (!service?.jointViewAvailable)
-        throw new Error(
-          "Body tracking is unavailable right now. You can still review and save your video.",
-        );
-      if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       const form = await waitForShotTask(abort.signal, () =>
         clipForm({
           uri: clip.uri,
@@ -530,6 +531,14 @@ function ShotReview({
           file: clip.input?.file as File | undefined,
         }),
       );
+      if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
+      const service = await waitForShotTask(abort.signal, () =>
+        discoverService(abort.signal),
+      );
+      if (!service?.jointViewAvailable)
+        throw new Error(
+          "Body tracking is unavailable right now. You can still review and save your video.",
+        );
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       const preparation = await prepareShotReview(service, abort.signal);
       if (abort.signal.aborted || !mounted.current) return;
@@ -617,6 +626,11 @@ function ShotReview({
       setShowLabels(true);
       seek(0);
     } catch (e) {
+      if (mounted.current && e instanceof ClipValidationError) {
+        setClipBlocked(true);
+        setReplacing(true);
+        setTechniqueError("");
+      }
       if (mounted.current && abort.signal.aborted)
         setTechniqueError("Review stopped. Your video is still available.");
       if (mounted.current)
@@ -735,7 +749,13 @@ function ShotReview({
           </Pressable>
         </View>
       </View>
-      <View style={[styles.metrics, stackedMetrics && styles.metricsStacked]}>
+      <View
+        style={[
+          styles.metrics,
+          { borderColor: C.line },
+          stackedMetrics && styles.metricsStacked,
+        ]}
+      >
         <ShotSpeed
           key={clip.id}
           duration={duration}
@@ -746,13 +766,19 @@ function ShotReview({
             return player.currentTime;
           }}
         />
-        <View style={[styles.techniqueInline, stackedMetrics && styles.techniqueStacked]}>
+        <View
+          style={[
+            styles.techniqueInline,
+            { borderColor: C.line },
+            stackedMetrics && styles.techniqueStacked,
+          ]}
+        >
           <ShotTechnique
             review={technique}
             busy={techniqueBusy}
             error={techniqueError}
             connectionRequired={techniqueConnectionRequired}
-            retryDisabled={poseBusy || !usable || picking || !focused}
+            retryDisabled={clipBlocked || poseBusy || !usable || picking || !focused}
             onRetry={() => void analyzeBody()}
             onSeek={seek}
           />
@@ -778,12 +804,14 @@ function ShotReview({
             <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
               {poseError}
             </Text>
-            <Button
-              label="Retry body tracking"
-              kind="secondary"
-              disabled={!usable}
-              onPress={() => void analyzeBody()}
-            />
+            {!clipBlocked && (
+              <Button
+                label="Retry body tracking"
+                kind="secondary"
+                disabled={!usable}
+                onPress={() => void analyzeBody()}
+              />
+            )}
           </>
         ) : !pose && clip.analyzeOnLoad ? (
           <Text accessibilityLiveRegion="polite" style={s.small}>
@@ -1123,14 +1151,21 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     flexDirection: "row",
     alignItems: "stretch",
-    padding: 16,
-    gap: 12,
-    borderRadius: 16,
-    backgroundColor: "#F6F8F5",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 16,
   },
   metricsStacked: { flexDirection: "column" },
-  techniqueInline: { flexBasis: 128, flexShrink: 0 },
-  techniqueStacked: { flexBasis: "auto", flexShrink: 1 },
+  techniqueInline: {
+    flex: 1,
+    minWidth: 0,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    paddingLeft: 16,
+  },
+  techniqueStacked: {
+    borderLeftWidth: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingLeft: 0,
+  },
   captureStage: {
     width: "100%",
     borderRadius: 24,
