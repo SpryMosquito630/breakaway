@@ -16,20 +16,23 @@ export function ShotPoseOverlay({
   labels,
   kickingFoot,
   contentFit = "contain",
+  viewportSize,
 }: {
   pose: JointResult;
   time: number;
   labels: boolean;
   kickingFoot: "left" | "right" | null;
   contentFit?: PreviewFit;
+  viewportSize?: { width: number; height: number };
 }) {
   const [viewport, setViewport] = useState({ width: 350, height: 420 });
+  const bounds = viewportSize ?? viewport;
   const frame = shotPoseAt(pose, time);
   if (!frame) return null;
   const points = frame.joints;
   // Match VideoView's centered fit/fill transform so joints never drift when
   // preview edges are cropped. Text and strokes retain their rendered size.
-  const scale = Math.max(0.001, videoPreviewTransform(pose, viewport, contentFit).scale);
+  const scale = Math.max(0.001, videoPreviewTransform(pose, bounds, contentFit).scale);
   const font = 14.5 / scale;
   const callouts = [
     { label: "Torso lean", a: 11, b: 23, side: "left", position: 0.22 },
@@ -111,7 +114,7 @@ export function ShotPoseOverlay({
             const margin = font * 0.35;
             const placement = videoPreviewCallout(
               pose,
-              viewport,
+              bounds,
               contentFit,
               { x, y },
               {
