@@ -57,6 +57,8 @@ import {
   type JointResult,
 } from "../coachAi/service";
 import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
+import { reviewThenTrack, waitForShotTask } from "../coachAi/shotReviewPreparation";
+import { ServiceError } from "../coachAi/serviceResponse";
 
 const NEON = "#B6FF00";
 
@@ -388,6 +390,7 @@ function ShotReview({
   const [technique, setTechnique] = useState<TechniqueReview | null>(null);
   const [techniqueBusy, setTechniqueBusy] = useState(false);
   const [techniqueError, setTechniqueError] = useState("");
+  const [techniqueConnectionRequired, setTechniqueConnectionRequired] = useState(false);
   const [showPose, setShowPose] = useState<boolean>(bodyTrackingDefaults.enabled);
   const [showLabels, setShowLabels] = useState(true);
   const [kickingFoot, setKickingFoot] = useState<"left" | "right" | null>(null);
@@ -495,58 +498,85 @@ function ShotReview({
     poseAbort.current = abort;
     setPoseBusy(true);
     setPoseError("");
+    setTechnique(null);
+    setTechniqueError("");
+    setTechniqueConnectionRequired(false);
+    setTechniqueBusy(true);
     player.pause();
     const timeout = setTimeout(() => abort.abort(), 100000);
     try {
-      const service = await discoverService(abort.signal);
+      const service = await waitForShotTask(abort.signal, () =>
+        discoverService(abort.signal),
+      );
       if (!service?.jointViewAvailable)
         throw new Error(
           "Body tracking is unavailable right now. You can still review and save your video.",
         );
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
-      const form = await clipForm({
-        uri: clip.uri,
-        width: dimensions.width,
-        height: dimensions.height,
-        type: "video",
-        duration: duration * 1000,
-        file: clip.input?.file as File | undefined,
-      });
+      const form = await waitForShotTask(abort.signal, () =>
+        clipForm({
+          uri: clip.uri,
+          width: dimensions.width,
+          height: dimensions.height,
+          type: "video",
+          duration: duration * 1000,
+          file: clip.input?.file as File | undefined,
+        }),
+      );
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
-      let result: JointResult | null = null;
-      const reviewService = await prepareShotReview(service);
+      const preparation = await prepareShotReview(service, abort.signal);
       if (abort.signal.aborted || !mounted.current) return;
-      if (reviewService) {
-        setTechniqueBusy(true);
-        setTechniqueError("");
-        try {
-          const review = await requestService<unknown>(
-            reviewService,
-            "shot-review",
-            form,
-            abort.signal,
-          );
-          if (abort.signal.aborted || !mounted.current) return;
-          if (!validShotTechnique(review, duration))
-            throw Error("The technique review could not be read. Try again.");
-          setTechnique(review);
-          result = review.pose ?? null;
-        } catch (error) {
-          if (abort.signal.aborted) throw error;
-          if (mounted.current)
-            setTechniqueError(
-              error instanceof Error
-                ? error.message
-                : "Technique review could not finish.",
-            );
-        }
-      } else {
+      if (preparation.status !== "ready") {
+        setTechniqueBusy(false);
+        setTechniqueConnectionRequired(preparation.status === "connection_required");
         setTechniqueError(
-          "AI technique review is unavailable on this connection. Body tracking and speed measurement still work.",
+          preparation.status === "connection_required"
+            ? "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
+            : preparation.status === "restore_failed"
+              ? "Your connection could not be restored. Open your connected preview link and retry. Body tracking can still finish."
+              : "Technique review is unavailable on this connection. Body tracking can still finish.",
         );
       }
-      if (!result)
-        result = await requestService<JointResult>(service, "pose", form, abort.signal);
+      const result = await reviewThenTrack<JointResult>({
+        signal: abort.signal,
+        review:
+          preparation.status === "ready"
+            ? async () => {
+                const review = await requestService<unknown>(
+                  preparation.service,
+                  "shot-review",
+                  form,
+                  abort.signal,
+                );
+                if (abort.signal.aborted || !mounted.current) return null;
+                if (!validShotTechnique(review, duration))
+                  throw Error("The technique review could not be read. Try again.");
+                setTechnique(review);
+                return review.pose ?? null;
+              }
+            : null,
+        track: () => requestService<JointResult>(service, "pose", form, abort.signal),
+        onReviewError: (error) => {
+          if (mounted.current) {
+            const connectionRequired =
+              error instanceof ServiceError &&
+              ["pair_required", "auth_required", "unauthorized"].includes(
+                error.code ?? "",
+              );
+            setTechniqueConnectionRequired(connectionRequired);
+            setTechniqueError(
+              connectionRequired
+                ? "Open your connected preview link on this phone, then retry technique review. Body tracking can still finish."
+                : error instanceof Error
+                  ? error.message
+                  : "Technique review could not finish.",
+            );
+          }
+        },
+        onReviewSettled: () => {
+          if (mounted.current) setTechniqueBusy(false);
+        },
+      });
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       if (!mounted.current) return;
       if (!validShotPose(result))
@@ -576,7 +606,7 @@ function ShotReview({
         );
     } finally {
       clearTimeout(timeout);
-      poseAbort.current = null;
+      if (poseAbort.current === abort) poseAbort.current = null;
       if (mounted.current) {
         setPoseBusy(false);
         setTechniqueBusy(false);
@@ -698,6 +728,8 @@ function ShotReview({
             review={technique}
             busy={techniqueBusy}
             error={techniqueError}
+            connectionRequired={techniqueConnectionRequired}
+            retryDisabled={poseBusy || !usable || picking || !focused}
             onRetry={() => void analyzeBody()}
             onSeek={seek}
           />
