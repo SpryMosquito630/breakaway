@@ -6,6 +6,7 @@ The shipping app is an account-free soccer practice tool: Train, Drills, Progres
 
 - Constraint-aware plans, visible session drills, custom drills/playlists, practice history and six self-reported test scores.
 - Per-minute drill pacing scaled to the frozen block length; revised difficulty set/reset constraints.
+- Demo-first drill details/setup: two visible paused videos, 26 primary top-view guides and written keeper/custom fallbacks, with specific coaching prompts for all 30 starter drills. Media unmounts before the timer.
 - Foreground timer audio plays through iOS silent mode. Background practice is an explicit, default-off option; it reconciles wall-clock time and requests a local end notification, rather than claiming a background JavaScript service. It never advances to another drill automatically.
 - One week of finite local reminders, excluding practiced dates; refreshed on relevant changes and foregrounding. Delivery follows device settings.
 - Raw-save recovery backup before any repaired save can be written. Read/backup failures gate training/onboarding and block writes; Retry reads again. Isolated invalid active sessions are dropped while validated progress survives.

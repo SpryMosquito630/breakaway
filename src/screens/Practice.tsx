@@ -1,6 +1,5 @@
 import { drillTarget } from "../domain/targets";
-import { DrillMovement as Diagram } from "../components/DrillMovement";
-import { DrillDemo } from "../components/DrillDemo";
+import { DrillInstructions } from "../components/DrillInstructions";
 import { haptic } from "../utils/haptics";
 import { useEffect } from "react";
 import { Text, View, useWindowDimensions } from "react-native";
@@ -21,7 +20,6 @@ import {
   Chip,
   Disclosure,
   Link,
-  Note,
   Page,
   Steps,
   Title,
@@ -287,32 +285,6 @@ export function Practice({ navigation }: { navigation: any }) {
           })}
         </View>
       </View>
-      {a.backgroundClock === undefined ? (
-        <View style={{ gap: 8 }}>
-          <Chip
-            label={
-              backgroundClockBusy
-                ? "Checking notifications…"
-                : "Continue when screen locks"
-            }
-            selected={data.backgroundPractice === true}
-            onPress={() => {
-              if (!backgroundClockBusy)
-                void setBackgroundPractice(!data.backgroundPractice);
-            }}
-          />
-          <Text style={s.small}>
-            {data.backgroundPractice
-              ? "Current block keeps time while locked or in another app. A notification marks the end; device settings may delay it. Next drill waits for you."
-              : "Optional · Off by default. Practice pauses when you leave the app. Turning this on requests notification permission."}
-          </Text>
-          {backgroundClockMessage ? (
-            <Text style={s.small}>{backgroundClockMessage}</Text>
-          ) : null}
-        </View>
-      ) : backgroundClockMessage ? (
-        <Text style={s.small}>{backgroundClockMessage}</Text>
-      ) : null}
       {!a.warmed ? (
         <>
           <View style={{ gap: 12 }}>
@@ -459,27 +431,45 @@ export function Practice({ navigation }: { navigation: any }) {
       ) : (
         <>
           <View style={{ gap: 8 }}>
-            <Text style={s.small}>Get set · {time(a.duration)} block</Text>
+            <Text style={s.small}>
+              Stage {d.stage} · {time(a.duration)}
+            </Text>
             <Title title={d.name} />
             <Text style={s.small}>
               Ball{d.gear.length ? " + " + d.gear.join(" + ") : " only"} · {d.space}
             </Text>
           </View>
-          <View style={{ gap: 8 }}>
-            <Text style={s.small}>Stage {d.stage}</Text>
-            {d.target ? (
-              <Text style={[s.h3, { fontSize: 17, lineHeight: 25 }]}>{d.target}</Text>
-            ) : null}
-            <Text style={s.body}>{d.cue}</Text>
-          </View>
-          <DrillDemo key={d.id} id={d.id} />
-          <Steps drill={d} />
-          <Disclosure label="Setup tips and movement">
-            <Note>{d.tip}</Note>
-            <Diagram drill={d} />
-          </Disclosure>
+          <DrillInstructions key={d.id} drill={d} note={d.target} />
         </>
       )}
+      {a.backgroundClock === undefined ? (
+        <Disclosure
+          label={`Screen-lock timer · ${data.backgroundPractice ? "On" : "Off"}`}
+        >
+          <Chip
+            label={
+              backgroundClockBusy
+                ? "Checking notifications…"
+                : "Continue when screen locks"
+            }
+            selected={data.backgroundPractice === true}
+            onPress={() => {
+              if (!backgroundClockBusy)
+                void setBackgroundPractice(!data.backgroundPractice);
+            }}
+          />
+          <Text style={s.small}>
+            {data.backgroundPractice
+              ? "Current block keeps time while locked or in another app. A notification marks the end; device settings may delay it. Next drill waits for you."
+              : "Optional · Off by default. Practice pauses when you leave the app. Turning this on requests notification permission."}
+          </Text>
+          {backgroundClockMessage ? (
+            <Text style={s.small}>{backgroundClockMessage}</Text>
+          ) : null}
+        </Disclosure>
+      ) : backgroundClockMessage ? (
+        <Text style={s.small}>{backgroundClockMessage}</Text>
+      ) : null}
     </Page>
   );
 }
