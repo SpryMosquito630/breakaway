@@ -21,3 +21,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run format:check
+      - name: Test hosted analysis boundaries
+        run: |
+          python3 -m venv .ci-hosted-analysis
+          .ci-hosted-analysis/bin/pip install -r tools/hosted_analysis/requirements.txt
+          .ci-hosted-analysis/bin/python -m unittest discover -s tools/hosted_analysis -p test_hosted.py -v
