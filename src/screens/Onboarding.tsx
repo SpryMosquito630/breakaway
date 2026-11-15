@@ -105,6 +105,7 @@ import {
   answerOptions,
   trainingLocations,
   trainingSetupForLocation,
+  pitchMarkerSelected,
   patchFlowDraft,
   aspirations,
   allergyOptions,
@@ -1185,26 +1186,35 @@ export function Onboarding({
                 <Pressable
                   key={i}
                   accessibilityRole="radio"
-                  accessibilityLabel={`${p.short}, ${p.position}`}
-                  aria-checked={answers.positionDetail === p.short}
+                  accessibilityLabel={`${p.short === "CB" ? `${p.x < 50 ? "Left" : "Right"} CB` : p.short}, ${p.position}`}
+                  aria-checked={pitchMarkerSelected(answers, p.short, p.x)}
                   accessibilityState={{
-                    checked: answers.positionDetail === p.short,
-                    selected: answers.positionDetail === p.short,
+                    checked: pitchMarkerSelected(answers, p.short, p.x),
+                    selected: pitchMarkerSelected(answers, p.short, p.x),
                   }}
                   onPress={() => {
                     haptic("selection");
-                    patch({ position: p.position, answers: { positionDetail: p.short } });
+                    patch({
+                      position: p.position,
+                      answers: {
+                        positionDetail: p.short,
+                        positionMarker:
+                          p.short === "CB" ? (p.x < 50 ? "CB-L" : "CB-R") : undefined,
+                      },
+                    });
                   }}
                   style={[
                     styles.position,
                     { left: `${p.x}%`, top: `${p.y}%` },
-                    answers.positionDetail === p.short && styles.positionSelected,
+                    pitchMarkerSelected(answers, p.short, p.x) && styles.positionSelected,
                   ]}
                 >
                   <Text
                     style={[
                       styles.positionText,
-                      answers.positionDetail === p.short && { color: colors.background },
+                      pitchMarkerSelected(answers, p.short, p.x) && {
+                        color: colors.background,
+                      },
                     ]}
                   >
                     {p.short}

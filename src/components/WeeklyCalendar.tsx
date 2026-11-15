@@ -56,7 +56,7 @@ export function WeeklyCalendar({
       style={({ pressed }) => [styles.control, { opacity: pressed ? 0.65 : 1 }]}
     >
       <View style={styles.week}>
-        {week.map(({ day, date, today, past, complete }) => (
+        {week.map(({ day, date, today, planned, complete }) => (
           <View key={day} style={styles.day}>
             <Text
               style={[
@@ -71,23 +71,29 @@ export function WeeklyCalendar({
               style={[
                 styles.date,
                 {
-                  borderColor: past ? C.lineStrong : "transparent",
-                  backgroundColor: today ? C.line : "transparent",
+                  borderColor: today ? C.green : "transparent",
+                  backgroundColor: complete ? C.lime : planned ? C.soft : "transparent",
+                  borderRadius: today || complete ? 17 : 8,
                 },
               ]}
             >
               <Text
                 style={[
                   styles.dateText,
-                  { color: today || past ? C.ink : C.muted },
+                  { color: complete ? C.onLime : today || planned ? C.ink : C.muted },
                   today && styles.todayText,
                 ]}
               >
                 {date.getDate()}
               </Text>
               {complete ? (
-                <View style={styles.completed}>
-                  <Check size={10} strokeWidth={3} color={C.green} />
+                <View
+                  style={[
+                    styles.completed,
+                    { backgroundColor: C.green, borderColor: C.bg },
+                  ]}
+                >
+                  <Check size={14} strokeWidth={3} color={C.onPrimary} />
                 </View>
               ) : null}
             </View>
@@ -115,10 +121,12 @@ const styles = StyleSheet.create({
   todayText: { fontFamily: "Archivo_700Bold" },
   completed: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 14,
-    height: 14,
+    bottom: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },

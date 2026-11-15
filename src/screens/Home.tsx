@@ -48,6 +48,14 @@ export function Today({ navigation }: { navigation: any }) {
   const ids = data.active?.ids ?? trainingPlanToday(data, catalog, now);
   const profile = profileForToday(data, now);
   const today = days[(now.getDay() + 6) % 7];
+  const restDay =
+    !data.active && !progress.doneToday && !override && !profile.days.includes(today);
+  const nextDate = nextTrainingDate(profile, now);
+  const nextLabel = nextDate.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
   const start = () => {
     if (!data.active && !ids.length) {
       navigation.navigate("TrainingPlanner");
@@ -108,7 +116,7 @@ export function Today({ navigation }: { navigation: any }) {
                   ? "Session complete"
                   : override || profile.days.includes(today)
                     ? "Today"
-                    : "Next session"}
+                    : `Next session · ${nextLabel}`}
             </Text>
             <Text
               style={{
@@ -168,7 +176,7 @@ export function Today({ navigation }: { navigation: any }) {
                   ? "Review setup"
                   : progress.doneToday
                     ? "Train again"
-                    : !profile.days.includes(today) && override
+                    : !profile.days.includes(today)
                       ? "Train now"
                       : "Start session"}
             </Text>
@@ -198,7 +206,9 @@ export function Today({ navigation }: { navigation: any }) {
         />
       </View>
       <View style={{ gap: 12 }}>
-        <Text style={s.h2}>{`Today’s drills · ${ids.length}`}</Text>
+        <Text
+          style={s.h2}
+        >{`${restDay ? "Next session’s drills" : "Today’s drills"} · ${ids.length}`}</Text>
         <Text style={s.small}>
           Ball{profile.gear.length ? " + " + profile.gear.join(" + ") : " only"}
         </Text>
