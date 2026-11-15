@@ -22,14 +22,18 @@ test("legacy snapshots stay unchanged and have no invented fixed block threshold
   assert.equal(snapshot.target, "6 clean turns per block. Reset between sets.");
   assert.equal(drillTarget(undefined, 160), undefined);
 });
-test("all catalog stages define pacing and distinct set constraints", () => {
+test("all catalog stages define work rounds, rest and movement-specific counts", () => {
   for (const drill of drills) {
-    assert.equal(drill.version, 2);
+    assert.equal(drill.version, 3);
     const variants = drill.variants!;
     assert.equal(variants.length, 3);
-    assert.equal(new Set(variants.map((v) => v.target)).size, 3);
+    assert.ok(new Set(variants.map((v) => v.target)).size >= 2);
     assert.equal(new Set(variants.map((v) => v.steps.at(-1))).size, 3);
-    assert.ok(variants.every((v) => v.target.includes("per minute")));
+    assert.ok(
+      variants.every((v) =>
+        /per \d+-second work round\. Rest \d+ seconds/.test(v.target),
+      ),
+    );
   }
 });
 
@@ -47,4 +51,20 @@ test("session stage and pacing remain frozen when the next plan changes", () => 
   assert.equal(snapshot.difficulty, 2);
   assert.equal(drillTarget(snapshot.target, session.duration), before);
   assert.equal(JSON.stringify(snapshot), original);
+});
+
+test("slalom counts out-and-back runs with its rest budget, not six runs each minute", () => {
+  const stage = drills.find((d) => d.id === "slalom")!.variants![2];
+  assert.match(drillTarget(stage.target, 360)!, /45s practice \/ 30s rest/);
+  assert.match(drillTarget(stage.target, 360)!, /up to 10 over 6:00/);
+  assert.doesNotMatch(stage.steps.join(" "), /every four repetitions/);
+});
+
+test("toe taps use controlled work rounds and do not count rest as practice", () => {
+  const stage = drills.find((d) => d.id === "toe-taps")!.variants![0];
+  assert.match(stage.target, /^20 balanced taps per 30-second/);
+  assert.match(drillTarget(stage.target, 30)!, /up to 20/);
+  assert.match(drillTarget(stage.target, 44)!, /up to 20/);
+  assert.match(drillTarget(stage.target, 60)!, /up to 30/);
+  assert.match(drillTarget(stage.target, 360)!, /up to 160/);
 });
