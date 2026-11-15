@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   View,
   useWindowDimensions,
@@ -29,7 +28,11 @@ import { Button, Disclosure, Page, useTheme } from "../components/ui";
 import { haptic } from "../utils/haptics";
 import { ReplayAnalysis } from "../domain/replay";
 import { replays } from "../replays/storage";
-import { bodyTrackingDefaults, canAnalyzeBody } from "../domain/shotTracking";
+import {
+  bodyTrackingDefaults,
+  canStartBodyTracking,
+  createShotTrackingStart,
+} from "../domain/shotTracking";
 import { createClipSaveLease, createClipUrlOwner } from "../domain/clipUrlOwner";
 import { keyboardClipSeek } from "../domain/clipPlayback";
 import { ShotPoseOverlay } from "../components/ShotPoseOverlay";
@@ -57,6 +60,7 @@ type Clip = {
   height: number;
   duration: number;
   saved: boolean;
+  analyzeOnLoad: boolean;
 };
 
 export function ShotAnalysis() {
@@ -152,6 +156,7 @@ export function ShotAnalysis() {
         height: asset.height || 9,
         duration: pickedDuration,
         saved: false,
+        analyzeOnLoad: true,
       });
     } catch {
       if (mounted.current && request === generation.current)
@@ -181,6 +186,7 @@ export function ShotAnalysis() {
         height: item.analysis.height,
         duration: item.analysis.duration,
         saved: true,
+        analyzeOnLoad: false,
       });
     } catch (e) {
       if (mounted.current && request === generation.current)
@@ -232,15 +238,19 @@ export function ShotAnalysis() {
   }
   const pickerActions = (
     <View style={styles.captureActions}>
+      <Text style={[s.small, { color: clip ? C.muted : C.onDeep }]}>
+        Your selected video is sent to the tracking service. Temporary files are deleted
+        after processing.
+      </Text>
       <Button
-        label={picking ? "Opening…" : "Record video"}
+        label={picking ? "Opening…" : "Record & analyze"}
         icon={Camera}
         kind="lime"
         disabled={picking}
         onPress={() => void pick(true)}
       />
       <Button
-        label="Choose video"
+        label="Choose & analyze video"
         icon={Upload}
         kind="secondary"
         disabled={picking}
@@ -274,7 +284,7 @@ export function ShotAnalysis() {
             {pickerActions}
           </View>
           <Text style={s.small}>
-            Up to 30 seconds · Video stays on your device until you choose tracking.
+            Up to 30 seconds · Body tracking starts automatically.
           </Text>
         </>
       )}
@@ -360,7 +370,10 @@ function ShotReview({
 }) {
   const { C, s } = useTheme();
   const focused = useIsFocused();
-  const [consent, setConsent] = useState<boolean>(bodyTrackingDefaults.consent);
+  const trackingStart = useMemo(
+    () => createShotTrackingStart(clip.analyzeOnLoad),
+    [clip.id, clip.analyzeOnLoad],
+  );
   const [pose, setPose] = useState<JointResult | null>(null);
   const [poseBusy, setPoseBusy] = useState(false);
   const [poseError, setPoseError] = useState("");
@@ -450,13 +463,13 @@ function ShotReview({
   }, [focused, picking, player]);
   async function analyzeBody() {
     if (
-      !canAnalyzeBody({
-        consent,
+      !canStartBodyTracking({
         usable,
         busy: !!poseAbort.current,
       })
     )
       return;
+    trackingStart.manual();
     const abort = new AbortController();
     poseAbort.current = abort;
     setPoseBusy(true);
@@ -469,7 +482,7 @@ function ShotReview({
         throw new Error(
           "Body tracking is unavailable right now. You can still review and save your video.",
         );
-      if (abort.signal.aborted) return;
+      if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       const form = await clipForm({
         uri: clip.uri,
         width: dimensions.width,
@@ -478,14 +491,15 @@ function ShotReview({
         duration: duration * 1000,
         file: clip.input?.file as File | undefined,
       });
-      if (abort.signal.aborted) return;
+      if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       const result = await requestService<JointResult>(
         service,
         "pose",
         form,
         abort.signal,
       );
-      if (abort.signal.aborted || !mounted.current) return;
+      if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
+      if (!mounted.current) return;
       if (!validShotPose(result))
         throw new Error("The body tracking result could not be read. Try again.");
       if (!poseMatchesVideo(result, dimensions.width, dimensions.height, duration))
@@ -548,6 +562,13 @@ function ShotReview({
     }
   }
   const usable = loaded && duration > 0 && duration <= 30.05;
+  useEffect(() => {
+    if (
+      trackingStart.automatic({ usable, busy: !!poseAbort.current, focused, picking })
+    ) {
+      void analyzeBody();
+    }
+  }, [trackingStart, usable, focused, picking]);
   const togglePlayback = () => {
     if (playing) player.pause();
     else {
@@ -586,6 +607,56 @@ function ShotReview({
             kickingFoot={kickingFoot}
           />
         ) : null}
+      </View>
+      <View style={{ gap: 10 }}>
+        {poseBusy ? (
+          <View style={styles.transportRow}>
+            <Text accessibilityLiveRegion="polite" style={s.h3}>
+              Tracking movement…
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel body tracking"
+              onPress={() => poseAbort.current?.abort()}
+              style={styles.quietAction}
+            >
+              <Text style={[s.small, { color: C.ink }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        ) : poseError ? (
+          <>
+            <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+              {poseError}
+            </Text>
+            <Button
+              label="Retry body tracking"
+              kind="secondary"
+              disabled={!usable}
+              onPress={() => void analyzeBody()}
+            />
+          </>
+        ) : !pose && clip.analyzeOnLoad ? (
+          <Text accessibilityLiveRegion="polite" style={s.small}>
+            Preparing body tracking…
+          </Text>
+        ) : !pose ? (
+          <>
+            <Text style={s.small}>
+              Analyze sends this saved clip to the tracking service. Temporary files are
+              deleted after processing.
+            </Text>
+            <Button
+              label="Analyze movement"
+              kind="lime"
+              disabled={!usable}
+              onPress={() => void analyzeBody()}
+            />
+          </>
+        ) : (
+          <Text style={s.small}>
+            Body tracking ready · Estimated 2D landmarks, not a technique score.
+          </Text>
+        )}
       </View>
       {videoError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
@@ -801,6 +872,15 @@ function ShotReview({
       ) : null}
       {pose ? (
         <Disclosure label="Tracking options">
+          <Text style={s.small}>
+            Track again sends this clip to the service. Save keeps the video only.
+          </Text>
+          <Button
+            label="Track again"
+            kind="secondary"
+            disabled={!usable || poseBusy}
+            onPress={() => void analyzeBody()}
+          />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             <TrackingChip
               label="Body lines"
@@ -839,64 +919,6 @@ function ShotReview({
             <Text style={s.small}>No nearby body sample at this moment.</Text>
           ) : null}
         </Disclosure>
-      ) : null}
-      {poseBusy ? (
-        <View style={styles.transportRow}>
-          <Text style={s.small}>Tracking movement…</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Cancel body tracking"
-            onPress={() => poseAbort.current?.abort()}
-            style={styles.quietAction}
-          >
-            <Text style={[s.small, { color: C.ink }]}>Cancel</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      <View style={{ gap: 12 }}>
-        <Text accessibilityRole="header" style={s.h3}>
-          Body tracking
-        </Text>
-        <Text style={s.small}>
-          Analyze sends this clip to the tracking service. Temporary files are deleted
-          after processing.
-        </Text>
-        <View style={styles.toggleRow}>
-          <Text style={[s.small, { flex: 1, paddingRight: 12 }]}>
-            This is my clip. I agree to body tracking.
-          </Text>
-          <Switch
-            accessibilityLabel="I agree to process my clip for body tracking"
-            value={consent}
-            disabled={poseBusy}
-            onValueChange={setConsent}
-            trackColor={{ false: C.lineStrong, true: C.lime }}
-            ios_backgroundColor={C.lineStrong}
-            thumbColor={consent ? C.onLime : C.ink}
-          />
-        </View>
-        <Button
-          label={
-            poseBusy ? "Tracking movement…" : pose ? "Track again" : "Analyze movement"
-          }
-          kind="lime"
-          disabled={
-            !canAnalyzeBody({
-              consent,
-              usable,
-              busy: poseBusy,
-            })
-          }
-          onPress={() => void analyzeBody()}
-        />
-        <Text style={s.small}>
-          Estimated 2D landmarks, not a technique score. Save keeps the video only.
-        </Text>
-      </View>
-      {poseError ? (
-        <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
-          {poseError}
-        </Text>
       ) : null}
     </View>
   );

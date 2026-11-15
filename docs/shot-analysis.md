@@ -1,10 +1,10 @@
 # Shot analysis
 
-The shipping Analyze tab is an account-free video review section. Players can record or select a video up to 30 seconds / 50 MB, replay at normal or half speed, tap to seek, and step by 0.04 seconds. Playback pauses when leaving the tab, backgrounding the app, or opening the picker. Video duration comes from the loaded player; web and native picker metadata use different duration units.
+The Expo preview Analyze tab is an account-free video review section. Laptop-backed analysis is excluded from release destinations. Players can record or select a video up to 30 seconds / 50 MB, replay at 0.5×, 1× or 2×, tap to seek, and step by 0.04 seconds. Playback pauses when leaving the tab, backgrounding the app, or opening the picker. Video duration comes from the loaded player; web and native picker metadata use different duration units.
 
-## Optional body tracking
+## Default body tracking
 
-For an existing local age answer of 13–17 or adult, the selected clip can be processed after explicit per-clip consent and an Analyze movement tap. Unknown ages and under-13 profiles retain local video review without remote processing. No age or training profile is included in the clip request.
+Body tracking is available for every age range. The capture actions are explicitly labeled Record & analyze and Choose & analyze video, with service-upload disclosure shown before selection. Newly selected or recorded clips start one analysis attempt automatically once playback metadata is ready. Body lines and labels start on. Failures and cancellation show an explicit retry beside the video rather than looping. No age or training profile is included in the clip request.
 
 The current implementation sends the clip to the configured analysis service's MediaPipe pose endpoint. It does not send frames to OpenAI. The service deletes temporary files after processing. This development service currently runs on the developer's computer and is not production hosting; availability depends on that service and its network connection. Processing errors or cancellation leave the selected video available for local review. Cancelling stops the client request; an already running bounded server task may finish before cleanup.
 
@@ -14,9 +14,11 @@ Body lines and movement labels can be toggled. Torso lean and Arm position ident
 
 ## Local storage
 
-Save replay explicitly copies the video to local replay storage. Pose results remain temporary component state and are not saved. Reopening a saved replay opens the video without stored body tracking. The existing limits of 10 clips / 200 MB, individual confirmed deletion, damaged-store recovery and Settings reset remain in force. There is no account requirement or cloud backup. Legacy tracked replays remain available as videos; the developer viewer distinguishes manual shot review from automatic ball tracking.
+Save replay explicitly copies the video to local replay storage. Pose results remain temporary component state and are not saved. Reopening a saved replay opens the video without stored body tracking or an automatic upload; its disclosed Analyze movement action can request fresh tracking. The existing limits of 10 clips / 200 MB, individual confirmed deletion, damaged-store recovery and Settings reset remain in force. There is no account requirement or cloud backup. Legacy tracked replays remain available as videos; the developer viewer distinguishes manual shot review from automatic ball tracking.
 
 ## Verification and remaining limits
+
+November 15 automatic-flow verification used a licensed bundled drill fixture in an isolated browser profile: selecting the clip produced exactly one pose request and visible body lines without another tap. After reload, opening the saved replay produced zero pose requests. A simulated connection failure produced one attempt and a Retry action; retrying after restoring the connection completed successfully. The public cellular pose endpoint also returned 19 sampled body frames for the same licensed fixture. Readiness, focus/picker gates, one-attempt behavior and saved-replay intent have regression tests.
 
 TypeScript, owned-file formatting, and all current project tests pass. Pose helper tests cover real-sample time matching, missing intervals, confidence and viewport gates, malformed payload rejection, duration/orientation mismatches, and genuine MediaPipe samples from public Pexels video 13189490. An actual upload exposed a negative initial OpenCV timestamp; the backend now normalizes negative preroll to frame-index time, while the frontend continues rejecting negative timestamps. Browser interaction review and real MediaPipe upload testing are performed separately by the coordinating agent; physical-device camera/library permissions and native overlay alignment still need verification. The original local review browser check found and corrected Expo web duration-unit and metadata-event differences.
 
