@@ -17,10 +17,8 @@ export function ShotSpeed({
   usable,
   markTime,
   kickingFoot,
-  insetBadge = true,
 }: {
   kickingFoot?: "left" | "right" | null;
-  insetBadge?: boolean;
   duration: number;
   usable: boolean;
   /** Pause and read the player clock at the instant the user marks a point. */
@@ -40,11 +38,7 @@ export function ShotSpeed({
           haptic("selection");
           setOpen(true);
         }}
-        style={({ pressed }) => [
-          styles.tile,
-          insetBadge && styles.insetBadge,
-          { opacity: pressed ? 0.78 : 1 },
-        ]}
+        style={({ pressed }) => [styles.tile, { opacity: pressed ? 0.78 : 1 }]}
       >
         <Text style={styles.label}>SHOT SPEED</Text>
         <View style={styles.reading}>
@@ -178,16 +172,13 @@ export function ShotSpeed({
 
 const styles = StyleSheet.create({
   tile: {
-    minHeight: 136,
-    justifyContent: "center",
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    minHeight: 48,
     gap: 5,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    backgroundColor: "#F6F8F5",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.12)",
+    paddingVertical: 4,
   },
-  insetBadge: { paddingRight: 142 },
   label: {
     fontFamily: "Archivo_600SemiBold",
     fontSize: 11,
