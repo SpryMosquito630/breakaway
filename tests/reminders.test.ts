@@ -165,3 +165,14 @@ test("legacy recurring reminders are canceled during finite schedule migration",
   assert.ok(f.canceled.includes(`${REMINDER_PREFIX}2`));
   assert.equal(f.items.size, 1);
 });
+
+test("rollback cancels a failing native request even when it was accepted before rejection", async () => {
+  const f = fake([{ identifier: "unrelated", content: {} }]);
+  const schedule = f.api.schedule;
+  f.api.schedule = async (reminder) => {
+    await schedule(reminder);
+    throw Error("Native response failed after accepting request");
+  };
+  await assert.rejects(reconcileReminders(f.api, desired(["Mon", "Wed"])));
+  assert.deepEqual([...f.items.keys()], ["unrelated"]);
+});

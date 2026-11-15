@@ -3,7 +3,7 @@ import { type Active, pause, tick } from "./model";
 /** Background time is wall-clock reconciliation, never a background JS interval. */
 export function restorePracticeClock(active: Active, now = Date.now()): Active {
   if (!active.backgroundClock) return { ...active, running: false };
-  const next = tick(active, now);
+  const next = tick(active, Math.max(active.last, now));
   return next.remaining <= 0 ? { ...next, finishSent: true } : next;
 }
 export function practiceLifecycle(
@@ -12,7 +12,9 @@ export function practiceLifecycle(
   now = Date.now(),
 ): Active {
   if (active.backgroundClock) return restorePracticeClock(active, now);
-  return foreground ? { ...active, running: false } : pause(active, now);
+  return foreground
+    ? { ...active, running: false }
+    : pause(active, Math.max(active.last, now));
 }
 export function practiceDeadline(active: Active | null): number | null {
   return active?.backgroundClock &&
