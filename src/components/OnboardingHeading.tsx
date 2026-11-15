@@ -53,11 +53,12 @@ const typographyKeys = new Set([
   "verticalAlign",
 ]);
 
-// Let successive words overlap softly after the page arrives, without holding
-// navigation or extending longer titles into a separate reading delay.
-const wordFadeDuration = 420;
-const maxWordStagger = 140;
-const staggerWindow = 520;
+// Successive words remain distinct at the requested slower reading pace.
+// These are tuned values, not recovered reference animation constants.
+const wordFadeDuration = 650;
+const maxWordStagger = 240;
+const staggerWindow = 1100;
+const wordEntranceDelay = 120;
 
 /**
  * Skillers' 00:01.6–00:02.3 title reveals words in place while its page slides.
@@ -125,7 +126,7 @@ export function OnboardingHeading({
       values.map((value, index) =>
         Animated.timing(value, {
           toValue: 1,
-          delay: index * stagger,
+          delay: wordEntranceDelay + index * stagger,
           duration: wordFadeDuration,
           easing: Easing.bezier(0.25, 0.1, 0.25, 1),
           useNativeDriver: Platform.OS !== "web",

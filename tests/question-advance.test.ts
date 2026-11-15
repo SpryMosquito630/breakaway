@@ -170,19 +170,19 @@ test("reference editorial entries dissolve while quiz, card entry and Back navig
   const { flowSteps } = await import("../src/domain/onboardingFlow");
   assert.deepEqual(sceneTransitionForSteps("welcome", "intro"), {
     kind: "crossfade",
-    duration: 240,
+    duration: 450,
   });
   assert.deepEqual(sceneTransitionForSteps("intro", "frequency"), {
     kind: "crossfade",
-    duration: 240,
+    duration: 450,
   });
   assert.deepEqual(sceneTransitionForSteps("frequency", "intro"), {
     kind: "slide",
-    duration: 260,
+    duration: 480,
   });
   assert.deepEqual(sceneTransitionForSteps("frequency", "club"), {
     kind: "slide",
-    duration: 260,
+    duration: 480,
   });
   for (let index = 0; index < flowSteps.length - 1; index += 1) {
     if (flowSteps[index] === "welcome" || flowSteps[index] === "intro") continue;
@@ -197,15 +197,15 @@ test("reference editorial entries dissolve while quiz, card entry and Back navig
     ];
     assert.deepEqual(sceneTransitionForSteps(flowSteps[index], flowSteps[index + 1]), {
       kind: editorialDissolves.includes(flowSteps[index]) ? "crossfade" : "slide",
-      duration: editorialDissolves.includes(flowSteps[index]) ? 300 : 260,
+      duration: editorialDissolves.includes(flowSteps[index]) ? 450 : 480,
     });
     assert.deepEqual(sceneTransitionForSteps(flowSteps[index + 1], flowSteps[index]), {
       kind: "slide",
-      duration: 260,
+      duration: 480,
     });
   }
   assert.deepEqual(sceneTransitionForSteps("growth", "snapshot"), {
     kind: "slide",
-    duration: 260,
+    duration: 480,
   });
 });

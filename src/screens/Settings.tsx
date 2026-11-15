@@ -41,6 +41,16 @@ import {
   SettingRow,
   Title,
 } from "../components/ui";
+const playerPhotoCredits = require("../../assets/player-styles/manifest.json") as {
+  file: string;
+  author: string;
+  attribution: string;
+  changes: string;
+  license: string;
+  sourceUrl: string;
+  licenseUrl: string;
+}[];
+
 export function Settings({ navigation }: { navigation: any }) {
   const { data, update, reset } = useApp();
   const { C, s, mode, setMode, error: themeError } = useTheme();
@@ -183,6 +193,23 @@ export function Settings({ navigation }: { navigation: any }) {
           </Text>
         ) : null}
       </View>
+      <Disclosure label="Player photo credits">
+        <Text style={s.small}>
+          Playing-style inspiration. No affiliation or endorsement. Photos are cropped,
+          resized and recompressed; individual source and change details follow.
+        </Text>
+        {playerPhotoCredits.map((credit) => (
+          <View key={credit.file} style={{ gap: 8, paddingVertical: 8 }}>
+            <Text style={s.small}>{credit.attribution}</Text>
+            <Text style={s.small}>{credit.changes}</Text>
+            <Link
+              label={`Photo source · ${credit.author}`}
+              onPress={() => openLink(credit.sourceUrl)}
+            />
+            <Link label={credit.license} onPress={() => openLink(credit.licenseUrl)} />
+          </View>
+        ))}
+      </Disclosure>
       <Disclosure label="Privacy & practice notes">
         <Text style={s.small}>
           Your training preferences and progress stay on this device. Reset all data

@@ -20,7 +20,7 @@ const ready: FlowDraft = {
   answers: { playstyle: "Kevin De Bruyne", positionDetail: "CM" },
 };
 
-test("free-app setup keeps ten screens with explicit measurements and comparisons inactive", () => {
+test("setup ends with a separate player card after the real first-session preview", () => {
   assert.deepEqual(flowSteps, [
     "welcome",
     "focus",
@@ -32,6 +32,7 @@ test("free-app setup keeps ten screens with explicit measurements and comparison
     "identity",
     "measurements",
     "plan",
+    "playerCard",
   ]);
   assert.deepEqual(autoAdvanceSteps, ["focus", "position", "experience"]);
   for (const step of flowSteps) assert.equal(secondaryActionForStep(step), null);

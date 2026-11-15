@@ -15,7 +15,6 @@ import {
   AppState,
   BackHandler,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -72,7 +71,6 @@ import {
   Footprints,
   ChevronRight,
   Shield,
-  X,
   Droplets,
   Utensils,
   CircleDot,
@@ -147,13 +145,7 @@ const colors = {
   muted: "#ADB7A8",
 };
 const photo = require("../../assets/training-editorial.webp");
-const playerPhotoCredits = require("../../assets/player-styles/manifest.json") as {
-  file: string;
-  author: string;
-  license: string;
-  sourceUrl: string;
-  licenseUrl: string;
-}[];
+
 const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string]>> = {
   frequency: ["Question #1", "How often do you currently play or train?"],
   club: ["Question #2", "Do you play for a club?"],
@@ -288,13 +280,20 @@ function Copy({
   children,
   muted = false,
   style,
+  numberOfLines,
 }: {
   children: React.ReactNode;
   muted?: boolean;
+  numberOfLines?: number;
   style?: any;
 }) {
   return (
-    <Text style={[styles.copy, muted && { color: colors.muted }, style]}>{children}</Text>
+    <Text
+      numberOfLines={numberOfLines}
+      style={[styles.copy, muted && { color: colors.muted }, style]}
+    >
+      {children}
+    </Text>
   );
 }
 function Heading({
@@ -494,13 +493,29 @@ export function Onboarding({
   const reminders = useReminders();
   const [remindersRequested, setRemindersRequested] = useState(false);
   const inset = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
   // One reference scale keeps the title, card and photo in proportion across phones.
   // Clean 444×960 frame: title y84, card x67/y182, 310×669, photo 390 high.
   const playerReferenceScale = Math.min(width / 444, 360 / 310);
   const playerCardWidth = 310 * playerReferenceScale;
-  const playerCardHeight = 669 * playerReferenceScale;
-  const playerPhotoHeight = 390 * playerReferenceScale;
+  // Measure the area left between the actual heading and fixed Continue footer.
+  // Keep the reference card width; shorten its photo before shrinking typography.
+  const [playerViewportHeight, setPlayerViewportHeight] = useState(0);
+  const [playerBodyHeight, setPlayerBodyHeight] = useState(215);
+  const playerTopGap = Math.min(24, height * 0.025);
+  const playerCardHeight = Math.min(
+    669 * playerReferenceScale,
+    Math.max(
+      0,
+      (playerViewportHeight || height - inset.top - inset.bottom - 240) -
+        playerTopGap -
+        8,
+    ),
+  );
+  const playerPhotoHeight = Math.max(
+    0,
+    Math.min(390 * playerReferenceScale, playerCardHeight - playerBodyHeight - 4),
+  );
   const playerCardInset = (width - playerCardWidth) / 2;
   const playerCardGap = 33 * playerReferenceScale;
   const playerCarousel = useRef<ScrollViewInstance>(null);
@@ -514,8 +529,6 @@ export function Onboarding({
   const [activeMeasurementWheel, setActiveMeasurementWheel] = useState<string | null>(
     null,
   );
-  const [showPhotoCredits, setShowPhotoCredits] = useState(false);
-  const [showPlanCard, setShowPlanCard] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<OnboardingFeedback | null>(null);
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(true);
@@ -761,6 +774,7 @@ export function Onboarding({
     answers.positionDetail,
   );
   const playerRosterKey = availablePlayerStyles.map((player) => player.id).join("-");
+  useEffect(() => setPlayerBodyHeight(0), [playerRosterKey, width, fontScale]);
   // Initial positioning is stable during a drag. Live selection must never control offset.
   const initialPlayerOffset = useMemo(
     () => ({
@@ -811,9 +825,6 @@ export function Onboarding({
     haptic("selection");
     setDraft((current) => patchFlowDraft(current, { answers: { playstyle: name } }));
   };
-  const availablePhotoCredits = playerPhotoCredits.filter((credit) =>
-    availablePlayerStyles.some((player) => `${player.id}.jpg` === credit.file),
-  );
   const profile = profileFromDraft(draft);
   const field = fieldForStep.has(step) ? (step as keyof typeof answerOptions) : undefined;
   const selected = field ? answers[field] : undefined;
@@ -884,7 +895,7 @@ export function Onboarding({
   const advance = () => {
     if (currentIndex.current !== index || transitionBusy.current) return;
     pendingAdvance.cancel();
-    if (step === "plan") {
+    if (step === "playerCard") {
       if (!profile) return;
       haptic("success");
       update((st) => finishOnboardingDraft(st, draft, drills, replay) ?? st);
@@ -1315,7 +1326,7 @@ export function Onboarding({
               showsHorizontalScrollIndicator={false}
               style={{
                 marginHorizontal: -24,
-                marginTop: 40 * playerReferenceScale,
+                marginTop: playerTopGap,
                 flexGrow: 0,
                 flexShrink: 0,
                 ...(Platform.OS === "web" ? { scrollSnapType: "x mandatory" } : {}),
@@ -1332,6 +1343,7 @@ export function Onboarding({
                 <Pressable
                   key={player.name}
                   accessibilityRole="radio"
+                  accessibilityLabel={`${player.name}. ${player.role}. ${player.description}. ${player.tags.join(", ")}.`}
                   aria-checked={answers.playstyle === player.name}
                   accessibilityState={{
                     checked: answers.playstyle === player.name,
@@ -1351,7 +1363,7 @@ export function Onboarding({
                     styles.styleCard,
                     {
                       width: playerCardWidth,
-                      minHeight: playerCardHeight,
+                      height: playerCardHeight,
                       borderRadius: 28 * playerReferenceScale,
                       ...(Platform.OS === "web" ? { scrollSnapAlign: "center" } : {}),
                     },
@@ -1361,7 +1373,11 @@ export function Onboarding({
                   <View>
                     <Image
                       source={playerStyleImages[player.id]}
-                      contentFit="cover"
+                      contentFit={
+                        playerPhotoHeight < 390 * playerReferenceScale - 1
+                          ? "contain"
+                          : "cover"
+                      }
                       contentPosition="center"
                       accessibilityLabel={`${player.name}, playstyle inspiration`}
                       style={{ width: "100%", height: playerPhotoHeight }}
@@ -1402,6 +1418,14 @@ export function Onboarding({
                     ) : null}
                   </View>
                   <View
+                    onLayout={({ nativeEvent }) => {
+                      const measured = nativeEvent.layout.height;
+                      setPlayerBodyHeight((previous) =>
+                        Math.abs(previous - measured) < 1
+                          ? previous
+                          : Math.max(previous, measured),
+                      );
+                    }}
                     style={{
                       padding: 16 * playerReferenceScale,
                       paddingTop: 12 * playerReferenceScale,
@@ -1409,6 +1433,7 @@ export function Onboarding({
                     }}
                   >
                     <Text
+                      numberOfLines={2}
                       style={[
                         styles.playstyleName,
                         {
@@ -1430,7 +1455,11 @@ export function Onboarding({
                     >
                       {player.role}
                     </Text>
-                    <Copy muted style={{ fontSize: 13, lineHeight: 17 }}>
+                    <Copy
+                      muted
+                      numberOfLines={fontScale > 1.3 ? 1 : 2}
+                      style={{ fontSize: 13, lineHeight: 17 }}
+                    >
                       {player.description}
                     </Copy>
                     <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
@@ -1450,67 +1479,6 @@ export function Onboarding({
                 </Pressable>
               ))}
             </ScrollView>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Player photo credits"
-              aria-expanded={showPhotoCredits}
-              accessibilityState={{ expanded: showPhotoCredits }}
-              onPress={() => {
-                haptic("light");
-                setShowPhotoCredits((v) => !v);
-              }}
-              style={{
-                minHeight: 44,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 8,
-              }}
-            >
-              <Copy muted style={{ fontSize: 12, textDecorationLine: "underline" }}>
-                Player photo credits
-              </Copy>
-            </Pressable>
-            {showPhotoCredits ? (
-              <View style={{ gap: 8 }}>
-                <Copy muted style={{ fontSize: 12, lineHeight: 18 }}>
-                  Playing-style inspiration. No affiliation or endorsement. Photos resized
-                  and displayed with cover cropping.
-                </Copy>
-                {availablePhotoCredits.map((credit) => (
-                  <View key={credit.file} style={{ gap: 2, paddingTop: 8 }}>
-                    <Copy muted style={{ fontSize: 12, lineHeight: 18 }}>
-                      {`${availablePlayerStyles.find((player) => `${player.id}.jpg` === credit.file)?.name} · ${credit.author}`}
-                    </Copy>
-                    <View style={{ flexDirection: "row", gap: 16 }}>
-                      <Pressable
-                        accessibilityRole="link"
-                        accessibilityLabel={`Photo source, ${credit.file}`}
-                        onPress={() => {
-                          void Linking.openURL(credit.sourceUrl).catch(() => {});
-                        }}
-                        style={{ minHeight: 44, justifyContent: "center" }}
-                      >
-                        <Copy style={{ fontSize: 12, textDecorationLine: "underline" }}>
-                          Photo source
-                        </Copy>
-                      </Pressable>
-                      <Pressable
-                        accessibilityRole="link"
-                        accessibilityLabel={`${credit.license}, ${credit.file}`}
-                        onPress={() => {
-                          void Linking.openURL(credit.licenseUrl).catch(() => {});
-                        }}
-                        style={{ minHeight: 44, justifyContent: "center" }}
-                      >
-                        <Copy style={{ fontSize: 12, textDecorationLine: "underline" }}>
-                          {credit.license}
-                        </Copy>
-                      </Pressable>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            ) : null}
           </>
         );
         break;
@@ -2538,6 +2506,31 @@ export function Onboarding({
           </View>
         );
         break;
+      case "playerCard":
+        content = (
+          <View style={{ gap: 20 }}>
+            <OnboardingHeading
+              text={`Your player card${greeting}.`}
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
+            <View style={{ alignItems: "center", gap: 16 }}>
+              <OnboardingPlayerCard
+                name={name}
+                position={answers.positionDetail ?? draft.position ?? "—"}
+                look={answers.snapshotStyle}
+                ratings={ratings}
+                active={focused && step === "playerCard"}
+              />
+              <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
+                Saved test ratings. Unassessed skills show a dash.
+              </Copy>
+            </View>
+          </View>
+        );
+        break;
       case "plan":
         content = (
           <View style={{ gap: 20 }}>
@@ -2613,41 +2606,6 @@ export function Onboarding({
                 </View>
               </Pressable>
             ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                showPlanCard ? "Hide my player card" : "See my player card"
-              }
-              aria-expanded={showPlanCard}
-              accessibilityState={{ expanded: showPlanCard }}
-              onPress={() => setShowPlanCard((value) => !value)}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Copy style={{ color: colors.lime }}>
-                {showPlanCard ? "Hide my player card" : "See my player card"}
-              </Copy>
-            </Pressable>
-            {showPlanCard ? (
-              <View style={{ alignItems: "center", gap: 12 }}>
-                <OnboardingPlayerCard
-                  name={name}
-                  position={answers.positionDetail ?? draft.position ?? "—"}
-                  look={answers.snapshotStyle}
-                  ratings={ratings}
-                  active={focused && step === "plan"}
-                />
-                <Copy muted style={{ textAlign: "center", fontSize: 12 }}>
-                  Saved test ratings. Unassessed skills show a dash.
-                </Copy>
-              </View>
-            ) : null}
-            <Copy muted style={styles.footnote}>
-              {nextData?.planCustomized
-                ? "Your custom drill choices stay in place. "
-                : ""}
-              Finish setup, then open your session from Train. You can change your plan
-              any time.
-            </Copy>
           </View>
         );
         break;
@@ -2692,7 +2650,7 @@ export function Onboarding({
                 ? "Get started"
                 : step === "intro"
                   ? "I’m ready"
-                  : step === "plan"
+                  : step === "playerCard"
                     ? replay
                       ? "Save changes"
                       : "Finish setup"
@@ -2735,42 +2693,52 @@ export function Onboarding({
           </Copy>
         </View>
       ) : null}
-      <ScrollView
-        key={step}
-        scrollEnabled={step !== "measurements" || activeMeasurementWheel === null}
-        style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[
-          styles.content,
-          { flexGrow: 1 },
-          (step === "welcome" || step === "measurements") && { paddingTop: 0 },
-          step === "playstyle" && { paddingTop: 0 },
-          title?.[0].startsWith("Question #") && { paddingHorizontal: 36 },
-          purpleScreen && {
-            paddingHorizontal: 20,
-            paddingTop:
-              step === "days" || step === "schedule" || step === "brief" ? 0 : 28,
-          },
-          automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {showTitle ? (
-          <View style={{ gap: 10, marginBottom: 24, paddingTop: 6 }}>
-            <OnboardingHeading
-              text={title![0]}
-              animationKey={step}
-              focused={focused}
-              reducedMotion={reducedMotionEnabled}
-              style={styles.heading}
-            />
-            <Copy muted style={{ fontSize: 13, lineHeight: 19 }}>
-              {title![1]}
-            </Copy>
-          </View>
-        ) : null}
-        {content}
-      </ScrollView>
+      {step === "playstyle" ? (
+        <View
+          style={{ flex: 1, paddingHorizontal: 24 }}
+          onLayout={({ nativeEvent }) =>
+            setPlayerViewportHeight(nativeEvent.layout.height)
+          }
+        >
+          {content}
+        </View>
+      ) : (
+        <ScrollView
+          key={step}
+          scrollEnabled={step !== "measurements" || activeMeasurementWheel === null}
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            styles.content,
+            { flexGrow: 1 },
+            (step === "welcome" || step === "measurements") && { paddingTop: 0 },
+            title?.[0].startsWith("Question #") && { paddingHorizontal: 36 },
+            purpleScreen && {
+              paddingHorizontal: 20,
+              paddingTop:
+                step === "days" || step === "schedule" || step === "brief" ? 0 : 28,
+            },
+            automatic && !canSkip && { paddingBottom: Math.max(inset.bottom, 24) },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {showTitle ? (
+            <View style={{ gap: 10, marginBottom: 24, paddingTop: 6 }}>
+              <OnboardingHeading
+                text={title![0]}
+                animationKey={step}
+                focused={focused}
+                reducedMotion={reducedMotionEnabled}
+                style={styles.heading}
+              />
+              <Copy muted style={{ fontSize: 13, lineHeight: 19 }}>
+                {title![1]}
+              </Copy>
+            </View>
+          ) : null}
+          {content}
+        </ScrollView>
+      )}
       {step !== "positionConfirm" && (!automatic || canSkip) ? (
         <View
           onLayout={({ nativeEvent }) => {
@@ -2964,18 +2932,14 @@ export function Onboarding({
           </Text>
         ) : (
           <>
-            {step === "playstyle" ? (
-              <View style={{ width: 48 }} />
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Back"
-                onPress={goBack}
-                style={styles.iconButton}
-              >
-                <ArrowLeft size={23} color={colors.white} />
-              </Pressable>
-            )}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              onPress={goBack}
+              style={styles.iconButton}
+            >
+              <ArrowLeft size={23} color={colors.white} />
+            </Pressable>
             <View
               accessibilityRole="progressbar"
               accessibilityLabel={`Setup step ${index} of ${flowSteps.length - 1}`}
@@ -2996,22 +2960,6 @@ export function Onboarding({
             </View>
           </>
         )}
-        {replay ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Cancel onboarding"
-            onPress={() => {
-              haptic("light");
-              setFeedback(null);
-              pendingAdvance.cancel();
-              settleScene();
-              onComplete?.();
-            }}
-            style={styles.iconButton}
-          >
-            <X size={22} color={colors.white} />
-          </Pressable>
-        ) : null}
       </View>
       <View style={{ flex: 1, overflow: "hidden" }}>
         {(outgoing

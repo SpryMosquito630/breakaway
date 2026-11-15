@@ -144,7 +144,7 @@ const legacyFlowSteps = [
   "plan",
 ] as const;
 // Legacy identifiers remain readable for persisted reflections and old replay data.
-export type FlowStep = (typeof legacyFlowSteps)[number];
+export type FlowStep = (typeof legacyFlowSteps)[number] | "playerCard";
 export const flowSteps: readonly FlowStep[] = [
   "welcome",
   "focus",
@@ -156,6 +156,7 @@ export const flowSteps: readonly FlowStep[] = [
   "identity",
   "measurements",
   "plan",
+  "playerCard",
 ];
 /** Simple single choices advance; merged forms retain an explicit Continue action. */
 export const autoAdvanceSteps: readonly FlowStep[] = ["focus", "position", "experience"];
@@ -282,6 +283,7 @@ export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
         Array.isArray(d.gear) && ["Small space", "Open space"].includes(d.space ?? "")
       );
     case "plan":
+    case "playerCard":
       return profileFromDraft(d) !== null;
     default: {
       // Diet is an optional private note: Continue can leave it unanswered.

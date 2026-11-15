@@ -76,7 +76,7 @@ export function sceneTransitionForSteps(
     (from === "welcome" && to === "intro") ||
     (from === "intro" && to === "frequency")
   ) {
-    return { kind: "crossfade", duration: 240 };
+    return { kind: "crossfade", duration: 450 };
   }
   return (from === "bodyGoal" && to === "planComparison") ||
     (from === "consistency" && to === "notifications") ||
@@ -85,6 +85,6 @@ export function sceneTransitionForSteps(
     (from === "assessment" && to === "strengths") ||
     (from === "strengths" && to === "growth") ||
     (from === "snapshot" && to === "fuel")
-    ? { kind: "crossfade", duration: 300 }
-    : { kind: "slide", duration: 260 };
+    ? { kind: "crossfade", duration: 450 }
+    : { kind: "slide", duration: 480 };
 }
