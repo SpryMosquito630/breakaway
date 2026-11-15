@@ -1,4 +1,10 @@
 import { Platform } from "react-native";
+import {
+  HOSTED_ANALYSIS_CONFIG,
+  HOSTED_ANALYSIS_REQUESTED,
+} from "../config/hostedAnalysis";
+import { hostedIdentity } from "./hostedIdentity";
+import { requestHostedAnalysis } from "./hostedTransport";
 import Constants from "expo-constants";
 import { File } from "expo-file-system";
 import { fetch as expoFetch } from "expo/fetch";
@@ -25,6 +31,7 @@ import { prepareShotReviewConnection } from "./shotReviewPreparation";
 export type ServiceState = {
   base: string;
   token: string;
+  hosted?: boolean;
   aiAvailable: boolean;
   chatAvailable?: boolean;
   chatProvider?: "openai" | "gemini";
@@ -73,15 +80,19 @@ function baseURL() {
 export async function discoverService(
   signal?: AbortSignal,
 ): Promise<ServiceState | null> {
-  const base = baseURL();
-  const token = process.env.EXPO_PUBLIC_ANALYSIS_TOKEN;
-  if (!base || !token) return null;
-  const response = await fetch(`${base}/health`, { signal });
+  const hosted = HOSTED_ANALYSIS_CONFIG;
+  if (HOSTED_ANALYSIS_REQUESTED && !hosted) return null;
+  const base = hosted?.base ?? baseURL();
+  const token = hosted ? "" : process.env.EXPO_PUBLIC_ANALYSIS_TOKEN;
+  if (!base || (!hosted && !token)) return null;
+  const response = await fetch(`${base}/health`, { signal, redirect: "error" });
   const body = await response.json();
+  if (hosted && (body.hosted !== true || body.authentication !== "firebase")) return null;
   return response.ok && body.available
     ? {
         base,
-        token,
+        token: token ?? "",
+        hosted: Boolean(hosted),
         aiAvailable: body.aiAvailable === true,
         chatAvailable: body.chatAvailable === true,
         chatProvider: body.chatProvider === "gemini" ? "gemini" : "openai",
@@ -100,7 +111,29 @@ export async function requestService<T>(
   signal: AbortSignal,
   json = false,
   identity?: CoachRequestIdentity,
+  hostedRequestId?: string,
 ): Promise<T> {
+  if (service.hosted) {
+    if (!["shot-review", "pose"].includes(path) || typeof body !== "object" || !body)
+      throw new ServiceError(
+        "This feature is unavailable on the analysis connection.",
+        "service_unavailable",
+      );
+    if (!hostedRequestId)
+      throw new ServiceError(
+        "Retry your video from the analysis screen.",
+        "request_id_required",
+      );
+    return requestHostedAnalysis<T>({
+      base: service.base,
+      path,
+      body,
+      signal,
+      requestId: hostedRequestId,
+      identity: () => hostedIdentity(signal),
+      send: (Platform.OS === "web" ? fetch : expoFetch) as typeof fetch,
+    });
+  }
   const pair =
     path === "chat" && identity?.pairRevision !== undefined
       ? await readCoachPair()
@@ -155,6 +188,11 @@ export async function prepareShotReview(service: ServiceState, signal: AbortSign
     chatPairPersisted: undefined,
     chatPairStoreRevision: undefined,
   };
+  if (service.hosted) {
+    if (!service.shotReviewAvailable) return { status: "service_unavailable" } as const;
+    await hostedIdentity(signal);
+    return { status: "ready", service: clean } as const;
+  }
   return prepareShotReviewConnection(
     clean,
     {
@@ -236,21 +274,20 @@ export async function pairCoachService(
   };
 }
 export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
-  if (asset.fileSize && asset.fileSize > 50 * 1024 * 1024)
-    throw new Error("Choose a video smaller than 50 MB.");
+  const maxBytes = (HOSTED_ANALYSIS_CONFIG ? 25 : 50) * 1024 * 1024;
+  const sizeMessage = `Choose a video smaller than ${HOSTED_ANALYSIS_CONFIG ? 25 : 50} MB.`;
+  if (asset.fileSize && asset.fileSize > maxBytes) throw new Error(sizeMessage);
   if (asset.duration && asset.duration > 30050)
     throw new Error("Choose a video up to 30 seconds.");
   const form = new FormData();
   if (Platform.OS === "web") {
     const blob = asset.file ?? (await (await fetch(asset.uri)).blob());
-    if (blob.size > 50 * 1024 * 1024)
-      throw new Error("Choose a video smaller than 50 MB.");
+    if (blob.size > maxBytes) throw new Error(sizeMessage);
     form.append("video", blob, "recording.mp4");
   } else {
     // Expo 58 fetch accepts File/Blob parts, not React Native's URI descriptor.
     const file = new File(asset.uri);
-    if (file.size > 50 * 1024 * 1024)
-      throw new Error("Choose a video smaller than 50 MB.");
+    if (file.size > maxBytes) throw new Error(sizeMessage);
     form.append("video", file);
   }
   if (context) form.append("context", JSON.stringify(context));

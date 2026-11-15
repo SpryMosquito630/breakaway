@@ -10,7 +10,7 @@ const expoRoot = path.join(root, "node_modules/expo/src/winter");
 
 // Run the installed Expo fetch, FormData patch and serializer. Only native I/O
 // boundaries are replaced: no local user files, network or provider is accessed.
-function uploadHarness(os: "ios" | "android" | "web" = "ios") {
+function uploadHarness(os: "ios" | "android" | "web" = "ios", hosted = false) {
   const requests: { url: string; init: any; body: Uint8Array }[] = [];
   const files = new Map<string, { bytes: Uint8Array; size?: number }>();
   let canceled = false;
@@ -46,6 +46,17 @@ function uploadHarness(os: "ios" | "android" | "web" = "ios") {
     "react-native": { Platform: { OS: os } },
     "expo-constants": { default: {} },
     "expo-file-system": { File: LocalFile },
+    "expo-crypto": { randomUUID: () => "synthetic-request-id" },
+    [path.join(root, "src/config/hostedAnalysis.ts")]: {
+      HOSTED_ANALYSIS_CONFIG: hosted ? { base: "https://hosted.example.com" } : null,
+    },
+    [path.join(root, "src/coachAi/hostedIdentity.ts")]: {
+      hostedIdentity: async () => ({
+        userId: "guest",
+        idToken: "firebase-id-token",
+        appCheckToken: "app-attestation",
+      }),
+    },
     [path.join(root, "src/config/coach.ts")]: { COACH_DEV_ENABLED: true },
     [path.join(root, "src/connected/client.ts")]: {
       connectedClient: {
@@ -150,6 +161,52 @@ const service = {
 };
 const uri = "file:///synthetic/shot.mov";
 const bytes = new Uint8Array([0, 255, 13, 10, 42, 128]);
+
+test("hosted native upload uses Firebase auth and stable caller operation ID without local credentials", async () => {
+  const h = uploadHarness("ios", true);
+  try {
+    h.files.set(uri, { bytes });
+    const form = await h.service.clipForm({ uri, duration: 30000 });
+    await h.service.requestService(
+      { ...service, hosted: true },
+      "shot-review",
+      form,
+      new AbortController().signal,
+      false,
+      undefined,
+      "synthetic-operation-id",
+    );
+    const headers = Object.fromEntries(h.requests[0].init.headers);
+    assert.equal(headers.Authorization, "Bearer firebase-id-token");
+    assert.equal(headers["X-Firebase-AppCheck"], "app-attestation");
+    assert.equal(headers["X-Request-ID"], "synthetic-operation-id");
+    assert.equal(headers["X-User-Token"], undefined);
+    assert.equal(headers["X-Coach-Pair"], undefined);
+    assert.ok(Buffer.from(h.requests[0].body).includes(Buffer.from(bytes)));
+    h.files.set(uri, { bytes, size: 26 * 1024 * 1024 });
+    await assert.rejects(h.service.clipForm({ uri }), /smaller than 25 MB/);
+  } finally {
+    h.restore();
+  }
+});
+
+test("hosted discovery verifies server auth marker before considering the connection usable", async () => {
+  const h = uploadHarness("ios", true);
+  const originalFetch = globalThis.fetch;
+  try {
+    let health: Record<string, unknown> = { available: true, jointViewAvailable: true };
+    globalThis.fetch = (async () => new Response(JSON.stringify(health))) as typeof fetch;
+    assert.equal(await h.service.discoverService(), null);
+    health = { ...health, hosted: true, authentication: "firebase" };
+    const found = await h.service.discoverService();
+    assert.equal(found.hosted, true);
+    assert.equal(found.token, "");
+    assert.equal(found.base, "https://hosted.example.com");
+  } finally {
+    globalThis.fetch = originalFetch;
+    h.restore();
+  }
+});
 
 test("native video reaches Expo's native request with binary multipart, context and auth", async () => {
   for (const os of ["ios", "android"] as const) {

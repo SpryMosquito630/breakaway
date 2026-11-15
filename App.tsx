@@ -1,6 +1,7 @@
 import { useCoachInviteCapture } from "./src/coachAi/useCoachInviteCapture";
 import { haptic } from "./src/utils/haptics";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { HOSTED_ANALYSIS_CONFIG } from "./src/config/hostedAnalysis";
 import { DEVELOPER_FEATURES, LOCAL_SERVICE_PREVIEW } from "./src/config/features";
 import { setConnectedAgeBand } from "./src/connected/access";
 import {
@@ -69,7 +70,7 @@ function developerScreen(load: () => Promise<{ default: React.ComponentType<any>
   );
 }
 const ShotAnalysis = developerScreen(() =>
-  import("./src/screens/LocalServiceScreens").then((m) => ({ default: m.ShotAnalysis })),
+  import("./src/screens/AnalysisScreens").then((m) => ({ default: m.ShotAnalysis })),
 );
 const Coach = developerScreen(() =>
   import("./src/screens/LocalServiceScreens").then((m) => ({ default: m.Coach })),
@@ -205,7 +206,7 @@ function Main({ navigation }: { navigation: any }) {
         options={{ title: "Train", tabBarLabel: "Train" }}
       />
       <Tab.Screen name="Drills" component={Library} />
-      {LOCAL_SERVICE_PREVIEW ? (
+      {LOCAL_SERVICE_PREVIEW || HOSTED_ANALYSIS_CONFIG ? (
         <Tab.Screen
           name="Analyze"
           component={ShotAnalysis}

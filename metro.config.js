@@ -7,8 +7,24 @@ const shotPoseAnalysis = process.env.EXPO_PUBLIC_SHOT_POSE_ANALYSIS === "true";
 const coachRemote = process.env.EXPO_PUBLIC_COACH_REMOTE_ENABLED === "true";
 const coachPairing = coachRemote && process.env.EXPO_PUBLIC_COACH_DEV_ENABLED === "true";
 config.cacheVersion = `${config.cacheVersion ?? ""}-developer-${developerFeatures}-shot-pose-${shotPoseAnalysis}-coach-${coachRemote}-local-release-${process.env.NODE_ENV === "production"}`;
+const hostedAnalysis = process.env.EXPO_PUBLIC_HOSTED_ANALYSIS_ENABLED === "true";
+config.cacheVersion += `-hosted-analysis-${hostedAnalysis}`;
 const resolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (!hostedAnalysis && /(?:^|\/)hostedIdentityNative$/.test(moduleName))
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(__dirname, "src/coachAi/hostedIdentityNative.disabled.ts"),
+    };
+  if (
+    !hostedAnalysis &&
+    (process.env.NODE_ENV === "production" || (!coachPairing && !shotPoseAnalysis)) &&
+    /(?:^|\/)AnalysisScreens$/.test(moduleName)
+  )
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(__dirname, "src/screens/LocalServiceScreens.disabled.ts"),
+    };
   if (
     (process.env.NODE_ENV === "production" || (!coachPairing && !shotPoseAnalysis)) &&
     /(?:^|\/)LocalServiceScreens$/.test(moduleName)

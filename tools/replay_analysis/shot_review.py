@@ -59,9 +59,9 @@ def validate(value, duration, timestamps):
         improvement = {'text': bounded_text(improvement['text'], 700), 'timestampSeconds': stamp(improvement['timestampSeconds'])}
     return {'source': 'gemini', 'subjective': True, 'label': 'AI coaching estimate', 'score': round(sum(row['score'] for row in categories)/3) if adequate else None, 'confidence': confidence if adequate else 'low', 'shotStyle': style, 'summary': bounded_text(value['summary'], 1200), 'limitations': 'Subjective estimate from sparse sampled frames; contact or motion between frames may be missed. ' + bounded_text(value['limitations'], 1000), 'categories': categories, 'improvement': improvement if adequate else None, 'durationSeconds': duration, 'sampledFrames': len(timestamps)}
 
-def review(path, transport=None):
+def review(path, transport=None, *, authorized=False):
     # The parent reserves quota first; do not recheck remaining quota in this worker.
-    if chat_provider() != 'gemini' or not (auth_config() or os.environ.get('ALLOW_DEV_AI') == '1'):
+    if chat_provider() != 'gemini' or not (authorized or auth_config() or os.environ.get('ALLOW_DEV_AI') == '1'):
         raise CoachingError('ai_unconfigured', 'Shot review needs Gemini server credentials and account configuration.')
     import cv2
     from coaching_worker import sample_video
