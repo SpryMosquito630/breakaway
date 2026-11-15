@@ -5,6 +5,7 @@ import {
   AppState,
   Easing,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -21,7 +22,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { snapshotStyles } from "../domain/onboardingFlow";
-import type { skillProfile } from "../domain/skillProfile";
+import type { skillProfile, ProfileSkill } from "../domain/skillProfile";
 
 // The card is an onboarding keepsake. Ratings come only from saved skill tests.
 const finishes = [
@@ -176,6 +177,7 @@ export function OnboardingPlayerCard({
   ratings,
   active = true,
   size,
+  onSkillPress,
 }: {
   name?: string;
   position: string;
@@ -185,6 +187,7 @@ export function OnboardingPlayerCard({
   active?: boolean;
   /** Larger display in Progress; onboarding retains its reference size. */
   size?: number;
+  onSkillPress?: (skill: ProfileSkill["id"]) => void;
 }) {
   const { width } = useWindowDimensions();
   // Source frame: a ~230-point visible outline in a 444-point viewport.
@@ -262,6 +265,7 @@ export function OnboardingPlayerCard({
     <Animated.View
       style={[
         styles.card,
+        onSkillPress && { height: 344 * scale },
         {
           opacity:
             reduceMotion === null && active
@@ -337,20 +341,57 @@ export function OnboardingPlayerCard({
             />
           </Svg>
         </View>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.name}>
+        {onSkillPress ? (
+          <Text numberOfLines={1} style={styles.coverage}>
+            {ratings.coverage}/6 assessed ·{" "}
+            {ratings.coverage === 6 ? "Tap to retest" : "Tap a stat"}
+          </Text>
+        ) : null}
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={[styles.name, onSkillPress && { top: 207 * scale }]}
+        >
           {name?.trim() || "Your game"}
         </Text>
-        <View style={styles.stats}>
-          {ratings.skills.map((skill) => (
-            <View
-              key={skill.id}
-              accessibilityLabel={`${skill.name}, ${skill.rating === null ? "not assessed" : `test rating ${skill.rating}`}`}
-              style={styles.stat}
-            >
-              <Text style={styles.statLabel}>{skill.short}</Text>
-              <Text style={styles.statValue}>{skill.rating ?? "—"}</Text>
-            </View>
-          ))}
+        <View
+          style={[
+            styles.stats,
+            onSkillPress && { top: 240 * scale, flexWrap: "wrap", rowGap: 4 },
+          ]}
+        >
+          {ratings.skills.map((skill) => {
+            const label = `${skill.name}, ${skill.rating === null ? "not assessed" : `test rating ${skill.rating}`}`;
+            const content = (
+              <>
+                <Text style={styles.statLabel}>{skill.short}</Text>
+                <Text style={styles.statValue}>{skill.rating ?? "—"}</Text>
+              </>
+            );
+            return onSkillPress ? (
+              <Pressable
+                key={skill.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${label}. Take skill test`}
+                onPress={() => onSkillPress(skill.id)}
+                style={({ pressed }) => [
+                  styles.stat,
+                  {
+                    width: "33.333%",
+                    minWidth: 0,
+                    minHeight: 44,
+                    opacity: pressed ? 0.65 : 1,
+                  },
+                ]}
+              >
+                {content}
+              </Pressable>
+            ) : (
+              <View key={skill.id} accessibilityLabel={label} style={styles.stat}>
+                {content}
+              </View>
+            );
+          })}
         </View>
       </Animated.View>
     </Animated.View>
@@ -426,6 +467,17 @@ const createStyles = (scale: number) =>
       fontSize: 19 * scale,
       lineHeight: 25 * scale,
       color: "#FCFCF7",
+    },
+    coverage: {
+      position: "absolute",
+      top: 188 * scale,
+      left: 25 * scale,
+      right: 25 * scale,
+      textAlign: "center",
+      fontFamily: "Archivo_400Regular",
+      fontSize: Math.max(10, 10 * scale),
+      lineHeight: 14 * scale,
+      color: "#D2D0C5",
     },
     stats: {
       position: "absolute",

@@ -20,7 +20,7 @@ import { skillProfile } from "../domain/skillProfile";
 import { canSaveBenchmark } from "../domain/benchmark";
 import { useBenchmarkClock } from "../hooks/useBenchmarkClock";
 
-export function Progress() {
+export function Progress({ navigation }: { navigation: any }) {
   const { data } = useApp();
   const focused = useIsFocused();
   const { width } = useWindowDimensions();
@@ -33,6 +33,10 @@ export function Progress() {
         ratings={skillProfile(false, data.assessments)}
         active={focused}
         size={Math.min(width - 64, 320)}
+        onSkillPress={(skill) => {
+          haptic("selection");
+          navigation.navigate("Assessment", { skill });
+        }}
       />
     </Page>
   );
