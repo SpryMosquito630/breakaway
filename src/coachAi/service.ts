@@ -33,6 +33,7 @@ export type ServiceState = {
   chatPairPersisted?: boolean;
   chatPairStoreRevision?: number;
   jointViewAvailable: boolean;
+  shotReviewAvailable?: boolean;
 };
 export type Feedback = {
   source: "openai";
@@ -85,6 +86,7 @@ export async function discoverService(
         chatPairRequired: body.chatPairRequired === true,
         chatMemoryAvailable: body.chatMemoryAvailable === true,
         jointViewAvailable: body.jointViewAvailable === true,
+        shotReviewAvailable: body.shotReviewAvailable === true,
       }
     : null;
 }
@@ -101,7 +103,7 @@ export async function requestService<T>(
       ? await readCoachPair()
       : null;
   const session =
-    (path === "chat" || path === "coach" || path === "food") && connectedClient
+    ["chat", "coach", "food", "shot-review"].includes(path) && connectedClient
       ? await connectedClient.auth.getSession()
       : null;
   const user = session?.error ? null : session?.data.session;
@@ -126,19 +128,36 @@ export async function requestService<T>(
     headers: {
       Authorization: `Bearer ${service.token}`,
       ...(userToken ? { "X-User-Token": userToken } : {}),
-      ...(path === "chat" &&
+      ...((path === "chat" || path === "shot-review") &&
       COACH_DEV_ENABLED &&
       service.chatPairToken &&
       (service.chatPairExpiresAt ?? 0) > Date.now()
         ? { "X-Coach-Pair": service.chatPairToken }
         : {}),
       ...(json ? { "Content-Type": "application/json" } : {}),
+      ...(path === "shot-review" ? { "X-Include-Pose": "1" } : {}),
     },
   });
   return readServiceResponse<T>(response);
 }
 
 export const forgetCoachPair = forgetStoredCoachPair;
+/** Billable review uses an existing private connection or signed-in account only. */
+export async function prepareShotReview(
+  service: ServiceState,
+): Promise<ServiceState | null> {
+  if (!service.shotReviewAvailable) return null;
+  try {
+    const paired = await restoreCoachPair(service);
+    if (paired.chatPairToken && (paired.chatPairExpiresAt ?? 0) > Date.now())
+      return paired;
+    const session = connectedClient ? await connectedClient.auth.getSession() : null;
+    return session?.data.session && !session.error ? paired : null;
+  } catch {
+    // Optional AI authentication must not prevent local body tracking.
+    return null;
+  }
+}
 export async function restoreCoachPair(service: ServiceState): Promise<ServiceState> {
   if (!COACH_DEV_ENABLED) return service;
   const pair = await readCoachPair();

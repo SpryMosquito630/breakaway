@@ -36,6 +36,12 @@ import {
 import { createClipSaveLease, createClipUrlOwner } from "../domain/clipUrlOwner";
 import { keyboardClipSeek } from "../domain/clipPlayback";
 import { ShotPoseOverlay } from "../components/ShotPoseOverlay";
+import { ShotSpeed } from "../components/ShotSpeed";
+import { ShotTechnique } from "../components/ShotTechnique";
+import {
+  validShotTechnique,
+  type ShotTechnique as TechniqueReview,
+} from "../domain/shotTechnique";
 import {
   poseHasBody,
   poseMatchesVideo,
@@ -46,6 +52,7 @@ import {
   clipForm,
   discoverService,
   requestService,
+  prepareShotReview,
   type JointResult,
 } from "../coachAi/service";
 import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
@@ -239,8 +246,8 @@ export function ShotAnalysis() {
   const pickerActions = (
     <View style={styles.captureActions}>
       <Text style={[s.small, { color: clip ? C.muted : C.onDeep }]}>
-        Your selected video is sent to the tracking service. Temporary files are deleted
-        after processing.
+        Your selected video is processed for body tracking. When AI review is connected,
+        video frames are also sent to Google Gemini for a technique estimate.
       </Text>
       <Button
         label={picking ? "Opening…" : "Record & analyze"}
@@ -377,6 +384,9 @@ function ShotReview({
   const [pose, setPose] = useState<JointResult | null>(null);
   const [poseBusy, setPoseBusy] = useState(false);
   const [poseError, setPoseError] = useState("");
+  const [technique, setTechnique] = useState<TechniqueReview | null>(null);
+  const [techniqueBusy, setTechniqueBusy] = useState(false);
+  const [techniqueError, setTechniqueError] = useState("");
   const [showPose, setShowPose] = useState<boolean>(bodyTrackingDefaults.enabled);
   const [showLabels, setShowLabels] = useState(true);
   const [kickingFoot, setKickingFoot] = useState<"left" | "right" | null>(null);
@@ -492,12 +502,40 @@ function ShotReview({
         file: clip.input?.file as File | undefined,
       });
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
-      const result = await requestService<JointResult>(
-        service,
-        "pose",
-        form,
-        abort.signal,
-      );
+      let result: JointResult | null = null;
+      const reviewService = await prepareShotReview(service);
+      if (abort.signal.aborted || !mounted.current) return;
+      if (reviewService) {
+        setTechniqueBusy(true);
+        setTechniqueError("");
+        try {
+          const review = await requestService<unknown>(
+            reviewService,
+            "shot-review",
+            form,
+            abort.signal,
+          );
+          if (abort.signal.aborted || !mounted.current) return;
+          if (!validShotTechnique(review, duration))
+            throw Error("The technique review could not be read. Try again.");
+          setTechnique(review);
+          result = review.pose ?? null;
+        } catch (error) {
+          if (abort.signal.aborted) throw error;
+          if (mounted.current)
+            setTechniqueError(
+              error instanceof Error
+                ? error.message
+                : "Technique review could not finish.",
+            );
+        }
+      } else {
+        setTechniqueError(
+          "AI technique review is unavailable on this connection. Body tracking and speed measurement still work.",
+        );
+      }
+      if (!result)
+        result = await requestService<JointResult>(service, "pose", form, abort.signal);
       if (abort.signal.aborted) throw new Error("Body tracking cancelled.");
       if (!mounted.current) return;
       if (!validShotPose(result))
@@ -515,6 +553,8 @@ function ShotReview({
       setShowLabels(true);
       seek(0);
     } catch (e) {
+      if (mounted.current && abort.signal.aborted)
+        setTechniqueError("Review stopped. Your video is still available.");
       if (mounted.current)
         setPoseError(
           abort.signal.aborted
@@ -526,7 +566,10 @@ function ShotReview({
     } finally {
       clearTimeout(timeout);
       poseAbort.current = null;
-      if (mounted.current) setPoseBusy(false);
+      if (mounted.current) {
+        setPoseBusy(false);
+        setTechniqueBusy(false);
+      }
     }
   }
   function seek(next: number) {
@@ -608,6 +651,24 @@ function ShotReview({
           />
         ) : null}
       </View>
+      <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+        <ShotTechnique
+          review={technique}
+          busy={techniqueBusy}
+          error={techniqueError}
+          onRetry={() => void analyzeBody()}
+          onSeek={seek}
+        />
+        <ShotSpeed
+          key={clip.id}
+          duration={duration}
+          usable={usable}
+          markTime={() => {
+            player.pause();
+            return player.currentTime;
+          }}
+        />
+      </View>
       <View style={{ gap: 10 }}>
         {poseBusy ? (
           <View style={styles.transportRow}>
@@ -642,8 +703,8 @@ function ShotReview({
         ) : !pose ? (
           <>
             <Text style={s.small}>
-              Analyze sends this saved clip to the tracking service. Temporary files are
-              deleted after processing.
+              Analyze processes this saved clip for body tracking and, when connected,
+              sends video frames to Google Gemini for a technique estimate.
             </Text>
             <Button
               label="Analyze movement"
