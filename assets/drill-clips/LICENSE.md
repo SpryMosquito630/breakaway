@@ -21,3 +21,9 @@ The eleven ballwork excerpts and posters are attributed source-by-source in `bal
 ## Two-touch partner passing
 
 `partner-two-touch.mp4` and poster derive from [I tried 17 Partner Soccer Drills For 2 Players with my friend (FULL PRACTICE PLAN) — Progressive Soccer](https://www.youtube.com/watch?v=6NoEqnwEoCk), under CC BY 3.0 with the original creator’s explicit reuse metadata retained in `provenance.json`. The source passing chapter 421–529s was acquired, then local6–15.5s trimmed (approximately original427–436.5s). The clip is muted/resized/H.264 encoded; original overlays remain. A full chapter review and dense4–25s contact frames confirm two-touch inside-foot passing between two people. Distance and sideways movement differ; the visible caption directs the learner to the written setup.
+
+## Wall receive across and return
+
+`wall-open-out.mp4` and poster derive from [SOCCER PASSING - EASY WALL DRILLS TO IMPROVE YOUR SKILLS — Michael Lappas The Athletes Gym](https://www.youtube.com/watch?v=HESOZuRJ9CA), under [CC BY3.0](https://creativecommons.org/licenses/by/3.0/). Original-creator Creative Commons reuse metadata was rechecked November14,2026; the exact license field, upload date, hashes, trim and review are retained in `provenance.json`. This is another excerpt from the already licensed wall-work source, not an assertion of new ownership or endorsement.
+
+The52.7–56.5s interval shows receiving across the body and returning with the other foot. It repeats one direction at a quicker pace with markers; learners alternate directions and use gentle passes as written. Output is muted854×480 H.26424fps, with original footage retained. Three-play full decode passes; the loop has a visible reset and is not claimed seamless.

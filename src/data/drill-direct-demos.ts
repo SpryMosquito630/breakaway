@@ -338,4 +338,25 @@ export const additionalDrillDemos: Record<string, DirectDrillDemo> = {
     },
     rightsReviewedOn: "2026-11-14",
   },
+  "wall-open": {
+    kind: "local",
+    source: require("../../assets/drill-clips/wall-open-out.mp4"),
+    poster: require("../../assets/drill-clips/wall-open-out-poster.jpg"),
+    title: "Receive across and pass back",
+    credit:
+      "SOCCER PASSING - EASY WALL DRILLS TO IMPROVE YOUR SKILLS — Michael Lappas The Athletes Gym",
+    page: "https://www.youtube.com/watch?v=HESOZuRJ9CA",
+    cue: "Receive across; pass with the other foot.",
+    description:
+      "Wall rebound controlled across the body, followed by a grounded opposite-foot return pass.",
+    limit:
+      "Source repeats one direction at a quicker pace and uses markers. Alternate the direction of your first touch and pass gently as written.",
+    license: {
+      name: "CC BY 3.0",
+      url: "https://creativecommons.org/licenses/by/3.0/",
+      changes:
+        "Excerpt 52.7–56.5 seconds; muted, 854×480 H.264 at 24 fps. Original scene retained; no generative edits.",
+    },
+    rightsReviewedOn: "2026-11-14",
+  },
 };

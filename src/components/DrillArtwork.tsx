@@ -6,7 +6,13 @@ import type { Drill } from "../domain/model";
 import { drillMedia } from "../data/drill-media";
 
 /** A still image only. Browsing the library never allocates video players. */
-export const DrillArtwork = memo(function DrillArtwork({ drill }: { drill: Drill }) {
+export const DrillArtwork = memo(function DrillArtwork({
+  drill,
+  showPlayBadge = true,
+}: {
+  drill: Drill;
+  showPlayBadge?: boolean;
+}) {
   const media = drillMedia(drill);
   if (!media) return null;
   return (
@@ -19,7 +25,7 @@ export const DrillArtwork = memo(function DrillArtwork({ drill }: { drill: Drill
         accessible={false}
         style={StyleSheet.absoluteFill}
       />
-      {media.video ? (
+      {media.video && showPlayBadge ? (
         <View style={styles.play}>
           <Play size={13} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.7} />
         </View>

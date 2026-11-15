@@ -166,6 +166,7 @@ export function Library({ navigation }: { navigation: any }) {
           <DrillRow
             key={d.id}
             drill={d}
+            showArtworkPlayBadge={false}
             onPress={() => navigation.navigate("Detail", { id: d.id })}
           />
         ))}

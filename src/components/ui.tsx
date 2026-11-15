@@ -433,10 +433,12 @@ export function DrillRow({
   duration,
   trailing,
   feedback,
+  showArtworkPlayBadge = true,
 }: {
   drill: Drill;
   onPress: () => void;
   feedback?: HapticFeedback;
+  showArtworkPlayBadge?: boolean;
   action?: string;
   duration?: string;
   trailing?: React.ReactNode;
@@ -472,7 +474,7 @@ export function DrillRow({
         })}
       >
         {media ? (
-          <DrillArtwork drill={drill} />
+          <DrillArtwork drill={drill} showPlayBadge={showArtworkPlayBadge} />
         ) : (
           <View
             style={{

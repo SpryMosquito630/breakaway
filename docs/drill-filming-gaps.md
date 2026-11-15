@@ -1,8 +1,10 @@
 # Remaining drill filming takes
 
-Current in-app coverage is 18 of 30 drill IDs. All clips show genuine core movement; weaker-foot variants can share the relevant technique while the learner changes foot. The 12 drills below still need a complete suitable licensed take. External references are separate and do not count as in-app clips.
+Current in-app coverage is 19 of 30 drill IDs. All clips show genuine core movement; weaker-foot variants can share the relevant technique while the learner changes foot. The 11 drills below still need a complete suitable licensed take. External references are separate and do not count as in-app clips.
 
 Record landscape 1080p, with the whole body, feet and ball visible, on a steady camera. Capture two complete slow repetitions, a clean stationary reset, then repeat with the other foot when relevant. Allow 2 seconds before and after the action. Avoid music and readable private information. Obtain the performer/guardian permissions and app-use rights before delivery; use no endorsement claim.
+
+Latest additional review: [November14 video gap search](drill-video-gap-search-2026-11-14.md). Wall pass, open out now has a licensed across-body/other-foot return excerpt; the full exact routine still follows the written stages.
 
 ## Gate dribble (`gates`)
 
@@ -51,12 +53,6 @@ Capture: Set the angle before you pass.
 Check a clear, level area around you. Place two flat markers a step apart with clear space beyond them. Pass gently through the gate from a few steps away; collect and alternate feet.
 
 Capture: Aim through the middle.
-
-## Wall pass, open out (`wall-open`)
-
-Check a clear, level area around you. Pass gently to a safe wall, receive across your body with the far foot. Pass back with the other foot and alternate the direction of your first touch.
-
-Capture: Receive toward your next pass.
 
 ## Carry and scan (`carry-scan`)
 
