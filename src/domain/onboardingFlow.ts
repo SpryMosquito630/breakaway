@@ -144,7 +144,7 @@ const legacyFlowSteps = [
   "plan",
 ] as const;
 // Legacy identifiers remain readable for persisted reflections and old replay data.
-export type FlowStep = (typeof legacyFlowSteps)[number] | "playerCard";
+export type FlowStep = (typeof legacyFlowSteps)[number] | "playerCard" | "name";
 export const flowSteps: readonly FlowStep[] = [
   "welcome",
   "focus",
@@ -153,6 +153,7 @@ export const flowSteps: readonly FlowStep[] = [
   "experience",
   "equipment",
   "days",
+  "name",
   "identity",
   "measurements",
   "plan",
@@ -260,6 +261,8 @@ export function patchFlowDraft(draft: FlowDraft, patch: Partial<FlowDraft>): Flo
 }
 export function isFlowStepReady(d: FlowDraft, step: FlowStep): boolean {
   switch (step) {
+    case "name":
+      return true; // A nickname is optional and never substitutes for the age choice.
     case "identity":
       return ["under13", "13to17", "adult"].includes(d.ageBand ?? "");
     case "position":

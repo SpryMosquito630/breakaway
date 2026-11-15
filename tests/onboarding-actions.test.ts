@@ -29,6 +29,7 @@ test("setup ends with a separate player card after the real first-session previe
     "experience",
     "equipment",
     "days",
+    "name",
     "identity",
     "measurements",
     "plan",
@@ -42,7 +43,7 @@ test("fresh setup never preselects required choices and merged forms require bot
   for (const step of flowSteps) {
     assert.equal(
       isFlowStepReady({}, step),
-      ["welcome", "measurements"].includes(step),
+      ["welcome", "name", "measurements"].includes(step),
       step,
     );
     assert.equal(isFlowStepReady(ready, step), true, step);
@@ -57,4 +58,6 @@ test("fresh setup never preselects required choices and merged forms require bot
   assert.equal(autoAdvanceSteps.includes("equipment"), false);
   assert.equal(autoAdvanceSteps.includes("days"), false);
   assert.equal(autoAdvanceSteps.includes("identity"), false);
+  assert.equal(autoAdvanceSteps.includes("name"), false);
+  assert.equal(isFlowStepReady({ answers: { name: "Alex" } }, "identity"), false);
 });

@@ -1,31 +1,29 @@
 # Breakaway short onboarding — November 14, 2026
 
-The current required route has **10 screens**, replacing the historical 39-screen reference recreation below. No account, paywall, fake analysis or food questionnaire blocks the first useful session.
+The current required route has **12 screens**, replacing the historical 39-screen reference recreation below. No account, paywall, fake analysis or food questionnaire blocks the first useful session.
 
 | # | Screen | Useful input / action |
 | --- | --- | --- |
 | 1 | Welcome | Existing licensed football video; Get started. |
 | 2 | What do you want to improve? | Choose the actual training focus; tap advances. |
 | 3 | Where do you play? | Detailed position pitch or Still exploring; tap advances. |
-| 4 | Experience | Explicit year-range choice maps to supported drill difficulty; tap advances. |
-| 5 | What’s your setup? | Equipment multi-select plus small/open space; explicit Continue/Next requires both. |
-| 6 | Make room for practice | Days plus 15/20/30 minutes; explicit Continue requires at least one day and a duration. |
-| 7 | A little about you | Required neutral age range; optional first name/nickname. |
-| 8 | Height & weight | Optional local notes; Metric starts at 175 cm / 70 kg. Existing metric/imperial wheels remain editable; Continue never requires a new selection. |
-| 9 | Who inspires your game? | Position-specific licensed player photos; centered card selects automatically per the user's earlier preference. Continue stays manual. |
-| 10 | Your first session | Actual matched drill artwork, durations and cues; optional inline training reminders and a collapsed real-rating player-card reveal. Finish setup saves and opens Train through the existing app boundary. Replay says Save changes. |
+| 4 | Who inspires your game? | Position-specific licensed player photos; centered card selects automatically. Horizontal carousel only, height-aware photo, pinned Continue. |
+| 5 | Experience | Explicit year-range choice maps to supported drill difficulty; tap advances. |
+| 6 | What’s your setup? | Equipment plus small/open space; explicit Continue/Next requires both. |
+| 7 | Make room for practice | Days plus 15/20/30 minutes; explicit Continue requires both. |
+| 8 | What’s your name? | Dedicated optional first-name/nickname entry, retained for the final player card. Continue can leave it blank. |
+| 9 | What’s your age range? | Required neutral age choice on its own slide; no exact birth date. |
+| 10 | Height & weight | Optional local notes; editable metric/imperial wheels, initialized to 175 cm / 70 kg on first entry. |
+| 11 | Your first session | Actual matched drill artwork, durations and cues; optional reminders. Continue opens the final card without saving yet. |
+| 12 | Your player card | Separate final slide showing the nickname and existing test ratings or dashes. Finish setup saves and opens Train; replay says Save changes. Back returns to the session preview. |
 
-Height/weight are restored at the user’s request as a single screen after age/name. They do not enter drill eligibility, produce calorie prescriptions or generate ability claims. Their first-mount initialization and controlled wheel gesture behavior are unchanged. No legacy Skip quiz row is needed because the values remain optional and Continue is available.
+All eight existing profile fields remain authoritative: age band, broad position, training goal, experience, days, minutes, space and equipment. No actual training choice is preselected. Detailed pitch and player inspiration are local metadata; the inspiration slide keeps its already-approved automatic centered-card selection. Equipment/space and days/minutes remain merged forms. The optional nickname and body measurements do not change drill eligibility or create ability claims.
 
-All eight existing profile fields remain authoritative: age band, broad position, training goal, experience, days, minutes, space and equipment. No actual training choice is preselected. Detailed pitch and player inspiration are optional local metadata; the required inspiration slide keeps its already-approved automatic centered-card selection. Equipment/space and days/minutes merge forms without changing eligibility rules.
+The header has eleven setup segments and Back on every slide after welcome. There is no X/close action. Player-photo credits are preserved in a collapsed Settings section, outside the horizontal carousel. Heading words reveal successively at the user's requested slower pace; scenes are interruptible, and reduced motion remains immediate.
 
-Reminder opt-in is placed after the completed schedule, beside the actual session preview, and native permission is requested only after the explicit final save. Card reveal is optional and never invents OVR or skill results. Existing test ratings or dashes remain authoritative. Neither preview nor Finish setup automatically logs or starts practice; the normal Train destination offers the session action.
+Reminder permission follows the explicit final save. Neither the plan preview nor Finish setup automatically logs or starts practice. The final player card never invents OVR or skill results; saved test ratings or dashes remain authoritative. The profile validator, under-13 restrictions, recovery fences, custom-plan and active-session/replay semantics remain unchanged. A replay preserves previous local reflections not edited by this route.
 
-The compact header has nine setup segments, with Back for editable setup and replay Cancel available throughout. The prior no-Back player-carousel presentation remains. Questions are the primary heading with one concise reason below, consistent gutters and a pinned action. The competitor-inspired heading component reveals words while preserving readable wrapping, reduced-motion behavior and the existing scene transition.
-
-The profile validator, under-13 restrictions, recovery fences, custom-plan and active-session/replay semantics remain unchanged. Removed questions are absent from required navigation, while their parser/types remain compatible with persisted notes. Completing a short replay preserves old private reflections not edited by this route. No new Settings feature is introduced.
-
-Validation before final UI review: TypeScript, formatting and all 206 tests passed, including the ten-step route, merged-form readiness, explicit actual choices, legacy-note retention and existing privacy/recovery/age behavior. Final browser/native interaction checks are recorded separately.
+This note describes the active route. The historical implementation below is retained as reference and is not the current navigation. Validation and runtime review are recorded separately.
 
 ---
 

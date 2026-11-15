@@ -15,6 +15,7 @@ import {
   AppState,
   BackHandler,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -895,6 +896,7 @@ export function Onboarding({
   const advance = () => {
     if (currentIndex.current !== index || transitionBusy.current) return;
     pendingAdvance.cancel();
+    if (step === "name") Keyboard.dismiss();
     if (step === "playerCard") {
       if (!profile) return;
       haptic("success");
@@ -1872,19 +1874,17 @@ export function Onboarding({
           </View>
         );
         break;
-      case "identity":
+      case "name":
         content = (
           <View style={{ gap: 20 }}>
             <OnboardingHeading
-              text="A little about you."
+              text="What’s your name?"
               animationKey={step}
               focused={focused}
               reducedMotion={reducedMotionEnabled}
               style={styles.heading}
             />
-            <Copy muted style={{ textAlign: "center" }}>
-              Your age range keeps the experience appropriate.
-            </Copy>
+            <Copy muted>A first name or nickname for your player card.</Copy>
             <View style={{ gap: 8 }}>
               <Text style={styles.smallLabel}>YOUR NAME · OPTIONAL</Text>
               <FocusInput
@@ -1896,9 +1896,30 @@ export function Onboarding({
                 onChangeText={(name) => answer({ name })}
                 maxLength={40}
                 autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={advance}
                 style={[styles.input, styles.purplePanel]}
               />
             </View>
+            <Copy muted style={styles.footnote}>
+              Optional. Stored on this device, with no account required.
+            </Copy>
+          </View>
+        );
+        break;
+      case "identity":
+        content = (
+          <View style={{ gap: 20 }}>
+            <OnboardingHeading
+              text="What’s your age range?"
+              animationKey={step}
+              focused={focused}
+              reducedMotion={reducedMotionEnabled}
+              style={styles.heading}
+            />
+            <Copy muted style={{ textAlign: "center" }}>
+              Your age range keeps the experience appropriate.
+            </Copy>
             <View style={{ gap: 10, marginTop: 8 }}>
               <Text style={styles.smallLabel}>YOUR AGE RANGE</Text>
               {(

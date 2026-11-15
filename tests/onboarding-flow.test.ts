@@ -300,3 +300,26 @@ test("short replay retains legacy private notes while saving only the newly chos
   );
   assert.deepEqual(completed.history, current.history);
 });
+
+test("dedicated optional name survives age selection and saves as a local card nickname", () => {
+  assert.equal(isFlowStepReady({}, "name"), true);
+  const named = patchFlowDraft({}, { answers: { name: "  Alex  " } });
+  assert.equal(isFlowStepReady(named, "identity"), false);
+  const aged = patchFlowDraft(named, { ageBand: "13to17" });
+  assert.equal(aged.answers?.name, "  Alex  ");
+  assert.equal(isFlowStepReady(aged, "identity"), true);
+  const completed = finishOnboardingDraft(
+    initialData(),
+    { ...draft(), ...aged },
+    drills,
+  )!;
+  assert.equal(completed.onboardingAnswers?.name, "Alex");
+  assert.equal(completed.profile.ageBand, "13to17");
+  const blank = finishOnboardingDraft(
+    initialData(),
+    { ...draft(), answers: { name: "   " } },
+    drills,
+  )!;
+  assert.equal(blank.onboardingAnswers?.name, undefined);
+  assert.equal(blank.profile.ageBand, "13to17");
+});
