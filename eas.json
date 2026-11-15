@@ -9,7 +9,10 @@
       "environment": "production",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_DEVELOPER_FEATURES": "false"
+        "EXPO_PUBLIC_DEVELOPER_FEATURES": "false",
+        "EXPO_PUBLIC_COACH_REMOTE_ENABLED": "false",
+        "EXPO_PUBLIC_COACH_DEV_ENABLED": "false",
+        "EXPO_PUBLIC_SHOT_POSE_ANALYSIS": "false"
       }
     }
   },
