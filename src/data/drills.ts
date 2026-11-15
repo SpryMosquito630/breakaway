@@ -123,18 +123,7 @@ const originals: Drill[] = [
 ];
 
 // Targets describe controlled repetitions, never a race against the clock.
-type Entry = [
-  string,
-  string,
-  string,
-  string,
-  string[],
-  string,
-  string,
-  string,
-  string,
-  string,
-];
+type Entry = [string, string, string, string, string[], string, string, string, string];
 const additions: Entry[] = [
   [
     "toe-taps",
@@ -146,7 +135,6 @@ const additions: Entry[] = [
     "Stay light over the ball.",
     "Touch the top of the stationary ball with alternate soles.",
     "Land beside the ball with soft knees; reset if it moves.",
-    "12 / 24 / 36 balanced taps",
   ],
   [
     "v-pull",
@@ -158,7 +146,6 @@ const additions: Entry[] = [
     "Pull back, push across.",
     "Pull the ball back with your sole, then push diagonally with the inside of the same foot.",
     "Switch feet after each V and keep the ball within a step.",
-    "6 / 12 / 18 clean V shapes",
   ],
   [
     "l-turn",
@@ -170,7 +157,6 @@ const additions: Entry[] = [
     "Pull back and slip it sideways.",
     "Pull the ball back with your sole, then tap it behind your standing leg.",
     "Turn to collect it; alternate the turning foot.",
-    "4 / 8 / 12 controlled turns",
   ],
   [
     "inside-out",
@@ -182,7 +168,6 @@ const additions: Entry[] = [
     "Two surfaces, one foot.",
     "Move the ball sideways with the inside, then outside, of one foot.",
     "After four touches, stop under your sole and change feet.",
-    "8 / 16 / 24 touch pairs",
   ],
   [
     "foundation-stop",
@@ -194,7 +179,6 @@ const additions: Entry[] = [
     "Three touches, one quiet stop.",
     "Make three inside touches between your feet, then stop the ball with a sole.",
     "Hold your balance briefly before repeating with the other stopping foot.",
-    "6 / 10 / 16 quiet stops",
   ],
   [
     "receive-across",
@@ -206,7 +190,6 @@ const additions: Entry[] = [
     "Open your hips to the next touch.",
     "Roll the ball gently forward, step alongside it, and cushion it across your body with the far foot.",
     "Collect it within a step and repeat on the other side.",
-    "6 / 12 / 18 soft receptions",
   ],
   [
     "outside-cut",
@@ -218,7 +201,6 @@ const additions: Entry[] = [
     "Cut close, then turn with it.",
     "Take two gentle forward touches, then use the outside of your foot to change direction.",
     "Follow the ball at walking pace and alternate feet.",
-    "6 / 12 / 18 clean cuts",
   ],
   [
     "inside-cut",
@@ -230,7 +212,6 @@ const additions: Entry[] = [
     "Plant beside it, cut across.",
     "Take two slow touches forward, plant beside the ball and cut it across with your other foot.",
     "Follow the new direction and repeat on both sides.",
-    "6 / 12 / 18 controlled cuts",
   ],
   [
     "step-over",
@@ -242,7 +223,6 @@ const additions: Entry[] = [
     "Sell the move with your shoulders.",
     "Circle one foot around the front of the stationary ball, from inside to outside.",
     "Push away gently with the outside of the other foot; stop and switch sides.",
-    "4 / 8 / 12 balanced exits",
   ],
   [
     "shield-turn",
@@ -254,7 +234,6 @@ const additions: Entry[] = [
     "Keep your body between ball and space.",
     "Stand side-on to an imaginary defender with the ball beside your far foot.",
     "Roll it away with your sole and turn to follow without crossing your feet.",
-    "6 / 12 / 18 protected turns",
   ],
   [
     "weak-roll",
@@ -266,7 +245,6 @@ const additions: Entry[] = [
     "Guide the ball with your sole.",
     "Use your weaker sole to roll the ball forward, sideways, then back.",
     "Keep your standing knee soft and reset before repeating the path.",
-    "4 / 8 / 12 controlled paths",
   ],
   [
     "weak-v",
@@ -278,7 +256,6 @@ const additions: Entry[] = [
     "Trust the less familiar side.",
     "With your weaker sole, pull the ball back and push it diagonally with that foot’s inside.",
     "Walk around to reset; keep each V short and controlled.",
-    "6 / 12 / 18 clean V shapes",
   ],
   [
     "weak-cut",
@@ -290,7 +267,6 @@ const additions: Entry[] = [
     "Change direction with one foot.",
     "Use two weaker-foot touches, then cut the ball across with the same foot’s inside.",
     "Stop under that sole before changing direction again.",
-    "6 / 12 / 18 clean cuts",
   ],
   [
     "pass-brake",
@@ -302,7 +278,6 @@ const additions: Entry[] = [
     "Weight the pass so you can catch it.",
     "Pass softly into a clear patch a couple of steps away.",
     "Walk after it and stop with the inside of the opposite foot. Alternate passing feet.",
-    "6 / 12 / 18 accurate passes",
   ],
   [
     "pass-angle",
@@ -314,7 +289,6 @@ const additions: Entry[] = [
     "Set the angle before you pass.",
     "Set the ball out of your feet with one touch, then pass gently to a clear diagonal spot.",
     "Walk to collect it; alternate sides and keep the ball inside your area.",
-    "6 / 12 / 18 set-and-pass pairs",
   ],
   [
     "gate-pass",
@@ -326,7 +300,6 @@ const additions: Entry[] = [
     "Aim through the middle.",
     "Place two flat markers a step apart with clear space beyond them.",
     "Pass gently through the gate from a few steps away; collect and alternate feet.",
-    "5 / 10 / 15 passes through the gate",
   ],
   [
     "wall-open",
@@ -338,7 +311,6 @@ const additions: Entry[] = [
     "Receive toward your next pass.",
     "Pass gently to a safe wall, receive across your body with the far foot.",
     "Pass back with the other foot and alternate the direction of your first touch.",
-    "6 / 12 / 18 controlled receptions",
   ],
   [
     "slalom",
@@ -350,7 +322,6 @@ const additions: Entry[] = [
     "Look one marker ahead.",
     "Space four flat markers at least two walking steps apart.",
     "Weave between them with small touches, turn at the end and return with the other foot leading.",
-    "2 / 4 / 6 controlled runs",
   ],
   [
     "carry-scan",
@@ -362,7 +333,6 @@ const additions: Entry[] = [
     "Look up between touches.",
     "Pick a clear lane and dribble slowly with the ball within one stride.",
     "Every three touches, lift your eyes to check the space, then stop and return.",
-    "4 / 8 / 12 scans with close control",
   ],
   [
     "partner-first",
@@ -374,7 +344,6 @@ const additions: Entry[] = [
     "First touch into clear space.",
     "Ask your partner for gentle ground passes from a few steps away.",
     "Receive to one side, pass back, then receive to the other side. Swap roles often.",
-    "6 / 12 / 18 controlled first touches",
   ],
 ];
 const extra: Drill[] = additions.map(
@@ -390,36 +359,75 @@ const extra: Drill[] = additions.map(
     tip: "Keep each repetition controlled. Pause and reset whenever you need.",
   }),
 );
-const targets: Record<string, string> = {
-  sole: "10 / 20 / 30 rolls kept within a step",
-  inside: "16 / 32 / 48 quiet touches",
-  gates: "4 / 8 / 12 gates with close control",
-  turn: "4 / 8 / 12 balanced turns",
-  wall: "6 / 12 / 18 soft receptions",
-  partner: "6 / 12 / 18 passes to your partner’s foot",
-  weak: "10 / 20 / 30 weaker-foot touches",
-  push: "6 / 12 / 18 accurate gentle passes",
+// Suggested controlled work-round counts, including an explicit rest budget.
+// These are starter guidance, not performance standards or coach-certified targets.
+const pacing: Record<
+  string,
+  { work: number; rest: number; reps: [number, number, number]; unit: string }
+> = {
+  sole: { work: 30, rest: 15, reps: [12, 18, 24], unit: "close rolls" },
+  inside: { work: 30, rest: 15, reps: [20, 30, 40], unit: "quiet touches" },
+  gates: { work: 30, rest: 20, reps: [2, 3, 4], unit: "gates with close control" },
+  turn: { work: 30, rest: 15, reps: [3, 4, 5], unit: "balanced turns" },
+  wall: { work: 30, rest: 15, reps: [4, 6, 8], unit: "soft receptions" },
+  partner: { work: 30, rest: 15, reps: [4, 6, 8], unit: "passes to your partner’s foot" },
+  weak: { work: 30, rest: 15, reps: [10, 16, 22], unit: "weaker-foot touches" },
+  push: { work: 30, rest: 15, reps: [3, 4, 5], unit: "gentle passes and collections" },
+  "toe-taps": { work: 30, rest: 15, reps: [20, 30, 40], unit: "balanced taps" },
+  "v-pull": { work: 30, rest: 15, reps: [4, 6, 8], unit: "clean V shapes" },
+  "l-turn": { work: 30, rest: 15, reps: [3, 4, 5], unit: "controlled turns" },
+  "inside-out": { work: 30, rest: 15, reps: [6, 9, 12], unit: "touch pairs" },
+  "foundation-stop": {
+    work: 30,
+    rest: 15,
+    reps: [4, 6, 8],
+    unit: "three-touch sequences and stops",
+  },
+  "receive-across": { work: 30, rest: 15, reps: [3, 4, 5], unit: "soft receptions" },
+  "outside-cut": { work: 30, rest: 15, reps: [3, 4, 5], unit: "clean cuts" },
+  "inside-cut": { work: 30, rest: 15, reps: [3, 4, 5], unit: "controlled cuts" },
+  "step-over": { work: 30, rest: 15, reps: [3, 4, 5], unit: "balanced exits" },
+  "shield-turn": { work: 30, rest: 15, reps: [3, 4, 5], unit: "protected turns" },
+  "weak-roll": { work: 30, rest: 15, reps: [3, 4, 5], unit: "controlled paths" },
+  "weak-v": { work: 30, rest: 15, reps: [3, 4, 5], unit: "clean V shapes" },
+  "weak-cut": { work: 30, rest: 15, reps: [3, 4, 5], unit: "clean cuts" },
+  "pass-brake": {
+    work: 30,
+    rest: 15,
+    reps: [3, 4, 5],
+    unit: "passes and controlled stops",
+  },
+  "pass-angle": { work: 30, rest: 15, reps: [3, 4, 5], unit: "set-and-pass pairs" },
+  "gate-pass": { work: 30, rest: 15, reps: [3, 4, 5], unit: "passes through the gate" },
+  "wall-open": { work: 30, rest: 15, reps: [3, 5, 7], unit: "controlled receptions" },
+  slalom: { work: 45, rest: 30, reps: [1, 2, 2], unit: "out-and-back runs" },
+  "carry-scan": { work: 30, rest: 20, reps: [3, 4, 5], unit: "scans with close control" },
+  "partner-first": {
+    work: 30,
+    rest: 15,
+    reps: [4, 6, 8],
+    unit: "controlled first touches",
+  },
 };
 export const drills: Drill[] = [...originals, ...extra].map((d) => {
-  const raw = targets[d.id] ?? additions.find((a) => a[0] === d.id)![9];
-  const parts = raw.split(" / ");
-  const suffix = parts[2].replace(/^\d+/, "");
-  const numbers = parts.map((v) => v.match(/^\d+/)![0]);
+  const pace = pacing[d.id];
+  if (!pace) throw new Error(`Missing pacing for ${d.id}`);
   return {
     ...d,
-    version: 2,
+    version: 3,
     difficulty: 1,
     variants: ([1, 2, 3] as const).map((difficulty, i) => ({
       difficulty,
       label: ["Easier", "Build", "Harder"][i],
-      target: `${numbers[i]}${suffix} per minute. Rest and reset as needed; control comes first.`,
+      target: `${pace.reps[i]} ${pace.unit} per ${pace.work}-second work round. Rest ${pace.rest} seconds after each round. Slow down or rest sooner whenever control slips.`,
       cue: d.cue,
       steps: [
         ...d.steps,
+        `Practice for up to ${pace.work} seconds, then rest for ${pace.rest} seconds. Reset as the movement needs; the block timer includes rests.`,
         [
-          "Complete one repetition, stop the ball fully, and reset your feet before starting the next. Take a short rest after every four repetitions.",
-          "Complete two repetitions continuously before a full stop. Use both sides when the drill allows; for weaker-foot drills, stay on that foot. Reset after each pair.",
-          "Complete four repetitions continuously before a full stop. Lift your eyes after each repetition and keep the ball within one step. For weaker-foot drills, keep using that foot. Reset after each set of four.",
+          "Go slowly and watch the ball until balanced. A clean movement matters more than the count.",
+          "Alternate sides when the drill allows. Stay on the weaker foot for weaker-foot drills.",
+          "Lift your eyes between movements when balanced. Keep the ball close; reset rather than rushing to reach a count.",
         ][i],
       ],
       tip: d.tip,

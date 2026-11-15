@@ -11,6 +11,20 @@ export function drillTarget(
   if (!target) return undefined;
   if (/per block\b/i.test(target))
     return `Controlled repetitions throughout this ${time(durationSeconds)} block. Reset whenever needed.`;
+  const round = target.match(
+    /^(\d+) (.+?) per (\d+)-second work round\. Rest (\d+) seconds after each round\.(.*)$/,
+  );
+  if (round && Number.isFinite(durationSeconds) && durationSeconds > 0) {
+    const [, repetitions, unit, workText, restText, guidance] = round;
+    const work = Number(workText);
+    const rest = Number(restText);
+    if (work <= 0 || rest <= 0) return target;
+    const full = Math.floor(durationSeconds / (work + rest));
+    const partialWork = Math.min(work, durationSeconds % (work + rest));
+    const count =
+      full * Number(repetitions) + Math.floor((Number(repetitions) * partialWork) / work);
+    return `${work}s practice / ${rest}s rest. Aim for ${repetitions} ${unit} each work round${count > 0 ? `; up to ${count} over ${time(durationSeconds)}` : ""}.${guidance}`;
+  }
   const paced = target.match(/^(\d+)\s+(.+?)\s+per minute\.(.*)$/i);
   if (!paced || !Number.isFinite(durationSeconds) || durationSeconds <= 0) return target;
   const count = Math.max(1, Math.round((Number(paced[1]) * durationSeconds) / 60));
