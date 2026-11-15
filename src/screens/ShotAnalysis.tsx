@@ -631,7 +631,7 @@ function ShotReview({
           styles.video,
           {
             aspectRatio: dimensions.width / dimensions.height,
-            maxHeight: Math.max(260, Math.min(560, windowHeight * 0.56)),
+            maxHeight: Math.max(260, Math.min(480, windowHeight * 0.46)),
           },
         ]}
       >
@@ -714,9 +714,7 @@ function ShotReview({
             />
           </>
         ) : (
-          <Text style={s.small}>
-            Body tracking ready · Estimated 2D landmarks, not a technique score.
-          </Text>
+          <Text style={s.small}>Body tracking ready</Text>
         )}
       </View>
       {videoError ? (
@@ -934,7 +932,8 @@ function ShotReview({
       {pose ? (
         <Disclosure label="Tracking options">
           <Text style={s.small}>
-            Track again sends this clip to the service. Save keeps the video only.
+            Estimated 2D landmarks. Track again processes this clip and may send frames to
+            Gemini. Save keeps the video only.
           </Text>
           <Button
             label="Track again"

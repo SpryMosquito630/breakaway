@@ -50,7 +50,7 @@ export function ShotTechnique({
           style={[s.h2, { fontFamily: "IBMPlexMono_500Medium" }]}
         >
           {review?.score ?? "—"}
-          <Text style={s.small}> /100</Text>
+          {" /100"}
         </Text>
         <Text style={s.small}>{status}</Text>
       </Pressable>
@@ -93,7 +93,11 @@ export function ShotTechnique({
               </Text>
               {review ? (
                 <>
-                  <Text style={s.h3}>{review.shotStyle.replaceAll("_", " ")}</Text>
+                  <Text style={s.h3}>
+                    {review.shotStyle === "unknown"
+                      ? "Shot type not clear"
+                      : review.shotStyle.replaceAll("_", " ")}
+                  </Text>
                   <Text style={s.body}>{review.summary}</Text>
                   {review.categories.map((c) => (
                     <View key={c.id} style={{ gap: 6 }}>
