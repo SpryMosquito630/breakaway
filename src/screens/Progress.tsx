@@ -14,7 +14,7 @@ import { useBenchmarkClock } from "../hooks/useBenchmarkClock";
 
 export function Progress({ navigation }: { navigation: any }) {
   return (
-    <Page contentStyle={{ paddingTop: 24 }}>
+    <Page contentStyle={{ paddingTop: 8 }}>
       <ProgressSkillProfile
         onAssess={(skill) => navigation.navigate("Assessment", { skill })}
       />

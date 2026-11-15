@@ -19,7 +19,7 @@ export function ProgressSkillProfile({
   const points = (value: number) =>
     profile.skills
       .map((_, i) => {
-        const p = radarPoint(i, value, 76);
+        const p = radarPoint(i, value, 68);
         return `${p.x},${p.y}`;
       })
       .join(" ");
@@ -44,11 +44,9 @@ export function ProgressSkillProfile({
           { opacity: pressed ? 0.6 : 1 },
         ]}
       >
-        <Text style={[s.h3, { color: C.onDeep, textAlign: "center" }]}>
-          {skill.short}
-        </Text>
+        <Text style={[s.h3, { color: C.ink, textAlign: "center" }]}>{skill.name}</Text>
         <Text
-          style={[styles.score, { color: skill.rating === null ? C.onDeep : C.lime }]}
+          style={[styles.score, { color: skill.rating === null ? C.muted : C.green }]}
         >
           {skill.rating ?? "—"}
         </Text>
@@ -56,9 +54,9 @@ export function ProgressSkillProfile({
     );
   });
   return (
-    <View style={[styles.surface, { backgroundColor: C.deep }]}>
+    <View style={styles.surface}>
       <View style={s.row}>
-        <Text accessibilityRole="header" style={[s.h2, { color: C.onDeep, flex: 1 }]}>
+        <Text accessibilityRole="header" style={[s.h2, { color: C.ink, flex: 1 }]}>
           Skill profile
         </Text>
         <View
@@ -70,8 +68,15 @@ export function ProgressSkillProfile({
           }
           style={styles.overall}
         >
-          <Text style={[s.small, { color: C.onDeep }]}>OVR</Text>
-          <Text style={[styles.score, { color: C.lime }]}>{profile.overall ?? "—"}</Text>
+          <Text style={s.small}>OVR</Text>
+          <Text
+            style={[
+              styles.score,
+              { color: profile.overall === null ? C.muted : C.green },
+            ]}
+          >
+            {profile.overall ?? "—"}
+          </Text>
         </View>
       </View>
       <View style={styles.radar}>
@@ -81,13 +86,13 @@ export function ProgressSkillProfile({
               key={level}
               points={points(level)}
               fill="none"
-              stroke={C.onDeep}
+              stroke={C.ink}
               strokeOpacity={0.22}
               strokeWidth={1}
             />
           ))}
           {profile.skills.map((skill, i) => {
-            const end = radarPoint(i, 100, 76);
+            const end = radarPoint(i, 100, 68);
             return (
               <Line
                 key={skill.id}
@@ -95,7 +100,7 @@ export function ProgressSkillProfile({
                 y1={150}
                 x2={end.x}
                 y2={end.y}
-                stroke={C.onDeep}
+                stroke={C.ink}
                 strokeOpacity={0.22}
               />
             );
@@ -104,27 +109,27 @@ export function ProgressSkillProfile({
             <Polygon
               points={profile.skills
                 .map((skill, i) => {
-                  const p = radarPoint(i, skill.rating!, 76);
+                  const p = radarPoint(i, skill.rating!, 68);
                   return `${p.x},${p.y}`;
                 })
                 .join(" ")}
-              fill={C.lime}
+              fill={C.green}
               fillOpacity={0.18}
-              stroke={C.lime}
+              stroke={C.green}
               strokeWidth={2}
             />
           ) : null}
           {profile.skills.map((skill, i) => {
             if (skill.rating === null) return null;
-            const p = radarPoint(i, skill.rating, 76);
-            return <Circle key={skill.id} cx={p.x} cy={p.y} r={4} fill={C.lime} />;
+            const p = radarPoint(i, skill.rating, 68);
+            return <Circle key={skill.id} cx={p.x} cy={p.y} r={4} fill={C.green} />;
           })}
         </Svg>
         {!stacked ? skillButtons : null}
       </View>
       {stacked ? <View style={styles.stacked}>{skillButtons}</View> : null}
-      <Text style={[s.small, styles.hint, { color: C.onDeep }]}>
-        {profile.coverage}/6 tested · Tap a stat
+      <Text style={[s.small, styles.hint]}>
+        {profile.coverage} of 6 tested · Tap a skill
       </Text>
     </View>
   );
@@ -140,15 +145,13 @@ const axisPositions = [
 ] as const;
 const styles = StyleSheet.create({
   surface: {
-    borderRadius: 24,
-    padding: 16,
     gap: 16,
     width: "100%",
     maxWidth: 480,
     alignSelf: "center",
   },
   overall: { flexDirection: "row", alignItems: "center", gap: 8 },
-  radar: { width: "100%", aspectRatio: 1, position: "relative", marginVertical: 16 },
+  radar: { width: "100%", aspectRatio: 1, position: "relative", marginVertical: 8 },
   skill: {
     minHeight: 56,
     minWidth: 44,

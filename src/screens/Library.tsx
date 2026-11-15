@@ -58,22 +58,73 @@ export function Library({ navigation }: { navigation: any }) {
       (d.name + " " + d.skill).toLowerCase().includes(search.toLowerCase().trim()),
   );
   return (
-    <Page contentStyle={{ gap: 16 }}>
-      <SearchField value={search} onChangeText={setSearch} />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {["My setup", "Saved", "All"].map((f) => (
-          <Chip key={f} label={f} selected={f === scope} onPress={() => setScope(f)} />
-        ))}
-        <Chip
-          label="Videos"
-          selected={videoOnly}
-          onPress={() => setVideoOnly(!videoOnly)}
-        />
+    <Page contentStyle={{ gap: 12 }}>
+      <View style={{ gap: 12 }}>
+        <SearchField value={search} onChangeText={setSearch} />
+        <View
+          style={{
+            flexDirection: "row",
+            padding: 4,
+            borderRadius: 12,
+            backgroundColor: C.white,
+          }}
+        >
+          {["My setup", "Saved", "All"].map((f) => (
+            <Pressable
+              key={f}
+              accessibilityRole="button"
+              accessibilityState={{ selected: f === scope }}
+              onPress={() => {
+                if (scope !== f) {
+                  haptic("selection");
+                  setScope(f);
+                }
+              }}
+              style={({ pressed }) => ({
+                flex: 1,
+                minHeight: 48,
+                paddingHorizontal: 8,
+                paddingVertical: 12,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                backgroundColor: f === scope || pressed ? C.soft : "transparent",
+              })}
+            >
+              <Text
+                style={[
+                  s.h3,
+                  { color: f === scope ? C.green : C.muted, textAlign: "center" },
+                ]}
+              >
+                {f}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
         <Text style={[s.small, { flex: 1 }]}>
           {list.length} {list.length === 1 ? "drill" : "drills"}
         </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: videoOnly }}
+          onPress={() => {
+            haptic("selection");
+            setVideoOnly(!videoOnly);
+          }}
+          style={({ pressed }) => ({
+            minHeight: 48,
+            paddingHorizontal: 8,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 10,
+            backgroundColor: videoOnly || pressed ? C.soft : "transparent",
+          })}
+        >
+          <Text style={[s.small, { color: videoOnly ? C.green : C.muted }]}>Videos</Text>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Filters${extraFilters ? `, ${extraFilters} active` : ""}`}
@@ -85,10 +136,10 @@ export function Library({ navigation }: { navigation: any }) {
           }}
           style={({ pressed }) => ({
             minHeight: 48,
-            paddingHorizontal: 12,
+            paddingHorizontal: 8,
             flexDirection: "row",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             borderRadius: 10,
             backgroundColor: pressed ? C.soft : "transparent",
           })}
@@ -125,8 +176,15 @@ export function Library({ navigation }: { navigation: any }) {
         </Pressable>
       </View>
       {filtersOpen ? (
-        <View style={s.card}>
-          <Text style={s.h3}>Filter drills</Text>
+        <View
+          style={{
+            gap: 12,
+            paddingVertical: 16,
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderColor: C.line,
+          }}
+        >
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {["All skills", ...goals].map((f) => (
               <Chip
@@ -147,8 +205,15 @@ export function Library({ navigation }: { navigation: any }) {
         </View>
       ) : null}
       {manageOpen ? (
-        <View style={s.card}>
-          <Text style={s.h3}>Manage library</Text>
+        <View
+          style={{
+            gap: 12,
+            paddingVertical: 16,
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderColor: C.line,
+          }}
+        >
           <Button
             kind="secondary"
             label="Create drill"

@@ -54,7 +54,6 @@ type CoachService = ServiceState & { coachIdentity?: string };
 const pairingStorageNotice =
   "Connection works for this app session, but could not be saved. Unlock your device and reconnect before restarting.";
 
-const starters = ["Today’s practice", "Weaker foot", "Passing"];
 export function Coach({ navigation }: { navigation: any }) {
   const { C, s } = useTheme();
   const focused = useIsFocused();
@@ -532,8 +531,8 @@ export function Coach({ navigation }: { navigation: any }) {
   }
   function coachAvatar() {
     return (
-      <View style={[styles.messageAvatar, { backgroundColor: C.lime }]}>
-        <MessageCircle size={14} color={C.onLime} strokeWidth={1.8} />
+      <View style={[styles.messageAvatar, { backgroundColor: C.pitchSoft }]}>
+        <MessageCircle size={15} color={C.green} strokeWidth={1.8} />
       </View>
     );
   }
@@ -553,7 +552,7 @@ export function Coach({ navigation }: { navigation: any }) {
           style={({ pressed }) => [
             styles.drill,
             {
-              backgroundColor: pressed ? C.pitchSoft : C.white,
+              backgroundColor: pressed ? C.pitchSoft : "transparent",
               borderColor: C.lineStrong,
             },
           ]}
@@ -563,7 +562,7 @@ export function Coach({ navigation }: { navigation: any }) {
           </View>
           <View style={styles.grow}>
             <Text style={s.h3}>{drill.name}</Text>
-            <Text style={[s.small, { fontSize: 12 }]}>{drill.skill} · View drill</Text>
+            <Text style={[s.small, { fontSize: 12 }]}>{drill.skill}</Text>
           </View>
           <ChevronRight size={18} color={C.green} />
         </Pressable>
@@ -597,38 +596,17 @@ export function Coach({ navigation }: { navigation: any }) {
       >
         <View style={styles.assistantRow}>
           {coachAvatar()}
-          <View style={[styles.assistantBubble, { backgroundColor: C.deep }]}>
-            <Text style={[s.body, styles.chatText, { color: C.onDeep }]}>
-              Hey, what are we working on today?
+          <View style={[styles.assistantBubble, { backgroundColor: C.soft }]}>
+            <Text style={[s.body, styles.chatText, { color: C.ink }]}>
+              What are we working on today?
             </Text>
           </View>
         </View>
-        {turns.length === 0 ? (
-          <View style={styles.starters}>
-            {starters.map((text) => (
-              <Pressable
-                key={text}
-                accessibilityRole="button"
-                disabled={paused}
-                onPress={() => void send(text)}
-                style={({ pressed }) => [
-                  styles.starter,
-                  {
-                    backgroundColor: pressed ? C.pitchSoft : C.soft,
-                    borderColor: C.lineStrong,
-                  },
-                ]}
-              >
-                <Text style={s.small}>{text}</Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
         {turns.map((turn) => (
           <View key={turn.id} style={styles.turn}>
             <View style={styles.userColumn}>
-              <View style={[styles.question, { backgroundColor: C.lime }]}>
-                <Text selectable style={[s.body, styles.chatText, { color: C.onLime }]}>
+              <View style={[styles.question, { backgroundColor: C.pitchSoft }]}>
+                <Text selectable style={[s.body, styles.chatText, { color: C.ink }]}>
                   {turn.question}
                 </Text>
               </View>
@@ -664,11 +642,8 @@ export function Coach({ navigation }: { navigation: any }) {
               <View style={styles.assistantRow}>
                 {coachAvatar()}
                 <View style={styles.answerColumn}>
-                  <View style={[styles.assistantBubble, { backgroundColor: C.deep }]}>
-                    <Text
-                      selectable
-                      style={[s.body, styles.chatText, { color: C.onDeep }]}
-                    >
+                  <View style={[styles.assistantBubble, { backgroundColor: C.soft }]}>
+                    <Text selectable style={[s.body, styles.chatText, { color: C.ink }]}>
                       {turn.answer.reply}
                     </Text>
                   </View>
@@ -686,8 +661,8 @@ export function Coach({ navigation }: { navigation: any }) {
         {awaitingReply && focused ? (
           <View style={styles.assistantRow}>
             {coachAvatar()}
-            <View style={[styles.assistantBubble, { backgroundColor: C.deep }]}>
-              <CoachTyping color={C.onDeep} />
+            <View style={[styles.assistantBubble, { backgroundColor: C.soft }]}>
+              <CoachTyping color={C.ink} />
             </View>
           </View>
         ) : null}
@@ -826,15 +801,15 @@ export function Coach({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   page: { flex: 1 },
   content: {
-    paddingHorizontal: 16,
-    paddingTop: 22,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 12,
-    gap: 18,
+    gap: 24,
     maxWidth: 720,
     width: "100%",
     alignSelf: "center",
   },
-  headerIdentity: { flexDirection: "row", alignItems: "center", gap: 9, flexShrink: 1 },
+  headerIdentity: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 },
   headerAvatar: {
     width: 36,
     height: 36,
@@ -847,7 +822,6 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 4,
   },
   messageAvatar: {
     width: 26,
@@ -855,41 +829,32 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 5,
+    marginTop: 8,
   },
   assistantRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    paddingRight: 18,
+    paddingRight: 8,
   },
   answerColumn: { flex: 1, maxWidth: 520, gap: 8 },
   assistantBubble: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 18,
+    borderRadius: 16,
     borderTopLeftRadius: 5,
     flexShrink: 1,
     maxWidth: 520,
   },
-  chatText: { fontSize: 15, lineHeight: 23 },
+  chatText: { fontSize: 16, lineHeight: 24 },
   grow: { flex: 1, gap: 2 },
-  starters: { paddingLeft: 34, gap: 8, flexDirection: "row", flexWrap: "wrap" },
-  starter: {
-    paddingHorizontal: 13,
-    minHeight: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    justifyContent: "center",
-  },
   drill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    padding: 12,
+    paddingVertical: 10,
     minHeight: 64,
-    borderWidth: 1,
-    borderRadius: 14,
+    borderBottomWidth: 1,
   },
   drillIcon: {
     width: 36,
@@ -898,16 +863,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  turn: { gap: 14 },
-  userColumn: { alignSelf: "flex-end", alignItems: "flex-end", maxWidth: "86%", gap: 4 },
+  turn: { gap: 16 },
+  userColumn: { alignSelf: "flex-end", alignItems: "flex-end", maxWidth: "88%", gap: 4 },
   question: {
     paddingHorizontal: 15,
     paddingVertical: 11,
     borderRadius: 18,
     borderBottomRightRadius: 5,
   },
-  status: { fontSize: 11, paddingRight: 3 },
-  source: { fontSize: 11, paddingLeft: 3 },
+  status: { fontSize: 12, lineHeight: 18, paddingRight: 3 },
+  source: { fontSize: 12, lineHeight: 18, paddingLeft: 3 },
   failure: { alignItems: "flex-end", maxWidth: 290 },
   retry: {
     flexDirection: "row",
@@ -926,9 +891,9 @@ const styles = StyleSheet.create({
   consent: { marginLeft: 34, padding: 16, gap: 12, borderRadius: 16 },
   pairInput: { minHeight: 52, padding: 14, borderWidth: 1, borderRadius: 12 },
   composerArea: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 5,
+    paddingBottom: 8,
     width: "100%",
     maxWidth: 720,
     alignSelf: "center",
@@ -940,7 +905,7 @@ const styles = StyleSheet.create({
     padding: 6,
     paddingLeft: 15,
     borderWidth: 1,
-    borderRadius: 28,
+    borderRadius: 24,
   },
   input: { flex: 1, minHeight: 44, maxHeight: 120, paddingVertical: 11, paddingRight: 2 },
   send: {
@@ -950,5 +915,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  composerHint: { fontSize: 11, textAlign: "center", paddingTop: 4 },
+  composerHint: { fontSize: 11, lineHeight: 16, textAlign: "center", paddingTop: 6 },
 });

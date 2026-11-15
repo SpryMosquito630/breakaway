@@ -150,7 +150,7 @@ const colors = {
 };
 const photo = require("../../assets/training-editorial.webp");
 
-const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string]>> = {
+const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string?]>> = {
   frequency: ["Question #1", "How often do you currently play or train?"],
   club: ["Question #2", "Do you play for a club?"],
   clubName: ["Question #2.5", "What’s the name of your club?"],
@@ -158,13 +158,10 @@ const questionTitles: Partial<Record<(typeof flowSteps)[number], [string, string
   tracking: ["Question #4", "Do you currently track your matches or training sessions?"],
   blocker: ["Question #5", "What usually stops you from tracking consistently?"],
   motivation: ["Question #6", "What’s your main goal right now?"],
-  focus: ["What do you want to improve?", "Your first session starts with this focus."],
-  equipment: ["Where can you train?", "Your drills will fit the space you have."],
+  focus: ["What do you want to improve?"],
+  equipment: ["Where can you train?"],
   position: ["Where do you play?", "Choose the role you play most."],
-  experience: [
-    "How long have you been playing?",
-    "We’ll match the drills to your experience.",
-  ],
+  experience: ["How long have you been playing?"],
   bodyGoal: ["Your training goal", "What feels right for you?"],
   consistency: ["Question #11", "How would you describe your current consistency?"],
   duration: ["Your session", "How much time can you protect?"],
@@ -1028,7 +1025,6 @@ export function Onboarding({
             }}
           >
             <Text style={styles.welcomeTitle}>Getting better{"\n"}starts here.</Text>
-            <Copy>Individual practice. A clear plan. Your progress.</Copy>
           </View>
         );
         break;
@@ -1862,7 +1858,6 @@ export function Onboarding({
               reducedMotion={reducedMotionEnabled}
               style={styles.heading}
             />
-            <Copy muted>A first name or nickname for your player card.</Copy>
             <View style={{ gap: 8 }}>
               <Text style={styles.smallLabel}>YOUR NAME · OPTIONAL</Text>
               <FocusInput
@@ -1899,7 +1894,6 @@ export function Onboarding({
               Your age range keeps the experience appropriate.
             </Copy>
             <View style={{ gap: 10, marginTop: 8 }}>
-              <Text style={styles.smallLabel}>YOUR AGE RANGE</Text>
               {(
                 [
                   ["under13", "Under 13"],
@@ -1926,13 +1920,12 @@ export function Onboarding({
         content = (
           <View style={{ gap: 20 }}>
             <OnboardingHeading
-              text="Make room for practice."
+              text="When will you train?"
               animationKey={step}
               focused={focused}
               reducedMotion={reducedMotionEnabled}
               style={styles.heading}
             />
-            <Copy muted>Choose the days and time you can protect.</Copy>
             <Text style={styles.smallLabel}>YOUR DAYS</Text>
             <ScrollView
               horizontal
@@ -1982,11 +1975,11 @@ export function Onboarding({
                 onPress={() => patch({ minutes })}
               />
             ))}
-            <Copy muted style={{ fontSize: 13 }}>
-              {draft.days?.length
-                ? `${draft.days.length} ${draft.days.length === 1 ? "day" : "days"} a week${draft.minutes ? ` · ${draft.minutes} minutes each` : ""}.`
-                : "Pick at least one day to begin."}
-            </Copy>
+            {!draft.days?.length ? (
+              <Copy muted style={{ fontSize: 13 }}>
+                Pick at least one day.
+              </Copy>
+            ) : null}
           </View>
         );
         break;
@@ -2678,17 +2671,6 @@ export function Onboarding({
             reducedMotion={reducedMotionEnabled}
             style={styles.heading}
           />
-          <Copy
-            muted
-            style={{
-              textAlign: "left",
-              marginTop: 8 * playerReferenceScale,
-              fontSize: 14 * playerReferenceScale,
-              lineHeight: 20 * playerReferenceScale,
-            }}
-          >
-            A style to inspire your practice.
-          </Copy>
         </View>
       ) : null}
       {step === "playstyle" ? (
@@ -2729,9 +2711,11 @@ export function Onboarding({
                 reducedMotion={reducedMotionEnabled}
                 style={styles.heading}
               />
-              <Copy muted style={{ fontSize: 13, lineHeight: 19 }}>
-                {title![1]}
-              </Copy>
+              {title![1] ? (
+                <Copy muted style={{ fontSize: 13, lineHeight: 19 }}>
+                  {title![1]}
+                </Copy>
+              ) : null}
             </View>
           ) : null}
           {content}

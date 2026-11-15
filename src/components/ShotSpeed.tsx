@@ -54,10 +54,10 @@ export function ShotSpeed({
           ) : null}
         </View>
         <View style={styles.action}>
-          <Text style={[styles.caption, { color: C.green }]}>
+          <Text style={[styles.caption, { color: C.muted }]}>
             {result.kmh === null ? "Measure manually" : "Manual estimate"}
           </Text>
-          <ChevronRight size={14} color={C.green} aria-hidden={true} />
+          <ChevronRight size={14} color={C.muted} aria-hidden={true} />
         </View>
         {kickingFoot ? (
           <Text style={[styles.caption, { color: C.muted }]}>
