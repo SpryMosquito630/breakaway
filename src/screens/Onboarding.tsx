@@ -337,7 +337,7 @@ function FocusInput({
   ...props
 }: React.ComponentProps<typeof TextInput> & { purple?: boolean }) {
   const [focused, setFocused] = useState(false);
-  const accent = purple ? "#BE6BDA" : colors.lime;
+  const accent = colors.lime;
   return (
     <TextInput
       {...props}
@@ -439,19 +439,15 @@ function Option({
             styles.radio,
             color ? styles.goalRadio : null,
             editorial ? styles.editorialRadio : null,
-            purple ? { borderColor: "#C8A6D288" } : null,
+            purple ? { borderColor: colors.muted } : null,
             selected && {
-              backgroundColor: purple ? "#9F37C1" : colors.lime,
-              borderColor: purple ? "#B96EE1" : colors.lime,
+              backgroundColor: colors.lime,
+              borderColor: colors.lime,
             },
           ]}
         >
           {selected ? (
-            <Check
-              size={14}
-              color={purple ? colors.white : colors.background}
-              strokeWidth={3}
-            />
+            <Check size={14} color={colors.background} strokeWidth={3} />
           ) : null}
         </View>
       ) : null}
@@ -3233,9 +3229,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   purpleOptionSelected: {
-    backgroundColor: "#67327966",
-    borderColor: "#B96EE1",
-    boxShadow: "0 0 8px rgba(185,110,225,0.12)",
+    backgroundColor: "#B6FF3B14",
+    borderColor: colors.lime,
   },
   editorialOption: {
     minHeight: 62,
