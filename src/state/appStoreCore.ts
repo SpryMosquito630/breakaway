@@ -4,10 +4,12 @@ import { restoreAppData } from "../domain/storage";
 
 export const APP_STORAGE_KEY = "player-accelerator-v1";
 export const APP_RECOVERY_BACKUP_KEY = `${APP_STORAGE_KEY}-recovery-backup`;
+export const APP_RECOVERY_ARCHIVE_PREFIX = `${APP_RECOVERY_BACKUP_KEY}-archive-`;
 type Storage = {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
+  getAllKeys?(): Promise<readonly string[]>;
 };
 type Snapshot = {
   data: AppData;
@@ -34,10 +36,36 @@ export function createAppStoreCore(storage: Storage) {
     snapshot = next;
     listeners.forEach((listener) => listener());
   }
-  function queue(work: () => Promise<void>) {
+  function queue<T>(work: () => Promise<T>): Promise<T> {
     const next = tail.then(work);
     tail = next.catch(() => {});
     return next;
+  }
+  async function preserveRaw(raw: string): Promise<void> {
+    const existing = await storage.getItem(APP_RECOVERY_BACKUP_KEY);
+    if (existing === raw) return;
+    let key = APP_RECOVERY_BACKUP_KEY;
+    if (existing !== null) {
+      // Keep the original recovery copy. A distinct later save gets its own slot.
+      // The checksum names a slot; exact equality handles collisions and retries.
+      let checksum = 2166136261;
+      for (let index = 0; index < raw.length; index++)
+        checksum = Math.imul(checksum ^ raw.charCodeAt(index), 16777619) >>> 0;
+      const base = `${APP_RECOVERY_ARCHIVE_PREFIX}${checksum.toString(16)}-${raw.length}`;
+      let collision = 0;
+      key = base;
+      for (;;) {
+        const archived = await storage.getItem(key);
+        if (archived === raw) return;
+        if (archived === null) break;
+        key = `${base}-${++collision}`;
+      }
+    }
+    await storage.setItem(key, raw);
+    if ((await storage.getItem(key)) !== raw)
+      throw new Error(
+        "The recovery backup could not be verified. Your active save was not replaced.",
+      );
   }
   function persist(data: AppData) {
     if (!readable || snapshot.loading || snapshot.recovery) return Promise.resolve();
@@ -70,7 +98,7 @@ export function createAppStoreCore(storage: Storage) {
         // Preserve the exact original before permitting an edit to a repaired/migrated save.
         if (raw !== null && JSON.stringify(JSON.parse(raw)) !== JSON.stringify(data)) {
           try {
-            await storage.setItem(APP_RECOVERY_BACKUP_KEY, raw);
+            await preserveRaw(raw);
             backedUp = true;
           } catch {
             backupFailed = true;
@@ -83,7 +111,7 @@ export function createAppStoreCore(storage: Storage) {
       } catch {
         if (raw !== null && !backedUp && !backupFailed) {
           try {
-            await storage.setItem(APP_RECOVERY_BACKUP_KEY, raw);
+            await preserveRaw(raw);
           } catch {
             backupFailed = true;
           }
@@ -119,6 +147,52 @@ export function createAppStoreCore(storage: Storage) {
       publish({ ...snapshot, data });
       void persist(data);
     },
+    /** Export the untouched source, not a parsed/repaired/re-serialized profile. */
+    exportRecoveryRaw(): Promise<string> {
+      if (snapshot.loading || resetting)
+        return Promise.reject(
+          new Error("Wait for the current recovery action to finish."),
+        );
+      return queue(async () => {
+        let raw: string | null = null;
+        try {
+          raw = await storage.getItem(APP_STORAGE_KEY);
+        } catch {
+          /* Try the preserved original. */
+        }
+        if (raw !== null) return raw;
+        const backup = await storage.getItem(APP_RECOVERY_BACKUP_KEY);
+        if (backup !== null) return backup;
+        throw new Error(
+          "No saved data could be read for export. Your stored data has not been changed.",
+        );
+      });
+    },
+    /** Explicit recovery action. Never use normal reset, which removes backups. */
+    startFreshPreservingBackup(): Promise<void> {
+      if (resetting) return resetting;
+      if (snapshot.loading || !snapshot.recovery)
+        return Promise.reject(
+          new Error("Start fresh is only available after a saved-data recovery error."),
+        );
+      readable = false;
+      let completed = false;
+      resetting = queue(async () => {
+        // A failed read must never be treated as a missing save.
+        const raw = await storage.getItem(APP_STORAGE_KEY);
+        if (raw !== null) await preserveRaw(raw);
+        const data = initialData();
+        await storage.setItem(APP_STORAGE_KEY, JSON.stringify(data));
+        latestData = data;
+        completed = true;
+        readable = true;
+        publish({ data, loading: false, recovery: false, error: null });
+      }).finally(() => {
+        readable = completed;
+        resetting = null;
+      });
+      return resetting;
+    },
     // Only an explicit confirmed reset removes the preserved recovery copy.
     reset(): Promise<void> {
       if (resetting) return resetting;
@@ -128,6 +202,10 @@ export function createAppStoreCore(storage: Storage) {
         );
       readable = false;
       resetting = queue(async () => {
+        // A separate confirmed Reset all data also clears archived raw copies.
+        const keys = (await storage.getAllKeys?.()) ?? [];
+        for (const key of keys)
+          if (key.startsWith(APP_RECOVERY_ARCHIVE_PREFIX)) await storage.removeItem(key);
         await storage.removeItem(APP_RECOVERY_BACKUP_KEY);
         const data = initialData();
         await storage.setItem(APP_STORAGE_KEY, JSON.stringify(data));

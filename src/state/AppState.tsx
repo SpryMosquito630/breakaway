@@ -23,6 +23,8 @@ type ContextValue = ReturnType<Store["getSnapshot"]> & {
   catalog: import("../domain/model").Drill[];
   update: Store["update"];
   reset: Store["reset"];
+  exportRecoveryRaw: Store["exportRecoveryRaw"];
+  startFreshPreservingBackup: Store["startFreshPreservingBackup"];
   retry: () => void;
   checkpointActive: Store["checkpointActive"];
   backgroundClockMessage: string;
@@ -144,6 +146,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setBackgroundPractice,
         update: store.update,
         reset: store.reset,
+        exportRecoveryRaw: store.exportRecoveryRaw,
+        startFreshPreservingBackup: store.startFreshPreservingBackup,
         retry: () => {
           void store.retry();
         },
