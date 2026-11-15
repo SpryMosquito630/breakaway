@@ -43,7 +43,10 @@ test("Offline guide labels its source and uses actual catalog cues and saved act
   );
   assert.match(offlineCoach("tests", data, drills).reply, /no saved skill assessments/);
   assert.deepEqual(offlineCoach("injury pain", data, drills).drillIds, []);
-  assert.match(offlineCoach("injury pain", data, drills).reply, /qualified professional/);
+  assert.equal(
+    offlineCoach("injury pain", data, drills).reply,
+    "Stop and tell a parent or coach.",
+  );
 });
 test("Explicit focus requests return that skill and describe the requested focus", () => {
   const data = initialData();
@@ -146,4 +149,61 @@ test("Changing age does not add age or other personal profile data to Coach cont
     assert.deepEqual(coachContext(data, drills), original);
     assert.equal("ageBand" in coachContext(data, drills), false);
   }
+});
+
+test("offline injury and dizziness safeguards override drill requests for every age", () => {
+  const data = initialData();
+  for (const ageBand of ["under13", "13to17", "adult"] as const) {
+    data.profile.ageBand = ageBand;
+    for (const concern of [
+      "I hurt my leg",
+      "my leg hurts",
+      "I am hurting",
+      "my legs are sore",
+      "soreness after practice",
+      "I feel dizzy",
+      "dizziness",
+      "my knee",
+      "my knees",
+      "my ankle",
+      "I rolled my ankles",
+      "a painful shin",
+      "injured yesterday",
+      "sprained foot",
+      "strained calf",
+      "swelling",
+      "swollen foot",
+      "concussion",
+      "I fainted",
+      "bleeding",
+      "a bruise",
+      "headache",
+      "numb toes",
+      "cramp",
+      "I am limping",
+      "aching legs",
+      "light-headed",
+      "lightheadedness",
+    ]) {
+      const message = `${concern}. Give me passing drills to train today.`;
+      assert.deepEqual(
+        offlineCoach(message, data, drills),
+        {
+          source: "offline",
+          reply: "Stop and tell a parent or coach.",
+          drillIds: [],
+        },
+        `${ageBand}: ${concern}`,
+      );
+      assert.deepEqual(coachDrills(message, data, drills), [], concern);
+    }
+  }
+  for (const message of [
+    "passing drills",
+    "weaker foot practice",
+    "dribbling training",
+  ]) {
+    assert.ok(offlineCoach(message, data, drills).drillIds.length > 0, message);
+  }
+  assert.deepEqual(offlineCoach("nutrition for practice", data, drills).drillIds, []);
 });
