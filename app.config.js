@@ -1,6 +1,5 @@
-const base = require("./app.json").expo;
-
-module.exports = () => {
+module.exports = ({ config = require("./app.json").expo } = {}) => {
+  const base = config;
   const hosted = process.env.EXPO_PUBLIC_HOSTED_ANALYSIS_ENABLED === "true";
   const firebaseModules = [
     "@react-native-firebase/app",
@@ -37,7 +36,18 @@ module.exports = () => {
       },
     },
     plugins: [
-      ...base.plugins,
+      ...base.plugins.map((plugin) => {
+        const [name, options = {}] = Array.isArray(plugin) ? plugin : [plugin];
+        return ["expo-camera", "expo-audio"].includes(name)
+          ? [
+              name,
+              {
+                ...options,
+                microphonePermission: "Record audio with your practice video.",
+              },
+            ]
+          : plugin;
+      }),
       ...firebaseModules,
       ["expo-build-properties", { ios: { useFrameworks: "dynamic" } }],
     ],
