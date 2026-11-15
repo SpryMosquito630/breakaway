@@ -16,6 +16,7 @@ export type OnboardingAnswers = {
   motivation?: string;
   playstyle?: string;
   positionDetail?: string;
+  positionMarker?: "CB-L" | "CB-R";
   bodyGoal?: string;
   consistency?: string;
   name?: string;
@@ -31,6 +32,16 @@ export type OnboardingAnswers = {
   week?: Partial<Record<string, { activity: string; time?: string }>>;
 };
 export type FlowDraft = OnboardingDraft & { answers?: OnboardingAnswers };
+export function pitchMarkerSelected(
+  answers: Pick<OnboardingAnswers, "positionDetail" | "positionMarker">,
+  short: string,
+  x: number,
+) {
+  return (
+    answers.positionDetail === short &&
+    (short !== "CB" || (answers.positionMarker ?? "CB-L") === (x < 50 ? "CB-L" : "CB-R"))
+  );
+}
 export const trainingLocations = [
   { label: "Backyard / small space", space: "Small space" },
   { label: "Park or field", space: "Open space" },
@@ -213,6 +224,11 @@ export function sanitizeOnboardingAnswers(raw: unknown): OnboardingAnswers | und
     (pitchPositions as readonly string[]).includes(value.positionDetail)
   )
     result.positionDetail = value.positionDetail;
+  if (
+    result.positionDetail === "CB" &&
+    ["CB-L", "CB-R"].includes(value.positionMarker as string)
+  )
+    result.positionMarker = value.positionMarker as "CB-L" | "CB-R";
   for (const [key, min, max] of [
     ["heightCm", 80, 240],
     ["weightKg", 15, 200],
