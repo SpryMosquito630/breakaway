@@ -61,6 +61,7 @@ import {
 import { MAX_CLIP_BYTES, ReplayInput, SavedReplay } from "../replays/repository";
 import { reviewThenTrack, waitForShotTask } from "../coachAi/shotReviewPreparation";
 import { ServiceError } from "../coachAi/serviceResponse";
+import { HOSTED_ANALYSIS_CONFIG } from "../config/hostedAnalysis";
 
 const NEON = "#B6FF00";
 
@@ -251,8 +252,9 @@ export function ShotAnalysis() {
   const pickerActions = (
     <View style={styles.captureActions}>
       <Text style={[s.small, { color: clip ? C.muted : C.onDeep }]}>
-        Your selected video is processed for body tracking. When AI review is connected,
-        video frames are also sent to Google Gemini for a technique estimate.
+        {HOSTED_ANALYSIS_CONFIG
+          ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
+          : "Your selected video is processed for body tracking. When AI review is connected, video frames are also sent to Google Gemini for a technique estimate."}
       </Text>
       <Button
         label={picking ? "Opening…" : "Record & analyze"}
@@ -788,8 +790,9 @@ function ShotReview({
         ) : !pose ? (
           <>
             <Text style={s.small}>
-              Analyze processes this saved clip for body tracking and, when connected,
-              sends video frames to Google Gemini for a technique estimate.
+              {HOSTED_ANALYSIS_CONFIG
+                ? "Analyze uploads your clip to Google Cloud. Video frames go to Gemini for an AI coaching estimate."
+                : "Analyze processes this saved clip for body tracking and, when connected, sends video frames to Google Gemini for a technique estimate."}
             </Text>
             <Button
               label="Analyze movement"
