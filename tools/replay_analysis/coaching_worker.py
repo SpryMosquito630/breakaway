@@ -78,9 +78,15 @@ def joints(path,model=POSE_MODEL):
     return {'durationSeconds':duration,'width':size[0],'height':size[1],'sampleFps':sample_fps,'frames':result,'fullBodyVisible':visible/len(result)>=.7,'visibleFrameFraction':round(visible/len(result),3),'limitations':'Experimental estimated 2D joints, sampled up to 5 fps. Visibility is model confidence, not accuracy. No form rating, repetition count, injury assessment or OVR change. Keep one whole person visible; gaps remain blank.'}
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['coach','pose','food']);p.add_argument('video');p.add_argument('result');p.add_argument('--context');args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['coach','pose','food','shot-review']);p.add_argument('video');p.add_argument('result');p.add_argument('--context');p.add_argument('--include-pose',action='store_true');args=p.parse_args()
     try:
-        if args.mode=='food':
+        if args.mode=='shot-review':
+            from shot_review import review
+            value=review(args.video)
+            if args.include_pose:
+                try: value['pose']=joints(args.video) if pose_available() else None
+                except Exception: value['pose']=None
+        elif args.mode=='food':
             from food_image import estimate
             value=estimate(Path(args.video),json.loads(Path(args.context).read_text()))
         else:

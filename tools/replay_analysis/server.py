@@ -8,6 +8,7 @@ from detector import MODEL_SHA256
 from coaching import CoachingError, configured, chat_configured, chat_provider, auth_config, context_value, history_value, authorize_attempt, respond as coach_respond
 from coaching_worker import pose_available
 from food_image import food_context, MAX_PHOTO_BYTES
+from shot_review import available as shot_review_available
 from pairing import DevPairing, PairingError, PreviewInvite
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,7 +57,7 @@ class Handler(BaseHTTPRequestHandler):
     def _cors(self):
         # No cookies or credentials; bearer value is explicitly supplied by the dev app.
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-User-Token, X-Coach-Pair')
+        self.send_header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-User-Token, X-Coach-Pair, X-Include-Pose')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Cache-Control', 'no-store')
     def respond(self, status, value):
@@ -72,7 +73,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/health':
             return self.error(404, 'not_found', 'This endpoint does not exist.')
         chat_available = chat_configured() and (bool(auth_config()) or self.server.pairing is not None)
-        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatMemoryAvailable': True, 'chatInviteAvailable': bool(self.server.preview_invite and self.server.preview_invite.available), 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'processedOn': 'local_computer',
+        self.respond(200, {'available': True, 'busy': GATE.locked(), 'aiAvailable': configured(), 'chatAvailable': chat_available, 'chatMemoryAvailable': True, 'chatInviteAvailable': bool(self.server.preview_invite and self.server.preview_invite.available), 'chatProvider': chat_provider(), 'chatDevAllowed': chat_available and not bool(auth_config()), 'chatPairRequired': chat_available and not bool(auth_config()), 'jointViewAvailable': pose_available(), 'shotReviewAvailable': shot_review_available() and (bool(auth_config()) or self.server.pairing is not None), 'processedOn': 'local_computer',
                            'limits': {'maxBytes': MAX_BYTES, 'maxSeconds': 30, 'sampleFps': 15}, 'authentication': 'dev_session_token'})
     def read_body(self):
         max_bytes = min(MAX_BYTES, MAX_PHOTO_BYTES) if self.path == '/food' else MAX_BYTES
@@ -118,7 +119,7 @@ class Handler(BaseHTTPRequestHandler):
                     raise ClientError(408, 'upload_timeout', 'The upload took too long. Try a shorter video.')
         return b''.join(chunks)
     def do_POST(self):
-        if self.path not in {'/analyze', '/chat', '/coach', '/pose', '/food', '/pair'}:
+        if self.path not in {'/analyze', '/chat', '/coach', '/pose', '/food', '/pair', '/shot-review'}:
             return self.error(404, 'not_found', 'This endpoint does not exist.')
         supplied = self.headers.get('Authorization', '')
         if not hmac.compare_digest(supplied.encode('utf-8'), ('Bearer ' + self.server.token).encode('utf-8')):
@@ -127,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.error(404, 'not_found', 'Phone pairing is not enabled.')
         # The development bundle bearer is public configuration. A separately
         # paired phone credential is required before reading a dev chat or quota.
-        if self.path == '/chat' and not auth_config() and chat_provider() and os.environ.get('ALLOW_DEV_AI') == '1':
+        if self.path in {'/chat', '/shot-review'} and not auth_config() and chat_provider() and os.environ.get('ALLOW_DEV_AI') == '1':
             credential = self.headers.get('X-Coach-Pair', '')
             if not ((self.server.pairing and self.server.pairing.verify(credential)) or (self.server.preview_invite and self.server.preview_invite.verify(credential))):
                 return self.error(401, 'pair_required', 'Pair your phone before sending to AI. If pairing expired, ask for a fresh code from the computer.')
@@ -160,6 +161,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if self.path in {'/coach','/food'} and not configured():
                 raise ClientError(503, 'ai_unconfigured', 'AI needs a server-side API key and explicitly selected model.')
+            if self.path == '/shot-review' and not shot_review_available():
+                raise ClientError(503, 'ai_unconfigured', 'Shot review needs Gemini server credentials and an explicitly selected model.')
             if self.path == '/pose' and not pose_available():
                 raise ClientError(503, 'joint_view_unavailable', 'Joint View needs its verified model and dependency on the analysis computer.')
             with tempfile.TemporaryDirectory(prefix='request-', dir=self.server.temp_root) as temp:
@@ -183,11 +186,13 @@ class Handler(BaseHTTPRequestHandler):
                 del body
                 try:
                     if self.path in {'/coach','/food'}: authorize_attempt(self.headers.get('X-User-Token', ''))
-                    if self.path in {'/coach', '/pose','/food'}:
+                    if self.path == '/shot-review': authorize_attempt(self.headers.get('X-User-Token', ''), chat=True)
+                    if self.path in {'/coach', '/pose','/food', '/shot-review'}:
                         context_path = temp / 'context.json'; context_path.write_text(json.dumps(context))
                         command = [sys.executable, str(Path(__file__).with_name('coaching_worker.py')), self.path[1:], str(video), str(result), '--context', str(context_path)]
                     else:
                         command = [sys.executable, str(Path(__file__).with_name('worker.py')), str(video), str(result), '--model', str(self.server.model)]
+                    if self.path == '/shot-review' and self.headers.get('X-Include-Pose') == '1': command.append('--include-pose')
                     process = subprocess.run(command,
                                              timeout=ANALYSIS_SECONDS, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
                 except subprocess.TimeoutExpired:
