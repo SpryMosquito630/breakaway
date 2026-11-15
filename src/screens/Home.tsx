@@ -1,6 +1,5 @@
 import { DEVELOPER_FEATURES } from "../config/features";
 import { trainingPlanToday, profileForToday } from "../domain/training";
-import { useState } from "react";
 import { haptic } from "../utils/haptics";
 import { Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
@@ -10,8 +9,6 @@ import { days, time, getDrillDuration } from "../domain/model";
 import {
   sessionForToday,
   sessionMinutesToday,
-  setTodayMinutes,
-  todayMinuteChoices,
   todayOverride,
 } from "../domain/sessionTime";
 import { useLocalDay } from "../hooks/useLocalDay";
@@ -25,7 +22,6 @@ import {
   SettingRow,
   Disclosure,
   Button,
-  Chip,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeProvider";
 import {
@@ -38,7 +34,6 @@ export function Today({ navigation }: { navigation: any }) {
   const { data, update, catalog: drills } = useApp();
   const { C, s } = useTheme();
   const now = useLocalDay();
-  const [editingTime, setEditingTime] = useState(false);
   const override = todayOverride(data, now);
   const minutes = sessionMinutesToday(data, now);
   const progress = weeklyProgress(data.history, data.profile, now);
@@ -188,60 +183,8 @@ export function Today({ navigation }: { navigation: any }) {
           accessibilityLabel={trainHero.description}
         />
       </View>
-      {!data.active ? (
-        <View style={{ gap: 8 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Change time today. ${minutes} minutes${override ? ", just for today" : ", usual schedule"}`}
-            accessibilityState={{ expanded: editingTime }}
-            onPress={() => {
-              haptic("selection");
-              setEditingTime(!editingTime);
-            }}
-            style={[s.row, { minHeight: 48 }]}
-          >
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={s.h3}>{minutes} minutes today</Text>
-            </View>
-            <Text style={[s.h3, { color: C.green }]}>
-              {editingTime ? "Close" : "Change"}
-            </Text>
-          </Pressable>
-          {editingTime ? (
-            <View style={{ gap: 12 }}>
-              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                {todayMinuteChoices.map((value) => (
-                  <Chip
-                    key={value}
-                    label={`${value} min`}
-                    selected={minutes === value}
-                    onPress={() => update((st) => setTodayMinutes(st, value))}
-                  />
-                ))}
-              </View>
-              <Text style={s.small}>
-                Includes a 2-minute warm-up. Your usual schedule stays at{" "}
-                {profile.minutes} minutes.
-              </Text>
-              {override ? (
-                <Button
-                  label="Use usual schedule"
-                  kind="secondary"
-                  onPress={() => update((st) => setTodayMinutes(st, undefined))}
-                />
-              ) : null}
-              <Button label="Done" onPress={() => setEditingTime(false)} />
-            </View>
-          ) : null}
-        </View>
-      ) : null}
       <View style={{ gap: 8 }}>
-        <View style={s.row}>
-          <Text style={s.h2}>This week</Text>
-          <Text style={s.small}>
-            {progress.count} / {progress.target} sessions
-          </Text>
-        </View>
+        <Text style={s.h2}>This week</Text>
         <WeeklyCalendar
           now={now}
           scheduledDays={profile.days}
