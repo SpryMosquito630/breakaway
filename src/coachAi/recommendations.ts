@@ -20,6 +20,11 @@ export function remoteCoachAllowed(
 ) {
   return enabled;
 }
+function injuryConcern(message: string): boolean {
+  return /\b(injur\w*|pain\w*|hurt(?:s|ing)?|sore(?:ness)?|dizz\w*|knees?|ankles?|sprain\w*|strain(?:ed|ing|s)?|swollen|swelling|concuss\w*|faint(?:ed|ing)?|bleed\w*|bruis\w*|headaches?|numb(?:ness)?|cramps?|limp(?:ing)?|ach(?:e|es|ing))\b|\blight[- ]?headed(?:ness)?\b/i.test(
+    message,
+  );
+}
 function requestedGoal(message: string): Goal | undefined {
   const query = message.toLowerCase();
   return /\b(weak\w*|other foot|non[- ]dominant)\b/.test(query)
@@ -33,6 +38,7 @@ function requestedGoal(message: string): Goal | undefined {
           : undefined;
 }
 export function coachDrills(message: string, data: AppData, catalog: Drill[]) {
+  if (injuryConcern(message)) return [];
   const focus = requestedGoal(message);
   const goal = focus ?? data.profile.goal;
   const profile = { ...data.profile, goal };
@@ -45,11 +51,9 @@ export function offlineCoach(
   data: AppData,
   catalog: Drill[],
 ): CoachReply {
-  if (
-    /\b(injur\w*|pain|hurt|diet|calori\w*|weight|nutrition|supplement\w*)\b/i.test(
-      message,
-    )
-  )
+  if (injuryConcern(message))
+    return { source: "offline", reply: "Stop and tell a parent or coach.", drillIds: [] };
+  if (/\b(diet|calori\w*|weight|nutrition|supplement\w*)\b/i.test(message))
     return {
       source: "offline",
       reply:
