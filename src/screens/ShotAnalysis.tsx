@@ -255,9 +255,6 @@ export function ShotAnalysis() {
           <Text style={[s.small, { color: C.ink }]}>Choose video</Text>
         </Pressable>
       </View>
-      <Text style={[s.small, { textAlign: "center" }]}>
-        Up to 30 seconds · 50 MB. Videos stay on this device.
-      </Text>
     </View>
   );
   return (
@@ -279,7 +276,6 @@ export function ShotAnalysis() {
             <Text accessibilityRole="header" style={s.h1}>
               Film your shot
             </Text>
-            <Text style={s.small}>Slow-motion review · optional body tracking.</Text>
           </View>
           <View style={[styles.captureStage, { backgroundColor: C.soft }]}>
             <View
@@ -332,7 +328,7 @@ export function ShotAnalysis() {
             />
             <Film color={C.muted} size={38} strokeWidth={1.25} />
             <Text style={[s.body, { textAlign: "center" }]}>
-              Keep your whole body and ball in frame.
+              Keep your body and ball in frame.
             </Text>
           </View>
           {pickerActions}
@@ -346,60 +342,64 @@ export function ShotAnalysis() {
       {clip ? <Disclosure label="Choose another clip">{pickerActions}</Disclosure> : null}
       <Disclosure label="How to film your shot">
         <Text style={s.body}>
-          Prop your phone safely to the side, outside the ball’s path. Keep your whole
-          body and the ball in frame, with a little space for your follow-through.
+          Film from the side with your body and ball visible. Keep your phone clear of the
+          shot.
         </Text>
         <Text style={s.small}>
-          Use a clear practice area and check that nobody is in the line of your shot.
+          Up to 30 seconds · 50 MB. Saved replays stay on this device, up to 10 clips or
+          200 MB.
         </Text>
       </Disclosure>
-      <View style={{ gap: 8 }}>
-        <Text accessibilityRole="header" style={s.h3}>
-          Saved replays
-        </Text>
-        {history.length > 0 || historyError ? (
-          <Text style={s.small}>
-            {history.length}/10 clips · 200 MB total · no cloud backup
+      {history.length > 0 || historyError ? (
+        <View style={{ gap: 8 }}>
+          <Text accessibilityRole="header" style={s.h3}>
+            Saved replays
           </Text>
-        ) : null}
-        {history.length === 0 && !historyError ? (
-          <Text style={s.body}>Save a shot after reviewing it to return to it here.</Text>
-        ) : null}
-        {history.map((item) => (
-          <View key={item.id} style={[styles.historyRow, { borderBottomColor: C.line }]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Open replay from ${new Date(item.createdAt).toLocaleString()}`}
-              onPress={() => void open(item)}
-              style={styles.historyOpen}
+          {history.map((item) => (
+            <View
+              key={item.id}
+              style={[styles.historyRow, { borderBottomColor: C.line }]}
             >
-              <Text style={s.h3}>
-                {item.analysis.detector === "manual-review" ? "Shot replay" : item.title}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Open replay from ${new Date(item.createdAt).toLocaleString()}`}
+                onPress={() => void open(item)}
+                style={styles.historyOpen}
+              >
+                <Text style={s.h3}>
+                  {item.analysis.detector === "manual-review"
+                    ? "Shot replay"
+                    : item.title}
+                </Text>
+                <Text style={s.small}>
+                  {new Date(item.createdAt).toLocaleDateString()} ·{" "}
+                  {item.analysis.duration.toFixed(1)}s
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Delete replay from ${new Date(item.createdAt).toLocaleString()}`}
+                onPress={() => remove(item)}
+                style={styles.delete}
+              >
+                <Text style={[s.small, { color: C.danger }]}>Delete</Text>
+              </Pressable>
+            </View>
+          ))}
+          {historyError ? (
+            <>
+              <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
+                {historyError}
               </Text>
-              <Text style={s.small}>
-                {new Date(item.createdAt).toLocaleDateString()} ·{" "}
-                {item.analysis.duration.toFixed(1)}s
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Delete replay from ${new Date(item.createdAt).toLocaleString()}`}
-              onPress={() => remove(item)}
-              style={styles.delete}
-            >
-              <Text style={[s.small, { color: C.danger }]}>Delete</Text>
-            </Pressable>
-          </View>
-        ))}
-        {historyError ? (
-          <>
-            <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
-              {historyError}
-            </Text>
-            <Button kind="secondary" label="Clear saved replays" onPress={clearHistory} />
-          </>
-        ) : null}
-      </View>
+              <Button
+                kind="secondary"
+                label="Clear saved replays"
+                onPress={clearHistory}
+              />
+            </>
+          ) : null}
+        </View>
+      ) : null}
     </Page>
   );
 }
@@ -890,12 +890,12 @@ function ShotReview({
         {eligible ? (
           <>
             <Text style={s.small}>
-              Analyze movement sends this clip to the body tracking service. Temporary
-              files are deleted after processing. No frames are sent to OpenAI.
+              This clip is sent to the tracking service. Temporary files are deleted after
+              processing.
             </Text>
             <View style={styles.toggleRow}>
               <Text style={[s.small, { flex: 1, paddingRight: 12 }]}>
-                This is my clip and I agree to process it for body tracking.
+                This is my clip. I agree to body tracking.
               </Text>
               <Switch
                 accessibilityLabel="I agree to process my clip for body tracking"
@@ -933,13 +933,9 @@ function ShotReview({
           </Text>
         )}
         <Text style={s.small}>
-          Estimated 2D landmarks · gaps hide uncertain joints. Body lines are not a
-          technique score. Saved replays keep the video only.
+          Estimated 2D landmarks, not a technique score. Save keeps the video only.
         </Text>
-        <Text style={s.small}>
-          Which foot are you kicking with? This labels the legs; it does not detect
-          contact or judge technique.
-        </Text>
+        <Text style={s.small}>Choose your kicking foot to label the legs.</Text>
       </Disclosure>
       {poseError ? (
         <Text accessibilityRole="alert" style={[s.body, { color: C.danger }]}>
@@ -947,23 +943,7 @@ function ShotReview({
         </Text>
       ) : null}
       <Disclosure label="Review notes">
-        <Text style={s.body}>Approach: is your run-up controlled?</Text>
-        <Text style={s.body}>
-          Contact: pause as your foot meets the ball. Where is your plant foot, and which
-          part of your striking foot makes contact?
-        </Text>
-        <Text style={s.body}>
-          Finish: step forward and watch how your kicking leg follows through and how you
-          regain balance.
-        </Text>
-        <Text style={s.small}>
-          Use these prompts to observe your movement. They are not an assessment or a
-          technique score.
-        </Text>
-        <Text style={s.small}>
-          Save keeps the video only; body tracking is not saved. Unsaved clips are
-          temporary.
-        </Text>
+        <Text style={s.body}>Watch your run-up, plant foot and follow-through.</Text>
       </Disclosure>
     </View>
   );
