@@ -1,6 +1,6 @@
 # Training release hardening
 
-Branch: `fix/training-release-hardening`.
+Original branch: `fix/training-release-hardening`, merged through PR 1. The original verification below describes that branch at the time. See [the November 14 follow-up](practice-safety-follow-up.md) for recovery actions, revised pacing and release-only navigation changes.
 
 ## Changes
 
