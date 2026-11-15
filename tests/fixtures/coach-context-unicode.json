@@ -1,0 +1,63 @@
+{
+  "contract": "Python3 json.dumps with ensure_ascii=True and default separators; synthetic-only fixtures",
+  "cases": [
+    {
+      "name": "cjk",
+      "context": {
+        "position": "Midfielder",
+        "goal": "Passing",
+        "plan": [
+          {
+            "id": "custom-synthetic",
+            "name": "界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界",
+            "cue": "球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球球"
+          }
+        ],
+        "allowedDrillIds": ["custom-synthetic"]
+      },
+      "pythonJsonCharacters": 1707
+    },
+    {
+      "name": "emoji",
+      "context": {
+        "position": "Midfielder",
+        "goal": "Passing",
+        "plan": [
+          {
+            "id": "custom-synthetic",
+            "name": "⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽⚽",
+            "cue": "🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀"
+          }
+        ],
+        "allowedDrillIds": ["custom-synthetic"]
+      },
+      "pythonJsonCharacters": 1707
+    },
+    {
+      "name": "escaped-ascii",
+      "context": {
+        "position": "Midfielder",
+        "goal": "Passing",
+        "plan": [
+          {
+            "id": "custom-synthetic",
+            "name": "Line \"one\" \\ side",
+            "cue": "Control\nline\tandmarker"
+          }
+        ],
+        "allowedDrillIds": ["custom-synthetic"]
+      },
+      "pythonJsonCharacters": 197
+    },
+    {
+      "name": "empty",
+      "context": {
+        "position": "Still exploring",
+        "goal": "Ball control",
+        "plan": [],
+        "allowedDrillIds": []
+      },
+      "pythonJsonCharacters": 90
+    }
+  ]
+}

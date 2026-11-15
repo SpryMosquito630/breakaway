@@ -30,10 +30,11 @@ import {
   pairCoachService,
   forgetCoachPair,
   ServiceError,
+  coachPairRevision,
   type ServiceState,
 } from "../coachAi/service";
 import {
-  coachContext,
+  coachContextWithCoverage,
   offlineCoach,
   remoteCoachAllowed,
   validateCoachReply,
@@ -44,11 +45,14 @@ import { CoachSendFlow } from "../coachAi/sendFlow";
 import { queueChatTurn, updateChatTurn, type ChatTurn } from "../coachAi/conversation";
 import { CoachTyping } from "../components/CoachTyping";
 import { buildCoachRequest, ChatGeneration } from "../coachAi/memory";
+import {
+  coachConsentKey as consentKey,
+  coachRequestFailure,
+} from "../coachAi/serviceResponse";
 
 type CoachService = ServiceState & { coachIdentity?: string };
-function consentKey(service: CoachService) {
-  return `chat-v2-${service.chatMemoryAvailable ? "memory" : "single"}|${service.base}|${service.chatProvider}|${service.coachIdentity ?? service.chatPairToken ?? ""}`;
-}
+const pairingStorageNotice =
+  "Connection works for this app session, but could not be saved. Unlock your device and reconnect before restarting.";
 
 const starters = ["Today’s practice", "Weaker foot", "Passing"];
 export function Coach({ navigation }: { navigation: any }) {
@@ -257,7 +261,7 @@ export function Coach({ navigation }: { navigation: any }) {
       }
       let active: CoachService = {
         ...discovered,
-        coachIdentity: session?.data.session?.user.id,
+        coachIdentity: session?.error ? undefined : session?.data.session?.user.id,
       };
       if (COACH_DEV_ENABLED && discovered.chatDevAllowed && discovered.chatPairRequired)
         active = {
@@ -272,6 +276,7 @@ export function Coach({ navigation }: { navigation: any }) {
       )
         return;
       setService(active);
+      if (active.chatPairPersisted === false) setConnection(pairingStorageNotice);
       clearTimeout(timer);
       await continueQuestion(active);
     } catch {
@@ -310,18 +315,25 @@ export function Coach({ navigation }: { navigation: any }) {
         controller.signal.aborted ||
         !generation.current.matches(epoch)
       ) {
-        await forgetCoachPair();
+        await forgetCoachPair(paired.chatPairStoreRevision);
         return;
       }
       setService(paired);
       setPairCode("");
       setPairing(false);
+      if (paired.chatPairPersisted === false) setConnection(pairingStorageNotice);
       clearTimeout(timer);
       if (flow.current.question) await continueQuestion(paired);
       else setConnection("Phone paired. Send your question when you’re ready.");
       haptic("success");
     } catch (e) {
       if (mounted.current && remoteAllowed.current && generation.current.matches(epoch)) {
+        if (e instanceof ServiceError && e.code === "pair_changed") {
+          flow.current.reset();
+          setPairing(false);
+          setService(null);
+          failTurn(e.message);
+        }
         setPairCode("");
         setConnection(
           e instanceof Error && e.name !== "AbortError"
@@ -355,6 +367,10 @@ export function Coach({ navigation }: { navigation: any }) {
   async function sendAI(text: string, active: CoachService) {
     if (!allowed || !active.chatAvailable) return;
     const epoch = generation.current.value;
+    const pairRevision =
+      COACH_DEV_ENABLED && (active.chatPairRequired || active.chatPairToken)
+        ? coachPairRevision()
+        : undefined;
     const controller = new AbortController();
     request.current = controller;
     setMode("ai");
@@ -377,14 +393,15 @@ export function Coach({ navigation }: { navigation: any }) {
         throw Error(
           "AI is unavailable for this session. Your question is still here; you can use the offline guide.",
         );
-      const identity = session?.data.session?.user.id;
+      const identity = session?.error ? undefined : session?.data.session?.user.id;
       if (identity !== active.coachIdentity) {
         flow.current.reset();
         throw Error(
           "Your account changed. Send again to review sharing before using AI.",
         );
       }
-      const context = coachContext(data, catalog);
+      const sharing = coachContextWithCoverage(data, catalog);
+      const context = sharing.context;
       const payload = buildCoachRequest({
         turns,
         scope: consentKey(active),
@@ -394,6 +411,15 @@ export function Coach({ navigation }: { navigation: any }) {
         context,
         memoryAvailable: active.chatMemoryAvailable === true,
       });
+      if (sharing.sharedDrillCount < sharing.eligibleDrillCount)
+        setConnection(
+          [
+            active.chatPairPersisted === false ? pairingStorageNotice : "",
+            `Sharing ${sharing.sharedDrillCount} of ${sharing.eligibleDrillCount} compatible drills. Full instructions stay on this device.`,
+          ]
+            .filter(Boolean)
+            .join(" "),
+        );
       setAwaitingReply(true);
       const value = await requestService<unknown>(
         active,
@@ -401,6 +427,7 @@ export function Coach({ navigation }: { navigation: any }) {
         JSON.stringify(payload),
         controller.signal,
         true,
+        { userId: active.coachIdentity ?? null, pairRevision },
       );
       if (
         !mounted.current ||
@@ -426,9 +453,45 @@ export function Coach({ navigation }: { navigation: any }) {
       setMessage("");
     } catch (e) {
       if (!generation.current.matches(epoch)) return;
+      e = coachRequestFailure(e, pairRevision, coachPairRevision());
       flow.current.cancel();
+      if (
+        e instanceof ServiceError &&
+        (e.code === "account_changed" || e.code === "pair_changed")
+      ) {
+        flow.current.reset();
+        if (mounted.current && generation.current.matches(epoch)) {
+          setService(null);
+          setDisclosure(false);
+          setPairing(false);
+        }
+      }
       if (e instanceof ServiceError && e.code === "pair_required") {
-        await forgetCoachPair();
+        const cleared = await forgetCoachPair(pairRevision);
+        if (
+          !mounted.current ||
+          !remoteAllowed.current ||
+          !generation.current.matches(epoch)
+        )
+          return;
+        const recovery = coachRequestFailure(
+          e,
+          pairRevision === undefined ? undefined : pairRevision + 1,
+          coachPairRevision(),
+        );
+        if (recovery !== e) {
+          flow.current.reset();
+          if (mounted.current && generation.current.matches(epoch)) {
+            setService(null);
+            setPairing(false);
+            failTurn((recovery as ServiceError).message);
+          }
+          return;
+        }
+        if (!cleared && mounted.current && generation.current.matches(epoch))
+          setConnection(
+            "Could not clear the connection from device storage. It is blocked for this app session; unlock your device and reconnect before restarting.",
+          );
         if (
           mounted.current &&
           remoteAllowed.current &&

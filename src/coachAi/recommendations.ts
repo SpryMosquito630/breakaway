@@ -7,6 +7,11 @@ import {
   type Goal,
 } from "../domain/model";
 import { localGuide } from "./guide";
+import {
+  COACH_CONTEXT_CHARACTERS,
+  pythonContextCharacters,
+  type CoachTrainingContext,
+} from "./contextBudget";
 
 export type CoachReply = {
   reply: string;
@@ -98,16 +103,37 @@ export function offlineCoach(
 }
 /** Only explicitly disclosed training preferences and eligible catalog facts; no private profile or clips. */
 export function coachContext(data: AppData, catalog: Drill[]) {
-  const eligible = catalog
-    .filter((d) => allowed(d, data.profile) && recommendedForPosition(d, data.profile))
-    .slice(0, 100);
-  return {
+  return coachContextWithCoverage(data, catalog).context;
+}
+
+/** Retain complete factual records only; matching IDs never advertise omitted details. */
+export function coachContextWithCoverage(data: AppData, catalog: Drill[]) {
+  const eligible = catalog.filter(
+    (d) => allowed(d, data.profile) && recommendedForPosition(d, data.profile),
+  );
+  let context: CoachTrainingContext = {
     position: data.profile.position ?? "Still exploring",
     goal: data.profile.goal,
-    plan: eligible.map((d) => ({ id: d.id, name: d.name, cue: d.cue })),
-    allowedDrillIds: eligible.map((d) => d.id),
+    plan: [],
+    allowedDrillIds: [],
+  };
+  for (const drill of eligible) {
+    if (context.plan.length >= 100) break;
+    const candidate = {
+      ...context,
+      plan: [...context.plan, { id: drill.id, name: drill.name, cue: drill.cue }],
+      allowedDrillIds: [...context.allowedDrillIds, drill.id],
+    };
+    if (pythonContextCharacters(candidate) <= COACH_CONTEXT_CHARACTERS)
+      context = candidate;
+  }
+  return {
+    context,
+    eligibleDrillCount: eligible.length,
+    sharedDrillCount: context.plan.length,
   };
 }
+
 export function validateCoachReply(
   value: unknown,
   allowedIds: string[],

@@ -2,7 +2,21 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 import { COACH_DEV_ENABLED } from "../config/coach";
 import { makeCoachPair, validCoachPair } from "./pairing";
-import { readCoachPair, saveCoachPair, forgetStoredCoachPair } from "./pairStore";
+import {
+  readCoachPair,
+  saveCoachPairIfUnchanged,
+  forgetStoredCoachPair,
+  coachPairRevision,
+  coachPairPersisted,
+} from "./pairStore";
+import {
+  ServiceError,
+  readServiceResponse,
+  assertCoachRequestIdentity,
+  type CoachRequestIdentity,
+} from "./serviceResponse";
+export { ServiceError } from "./serviceResponse";
+export { coachPairRevision } from "./pairStore";
 import { connectedClient } from "../connected/client";
 import type { ImagePickerAsset } from "expo-image-picker";
 export type ServiceState = {
@@ -16,6 +30,8 @@ export type ServiceState = {
   chatMemoryAvailable?: boolean;
   chatPairToken?: string;
   chatPairExpiresAt?: number;
+  chatPairPersisted?: boolean;
+  chatPairStoreRevision?: number;
   jointViewAvailable: boolean;
 };
 export type Feedback = {
@@ -78,12 +94,31 @@ export async function requestService<T>(
   body: BodyInit,
   signal: AbortSignal,
   json = false,
+  identity?: CoachRequestIdentity,
 ): Promise<T> {
+  const pair =
+    path === "chat" && identity?.pairRevision !== undefined
+      ? await readCoachPair()
+      : null;
   const session =
     (path === "chat" || path === "coach" || path === "food") && connectedClient
       ? await connectedClient.auth.getSession()
       : null;
-  const userToken = session?.data.session?.access_token;
+  const user = session?.error ? null : session?.data.session;
+  const userToken = user?.access_token;
+  if (path === "chat" && identity)
+    assertCoachRequestIdentity(identity, {
+      userId: user?.user.id ?? null,
+      pairRevision: coachPairRevision(),
+      pair,
+      base: service.base,
+      pairToken: service.chatPairToken,
+    });
+  if (signal.aborted) {
+    const error = new Error("Request stopped.");
+    error.name = "AbortError";
+    throw error;
+  }
   const response = await fetch(`${service.base}/${path}`, {
     method: "POST",
     body,
@@ -100,30 +135,28 @@ export async function requestService<T>(
       ...(json ? { "Content-Type": "application/json" } : {}),
     },
   });
-  const value = await response.json();
-  if (!response.ok)
-    throw new ServiceError(
-      value?.error?.message ?? "The analysis service is unavailable.",
-      value?.error?.code,
-    );
-  return value as T;
-}
-
-export class ServiceError extends Error {
-  constructor(
-    message: string,
-    public code?: string,
-  ) {
-    super(message);
-  }
+  return readServiceResponse<T>(response);
 }
 
 export const forgetCoachPair = forgetStoredCoachPair;
 export async function restoreCoachPair(service: ServiceState): Promise<ServiceState> {
   if (!COACH_DEV_ENABLED) return service;
   const pair = await readCoachPair();
-  if (!validCoachPair(pair, service.base)) return service;
-  return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
+  const clean = {
+    ...service,
+    chatPairToken: undefined,
+    chatPairExpiresAt: undefined,
+    chatPairPersisted: undefined,
+    chatPairStoreRevision: undefined,
+  };
+  if (!validCoachPair(pair, service.base)) return clean;
+  return {
+    ...clean,
+    chatPairToken: pair.token,
+    chatPairExpiresAt: pair.expiresAt,
+    chatPairPersisted: coachPairPersisted(),
+    chatPairStoreRevision: coachPairRevision(),
+  };
 }
 export async function pairCoachService(
   service: ServiceState,
@@ -137,6 +170,7 @@ export async function pairCoachService(
     !/^\d{8}$/.test(code)
   )
     throw Error("Enter the eight-digit pairing code.");
+  const revision = coachPairRevision();
   const value = await requestService<unknown>(
     service,
     "pair",
@@ -144,9 +178,25 @@ export async function pairCoachService(
     signal,
     true,
   );
+  if (signal.aborted) {
+    const error = new Error("Pairing stopped.");
+    error.name = "AbortError";
+    throw error;
+  }
   const pair = makeCoachPair(service.base, value);
-  await saveCoachPair(pair);
-  return { ...service, chatPairToken: pair.token, chatPairExpiresAt: pair.expiresAt };
+  const saved = await saveCoachPairIfUnchanged(pair, revision);
+  if (!saved.applied)
+    throw new ServiceError(
+      "Your private connection changed. Retry your question using the latest connection.",
+      "pair_changed",
+    );
+  return {
+    ...service,
+    chatPairToken: pair.token,
+    chatPairExpiresAt: pair.expiresAt,
+    chatPairPersisted: saved.persisted,
+    chatPairStoreRevision: revision + 1,
+  };
 }
 export async function clipForm(asset: ImagePickerAsset, context?: unknown) {
   if (asset.fileSize && asset.fileSize > 50 * 1024 * 1024)
