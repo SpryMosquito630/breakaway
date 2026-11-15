@@ -2,7 +2,13 @@ import { haptic } from "./src/utils/haptics";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { DEVELOPER_FEATURES } from "./src/config/features";
 import { setConnectedAgeBand } from "./src/connected/access";
-import { AccessibilityInfo, ActivityIndicator, Text, View } from "react-native";
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -31,6 +37,7 @@ import {
   Settings2,
 } from "lucide-react-native";
 import { AppProvider, useApp } from "./src/state/AppState";
+import { RecoveryActions } from "./src/components/RecoveryActions";
 import { Onboarding, ReplayOnboarding } from "./src/screens/Onboarding";
 import { Today, Plan } from "./src/screens/Home";
 import { Library, Detail, Replace } from "./src/screens/Library";
@@ -205,7 +212,15 @@ function Main({ navigation }: { navigation: any }) {
 }
 function Shell() {
   const { C, s, isDark } = useTheme();
-  const { data, loading, recovery, error, retry } = useApp();
+  const {
+    data,
+    loading,
+    recovery,
+    error,
+    retry,
+    exportRecoveryRaw,
+    startFreshPreservingBackup,
+  } = useApp();
   setConnectedAgeBand(data.profile.ageBand);
   const [reduce, setReduce] = useState(false);
   useEffect(() => {
@@ -230,17 +245,30 @@ function Shell() {
     );
   if (recovery)
     return (
-      <SafeAreaView style={[s.page, { justifyContent: "center", padding: 24, gap: 16 }]}>
-        <StatusBar style={isDark ? "light" : "dark"} />
-        <Text style={s.h2}>Your saved training needs attention</Text>
-        <Text accessibilityRole="alert" style={s.body}>
-          {error}
-        </Text>
-        <Text style={s.body}>
-          Your original saved data is preserved. Training and setup are paused so a new
-          plan cannot overwrite it.
-        </Text>
-        <Link label="Try reading again" onPress={retry} />
+      <SafeAreaView style={s.page}>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: 24,
+            gap: 16,
+          }}
+        >
+          <StatusBar style={isDark ? "light" : "dark"} />
+          <Text style={s.h2}>Your saved training needs attention</Text>
+          <Text accessibilityRole="alert" style={s.body}>
+            {error}
+          </Text>
+          <Text style={s.body}>
+            Your original saved data is preserved. Training and setup are paused so a new
+            plan cannot overwrite it.
+          </Text>
+          <Link label="Try reading again" onPress={retry} />
+          <RecoveryActions
+            readRaw={exportRecoveryRaw}
+            startFresh={startFreshPreservingBackup}
+          />
+        </ScrollView>
       </SafeAreaView>
     );
   return (

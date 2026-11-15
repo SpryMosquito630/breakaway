@@ -203,7 +203,7 @@ test("transient read errors block updates and retry rereads the existing save", 
   let reads = 0;
   const get = storage.getItem;
   storage.getItem = async (key) => {
-    reads++;
+    if (key === APP_STORAGE_KEY) reads++;
     if (fail) throw Error("Unavailable");
     return get(key);
   };
